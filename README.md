@@ -2,7 +2,7 @@
 
 Formula 1 results, standings & history — an unofficial fan site.
 
-- **Live site:** https://trackalmanac.com (until the domain is connected: https://paradox-hub12.github.io/trackalmanac/)
+- **Live site:** https://trackalmanac.com
 - **What's on it:** 2026 race calendar with next-race countdown, drivers' and constructors' standings, race-by-race results with circuit maps, and a past-seasons archive.
 - **How it updates:** a weekly scheduled task looks up the latest official race results, updates the data in `index.html`, and pushes the change here. GitHub Pages republishes the site automatically.
 
