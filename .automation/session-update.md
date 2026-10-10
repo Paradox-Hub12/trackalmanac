@@ -14,7 +14,10 @@ Instructions for the scheduled run that fires ~10 minutes after each F1 session.
    - `RACES` holds rounds. A completed round has a `res` object.
    - `DRIVERS` and `CONSTRUCTORS` hold championship points.
    Before writing anything, study the most recent round (and the most recent sprint round, for sprint sessions) and match their format exactly.
-3. **Wait for results.** Check whether the target session's official classification is published, using formula1.com first, then FIA documents, then reputable outlets. If it isn't out yet (the session may have been delayed or red-flagged), run `sleep 540` and check again, up to 5 times. If it's still not out, change nothing and finish with a one-line message saying so.
+3. **Wait for results.** Check whether the target session's official classification is published, using formula1.com first, then FIA documents, then reputable outlets.
+   - formula1.com's results tables often stay empty ("No results available") for hours, even though its own race-report article and other outlets (RaceFans, Motorsport Week, Crash.net, GPFans, PlanetF1, Autosport) already have the full classification. If at least two of those agree, use them. Don't wait on formula1.com.
+   - When a source disagrees on a detail, prefer formula1.com's article. For example, outlets differ on whether a driver who crashed on the last lap was classified.
+   - For sprints and races, check your points against a published championship table after the session (RaceFans prints one). If it isn't out yet (the session may have been delayed or red-flagged), run `sleep 540` and check again, up to 5 times. If it's still not out, change nothing and finish with a one-line message saying so.
 4. **Add the session.** Fill that session's table in `SEASON[round]`. Also add any other session of this round or the previous round that has finished but is still missing.
    - **Sprint:** also update `DRIVERS` and `CONSTRUCTORS` with the sprint points.
    - **Grand Prix:**
