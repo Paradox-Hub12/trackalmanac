@@ -1,0 +1,88 @@
+# Adds new session results to src/data.json from Jolpica-F1 and OpenF1, rebuilds the
+# site with build.py and pushes. See README.md ("Automatic result updates").
+name: Update results
+
+on:
+  schedule:
+    - cron: "*/30 * * * 5,6,0,1"     # every 30 minutes, Friday to Monday (UTC)
+  workflow_dispatch:                 # "Run workflow" button
+    inputs:
+      selftest_round:
+        description: "Optional test: rebuild this finished round on a copy of the data and compare (nothing is saved)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: update-site
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SELFTEST: ${{ inputs.selftest_round }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Self-test (manual runs only)
+        if: env.SELFTEST != ''
+        run: python3 scripts/update.py --selftest "$SELFTEST"
+
+      - name: Update data, rebuild and push
+        if: env.SELFTEST == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          msg="$RUNNER_TEMP/commit-msg.txt"
+          status=0
+          update() {
+            set +e
+            python3 scripts/update.py --message-file "$msg"
+            status=$?
+            set -e
+            if [ -n "$(git status --porcelain)" ]; then
+              node --check app.js
+              node --check data.js
+            fi
+          }
+          update
+          pushed=no
+          for attempt in 1 2 3; do
+            # pull before pushing: if main moved (e.g. a manual update), redo the update on top of it
+            git fetch -q origin main
+            if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ] && [ "$(git merge-base HEAD origin/main)" != "$(git rev-parse origin/main)" ]; then
+              echo "main changed since checkout; redoing the update on the latest version"
+              git reset -q --hard origin/main
+              update
+            fi
+            if [ -z "$(git status --porcelain)" ]; then
+              echo "Nothing to commit."
+              break
+            fi
+            [ -s "$msg" ] || echo "Auto: rebuild" > "$msg"
+            git add -A
+            git commit -q -F "$msg"
+            if git pull -q --rebase origin main && git push -q origin HEAD:main; then
+              pushed=yes
+              echo "Pushed: $(head -1 "$msg")"
+              break
+            fi
+            git rebase --abort 2>/dev/null || true
+            git reset -q --hard origin/main
+            update
+          done
+          if [ "$pushed" = yes ]; then
+            # ask GitHub Pages to publish now (pushes made by workflows may not trigger it)
+            gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" >/dev/null && echo "Pages build requested" || echo "Pages build request not accepted (the push will still publish)"
+          fi
+          if [ "$status" != 0 ]; then
+            echo "::error::Some results failed a check and were not published. See the log above."
+            exit 1
+          fi
