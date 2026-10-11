@@ -371,11 +371,11 @@ body.fs-lock{overflow:hidden}
 #lp-lab{min-width:220px;color:var(--ink-2)}
 .nxs{border-top:1px solid var(--rule);padding-top:8px;display:flex;flex-direction:column}
 .nxs .nr{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:8px;padding:5px 0;border-bottom:1px dashed var(--rule);font-family:var(--f-data);font-size:12.5px;color:var(--ink-2);align-items:baseline}
-.nxs .nr span:first-child{font-family:var(--f-body);font-weight:600;color:var(--ink)}
+.nxs .nr>span:first-child{font-family:var(--f-body);font-weight:600;color:var(--ink)}
 .nxs .nr.h{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--rule)}
-.nxs .nr.h span:first-child{font-family:var(--f-data);font-weight:400;color:var(--ink-3)}
+.nxs .nr.h>span:first-child{font-family:var(--f-data);font-weight:400;color:var(--ink-3)}
 .nxs .nr.gp{color:var(--signal);font-weight:600;border-bottom:0;background:rgba(255,45,45,.08);padding-left:6px;padding-right:6px;margin:2px -6px 0}
-.nxs .nr.gp span:first-child{color:var(--signal);font-family:var(--f-display);font-weight:900;font-size:16px;text-transform:uppercase}
+.nxs .nr.gp>span:first-child{color:var(--signal);font-family:var(--f-display);font-weight:900;font-size:16px;text-transform:uppercase}
 .clock{display:inline-flex;align-items:center;gap:6px;margin-top:6px}
 .clock button{background:none;border:1px solid var(--rule-2);padding:3px 8px;cursor:pointer;font-family:var(--f-data);font-size:11px;color:var(--ink-2)}
 .clock button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
@@ -434,8 +434,8 @@ body.fs-lock{overflow:hidden}
 .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--signal);margin-right:6px;animation:pl 1.2s infinite}
 @keyframes pl{50%{opacity:.25}}
 .nxs .nr.past{opacity:.45}
-.nxs .nr.nextup span:first-child::after{content:"Next";margin-left:6px;font-family:var(--f-data);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--sheet);background:var(--s2);padding:1px 5px;vertical-align:2px}
-.nxs .nr.live span:first-child::after{content:"Live";margin-left:6px;font-family:var(--f-data);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--signal);padding:1px 5px;vertical-align:2px}
+.nxs .nr.nextup>span:first-child::after{content:"Next";margin-left:6px;font-family:var(--f-data);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--sheet);background:var(--s2);padding:1px 5px;vertical-align:2px}
+.nxs .nr.live>span:first-child::after{content:"Live";margin-left:6px;font-family:var(--f-data);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--signal);padding:1px 5px;vertical-align:2px}
 /* tower full names */
 .tower li{grid-template-columns:24px 3px minmax(0,1fr) 58px;cursor:pointer}
 .tower li:hover{background:var(--panel-2)}
@@ -523,6 +523,47 @@ body.fs-lock{overflow:hidden}
 .dsort button{background:none;border:0;padding:6px 10px;cursor:pointer;font-family:var(--f-data);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
 .dsort button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
 @media (max-width:640px){.modal .mhero{grid-template-columns:1fr}.modal .mhero .ph{max-height:300px}.modal .mhero .bign{font-size:64px}.tline li{grid-template-columns:96px 1fr}.tduo{grid-template-columns:1fr}.dcards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.dcard .ln{font-size:21px}.tcards{grid-template-columns:1fr}}
+/* intro feature boxes */
+.intro{display:block}
+.intro ul{max-width:none;justify-content:flex-start;gap:8px}
+.intro li{padding:0;border:0}
+.intro li button{background:var(--panel);border:1px solid var(--rule-2);padding:7px 12px;cursor:pointer;font-family:var(--f-data);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.intro li button:hover{border-color:var(--signal);color:var(--ink)}
+.intro li button.new{border-color:var(--plate-meta);color:var(--plate-ink)}
+/* close buttons */
+#dclose,#mclose{background:var(--ink);border-color:var(--ink);color:#000;font-weight:600}
+#dclose:hover,#mclose:hover{background:#fff;border-color:#fff;color:#000}
+/* drawer head with detail button */
+.dhead{display:flex;justify-content:space-between;align-items:flex-end;gap:8px 12px;margin-top:4px;flex-wrap:wrap}
+@media (max-width:520px){.dhead h1{font-size:clamp(40px,13vw,60px)}}
+.dhead h1{margin-top:0!important;min-width:0}
+.dhead .navbtn{flex:none;margin-bottom:6px}
+/* session rows with results */
+.sess .row.go,.nxs .nr.go{cursor:pointer}
+.sess .row.go:hover,.nxs .nr.go:hover{background:var(--panel-2)}
+.sess .row strong small{display:block;font-family:var(--f-data);font-size:10px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--signal);margin-top:2px}
+.sres{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--f-data);font-size:12px;color:var(--ink-2);padding-top:2px}
+.sres .t3{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.sres .t3 b{color:var(--ink-3);font-weight:500}
+.sres .t3:first-child b{color:var(--gold)}
+.sres .t3 i{width:3px;height:12px;display:inline-block}
+.sres .t3 strong{font-family:var(--f-display);font-size:15px;font-weight:800;color:var(--ink);letter-spacing:.02em}
+.sres .t3 em{font-style:normal;color:var(--ink-3)}
+.sres .st{font-style:normal;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.sres .st-live{color:var(--signal)}.sres .st-wait{color:var(--s3)}
+.nxs .nr .sres{font-size:11.5px}
+.nxs .nr.gp .sres{color:var(--ink-2);font-weight:400}
+/* coming-soon boxes */
+.soon{border:1.5px dashed var(--up-rule);background:var(--up-bg);padding:18px 18px;display:flex;flex-direction:column;gap:4px}
+.soon b{font-family:var(--f-display);font-weight:900;font-size:28px;text-transform:uppercase;line-height:1;color:var(--ink-2)}
+.soon span{color:var(--ink-3);font-size:13.5px}
+.soon .mono{font-size:12px;color:var(--ink-2)}
+.soon.live{border-color:var(--signal)}.soon.live b{color:var(--signal)}
+.soon.wait b{color:var(--s3)}
+.wstat{display:inline-block;font-family:var(--f-data);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--rule-2);color:var(--ink-3)}
+.wstat.done{background:var(--pts);border-color:var(--pts);color:#fff}
+.wstat.live{background:var(--signal);border-color:var(--signal);color:#fff}
+.wstat.wait{border-color:var(--s3);color:var(--s3)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -535,9 +576,8 @@ body.fs-lock{overflow:hidden}
     <div><nav aria-label="Sections"><button data-go="season" id="n-season">2026 Season</button><button data-go="championship" id="n-championship">2026 Championship</button><button data-go="drivers" id="n-drivers">Drivers</button><button data-go="teams" id="n-teams">Teams</button><button data-go="archive" id="n-archive">Archive</button></nav>
       <div class="clock" role="group" aria-label="Time format"><span class="lbl">Clock</span><button data-clock="12" id="ck12">12h</button><button data-clock="24" id="ck24">24h</button></div></div>
   </div>
-  <section class="intro" aria-label="About Track Almanac">
-    <p>Track Almanac is a fan-made record of the Formula 1 season, built around the numbers. Follow the 2026 calendar with every session shown in your own time and the track's, check driver and team standings after each round, and open any race for the full story: practice, qualifying, sprint, starting grid with penalties explained, the complete classification and a lap-by-lap chart of how it played out. The championship page breaks down every point, and the archive covers past seasons.</p>
-    <ul><li>Calendar &amp; session times</li><li>Live standings</li><li>Full race results</li><li>Lap-by-lap charts</li><li>Points breakdown</li><li>Season archive</li></ul>
+  <section class="intro" aria-label="What's on Track Almanac">
+    <ul><li><button data-scroll=".ribbon">Calendar &amp; session times</button></li><li><button data-scroll=".tower">Live standings</button></li><li><button data-scroll=".plates-wrap">Full race results</button></li><li><button data-lapcharts>Lap-by-lap charts</button></li><li><button data-go="championship">Points breakdown</button></li><li><button class="new" data-go="drivers">2026 Drivers</button></li><li><button class="new" data-go="teams">2026 Constructors</button></li><li><button data-go="archive">Season archive</button></li></ul>
   </section>
   <main id="app"></main>
   <footer class="foot">
@@ -745,7 +785,7 @@ function plateHTML(r){
       <div class="fig">${plan(r.track,{label:r.circuit})}</div>
       <div class="cap"><h3>${esc(r.short)}</h3><span class="rn">R${String(r.r).padStart(2,"0")}${r.sprint?" · SPRINT":""}<br>${esc(r.days)}</span>
       ${st?`<span class="when"><span class="lbl">Race · your time</span><b>${tfmt(st,null)}</b></span><span class="when"><span class="lbl">Race · track time</span><b>${tfmt(st,tz)}</b></span>`:""}</div>
-      <div class="acts one"><button data-quick="${r.r}">Weekend times</button></div>
+      <div class="acts"><button data-quick="${r.r}">Weekend times</button><button data-detail="${r.r}">Detailed view</button></div>
     </article>`;
 }
 function viewSeason(){
@@ -772,7 +812,7 @@ function viewSeason(){
         <div class="lbl" style="margin-top:16px">Weekend schedule</div>
         <div class="nxs" aria-label="Weekend schedule">
           <div class="nr h"><span>Session</span><span>Your time (${esc(tzName(st,null))})</span><span>Track time (${esc(tzName(st,tz))})</span></div>
-          ${SCHED[nr.r][1].map(([nm,t,du])=>`<div class="nr${nm==="Grand Prix"?" gp":""}" data-t="${Date.parse(t)}" data-d="${du||120}"><span>${esc(nm==="Grand Prix"?"Race":nm)}</span><span>${tfmt(t,null)}</span><span>${tfmt(t,tz)}</span></div>`).join("")}
+          ${SCHED[nr.r][1].map(([nm,t,du])=>`<div class="nr go${nm==="Grand Prix"?" gp":""}" data-t="${Date.parse(t)}" data-d="${du||120}" ${sesAttr(nr.r,nm)}><span>${esc(nm==="Grand Prix"?"Race":nm)}</span><span>${tfmt(t,null)}</span><span>${tfmt(t,tz)}</span><div class="sres">${top3(nr.r,SESKEY[nm])}</div></div>`).join("")}
         </div>
       </div>
     </section>
@@ -817,16 +857,17 @@ function navAll(r){const i=RACES.indexOf(r),p=RACES[i-1],n=RACES[i+1];
 function sessionTable(r){const sc=SCHED[r.r];if(!sc)return "";const tz=sc[0];
   return `<div class="sess"><div class="row h"><span>Session</span><span>Your time</span><span>Track time (${esc(tzName(sc[1][0][1],tz))})</span></div>
     ${sc[1].map(([nm,st,dur])=>{const en=dur?new Date(Date.parse(st)+dur*60000).toISOString():null;
-      return `<div class="row${nm==="Grand Prix"?" gp":""}"><strong>${esc(nm)}</strong>
+      const k=SESKEY[nm],ss=sesState(r.r,k);
+      return `<div class="row go${nm==="Grand Prix"?" gp":""}" ${sesAttr(r.r,nm)}><strong>${esc(nm)}<small>${ss==="done"?"Results ›":ss==="live"?"Live now":ss==="wait"?"Yet to update":"Coming soon"}</small></strong>
         <span class="t">${tfmt(st,null,{weekday:"short",day:"numeric",month:"short"})}<small>${tfmt(st,null,{hour:"2-digit",minute:"2-digit"})}${en?"–"+tfmt(en,null,{hour:"2-digit",minute:"2-digit"}):""} ${esc(tzName(st,null))}</small></span>
-        <span class="t">${tfmt(st,tz,{weekday:"short",day:"numeric",month:"short"})}<small>${tfmt(st,tz,{hour:"2-digit",minute:"2-digit"})}${en?"–"+tfmt(en,tz,{hour:"2-digit",minute:"2-digit"}):""}</small></span></div>`;}).join("")}</div>`;}
+        <span class="t">${tfmt(st,tz,{weekday:"short",day:"numeric",month:"short"})}<small>${tfmt(st,tz,{hour:"2-digit",minute:"2-digit"})}${en?"–"+tfmt(en,tz,{hour:"2-digit",minute:"2-digit"}):""}</small></span><div class="sres">${top3(r.r,k)}</div></div>`;}).join("")}</div>`;}
 function openUpcoming(r){
   const [pv,nx]=navAll(r);
   $("#drawer-root").innerHTML=`<div class="scrim" data-close></div>
   <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dt">
     <div class="dtop">${pv}<button class="navbtn" data-close id="dclose">Close ✕</button>${nx}</div>
     <div class="lbl" style="margin-top:16px">Round ${r.r} · ${esc(r.days)} 2026${r===nextRace?" · next race":""}</div>
-    <h1 id="dt" style="margin-top:4px">${esc(r.short)}</h1>
+    <div class="dhead"><h1 id="dt">${esc(r.short)}</h1><button class="navbtn sig" data-detail="${r.r}">Detailed view →</button></div>
     <div style="color:var(--ink-2)">${esc(r.gp)} · ${esc(r.circuit)}, ${esc(r.city)}</div>
     <div class="fig">${plan(r.track,{big:true,label:r.circuit,len:r.len,sectors:true})}</div>
     <div class="dl">
@@ -834,8 +875,8 @@ function openUpcoming(r){
       <div><span class="lbl">Race distance</span><b>${r.laps} laps</b><span class="s">${(r.len*r.laps).toFixed(1)} km · ${r.len.toFixed(3)} km lap</span></div>
     </div>
     ${sessionTable(r)}
-    <p class="dnote">Session times are from the official 2026 schedule. "Your time" uses this device's time zone. Results appear here after the race.</p>
-    <div class="dnav">${pv}<span></span>${nx}</div>
+    <p class="dnote">Session times are from the official 2026 schedule. "Your time" uses this device's time zone. Each session's top three appears once it finishes; select a session for the full results.</p>
+    <div class="dnav">${pv}<button class="navbtn sig" data-detail="${r.r}">Detailed view →</button>${nx}</div>
   </aside>`;
   $("#dclose").focus();
 }
@@ -851,7 +892,7 @@ function openRace(n){
   <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dt">
     <div class="dtop">${pv}<button class="navbtn" data-close id="dclose">Close ✕</button>${nx}</div>
     <div class="lbl" style="margin-top:16px">Round ${r.r} · ${fmt(r.date,{day:"numeric",month:"long",year:"numeric"})}</div>
-    <h1 id="dt" style="margin-top:4px">${esc(r.short)}</h1>
+    <div class="dhead"><h1 id="dt">${esc(r.short)}</h1><button class="navbtn sig" data-detail="${r.r}">Detailed view →</button></div>
     <div style="color:var(--ink-2)">${esc(r.gp)} · ${esc(r.circuit)}</div>
     <div class="fig">${plan(r.track,{big:true,label:r.circuit,len:r.len,sectors:true})}</div>
     <div class="res"><div class="hd lbl">Grand Prix podium · ${r.laps} laps</div>${x.pod.map((p,k)=>row(p[0],p[1],k,x.time)).join("")}</div>
@@ -870,6 +911,79 @@ function openRace(n){
   $("#dclose").focus();
 }
 const closeDrawer=()=>{$("#drawer-root").innerHTML="";};
+
+/* ---------- LIVE WEEKEND: per-session results ---------- */
+const SESKEY={"Practice 1":"fp1","Practice 2":"fp2","Practice 3":"fp3","Sprint Qualifying":"sq","Sprint":"sprint","Qualifying":"quali","Grand Prix":"race"};
+const SESLAB={fp1:"Practice 1",fp2:"Practice 2",fp3:"Practice 3",sq:"Sprint Qualifying",sprint:"Sprint",quali:"Qualifying",race:"Race"};
+const sesRows=(n,k)=>{const S=SEASON[n]||{};return S[k]&&S[k].length?S[k]:null;};
+function sesState(n,k){if(sesRows(n,k))return "done";const sc=SCHED[n];if(!sc)return "soon";
+  const it=sc[1].find(x=>SESKEY[x[0]]===k);if(!it)return "soon";
+  const a=Date.parse(it[1]),e=a+(it[2]||120)*60000,now=Date.now();return now<a?"soon":now<e?"live":"wait";}
+const sesTime=(k,x)=>k==="sq"||k==="quali"?([x[5],x[4],x[3]].find(v=>v&&/\d:\d/.test(v))||""):k.startsWith("fp")?(x[3]||""):(x[4]||"");
+const STATE_TXT={live:"Session in progress · results soon",wait:"Finished · yet to update",soon:"Coming soon"};
+function top3(n,k){const rows=sesRows(n,k);const st=sesState(n,k);
+  if(!rows)return `<em class="st st-${st}">${STATE_TXT[st]}</em>`;
+  return rows.slice(0,3).map((x,i)=>`<span class="t3"><b>P${i+1}</b><i style="background:${tcol(teamAt(x[2],n))}"></i><strong>${esc(code(x[2]))}</strong><em>${esc(sesTime(k,x))}</em></span>`).join("");}
+const sesAttr=(n,nm)=>`data-sess="${n}:${SESKEY[nm]||"race"}" tabindex="0" role="button" title="Open ${esc(nm==="Grand Prix"?"Race":nm)} details"`;
+function soonBox(n,k){const st=sesState(n,k)==="done"?"soon":sesState(n,k);const sc=SCHED[n];const it=sc?sc[1].find(x=>SESKEY[x[0]]===k):null;
+  const msg=st==="live"?["Session in progress","Results will be added here once the session ends."]:st==="wait"?["Yet to update","This session has finished. Results are being added."]:["Coming soon","This session hasn't taken place yet."];
+  return `<div class="soon ${st}"><span class="lbl">${esc(SESLAB[k])}</span><b>${msg[0]}</b><span>${msg[1]}</span>${it?`<span class="mono">${tfmt(it[1],null)} your time · ${tfmt(it[1],sc[0])} track time</span>`:""}</div>`;}
+function fpOut(n,k){const rows=sesRows(n,k);return rows?practiceTable(rows,n):soonBox(n,k);}
+function jumpTo(k){if(!k)return;if(/^fp\d$/.test(k)){const b=document.querySelector(`[data-fp="${k}"]`);if(b)b.click();k="practice";}
+  const el=$("#s-"+k);if(el)setTimeout(()=>el.scrollIntoView({block:"start"}),30);}
+function viewLive(n){
+  const r=RACES.find(x=>x.r===n);if(!r)return viewSeason();
+  const S=SEASON[n]||{},sc=SCHED[n],tz=sc?sc[0]:null,i=RACES.indexOf(r),p=RACES[i-1],nx=RACES[i+1];
+  const pv=`<button class="navbtn" ${p?`data-detail="${p.r}"`:"disabled"}>← ${p?`R${p.r} ${shortName(p)}`:"Season start"}</button>`;
+  const nb=`<button class="navbtn" ${nx?`data-detail="${nx.r}"`:"disabled"}>${nx?`R${nx.r} ${shortName(nx)}`:"Season end"} →</button>`;
+  const sessions=sc?sc[1]:[];const keys=sessions.map(x=>SESKEY[x[0]]);
+  const doneN=keys.filter(k=>sesRows(n,k)).length;
+  const fps=keys.filter(k=>/^fp/.test(k));
+  const pole=sesRows(n,"quali"),spw=sesRows(n,"sprint");
+  const jumps=[["weekend","Weekend"],["practice","Practice"],...(r.sprint?[["sq","Sprint quali"],["sprint","Sprint"]]:[]),["quali","Qualifying"],["grid","Grid"],["race","Race"],["after","Standings"]];
+  const tbl=(k,f)=>sesRows(n,k)?f(sesRows(n,k)):soonBox(n,k);
+  return `
+  <div class="dnav" style="margin-top:18px">${pv}<button class="navbtn" data-go="season">2026 Season</button>${nb}</div>
+  <section class="dhero">
+    <div class="info">
+      <span class="lbl">Round ${r.r} of ${RACES.length} · ${esc(r.days)} 2026${r===nextRace?" · race weekend":""}</span>
+      <h1>${esc(r.short)}</h1>
+      <div style="color:var(--ink-2)">${esc(r.gp)} · ${esc(r.circuit)}, ${esc(r.city)}</div>
+      <div>${r.sprint?'<span class="tag sig">Sprint weekend</span>':""}<span class="tag">${r.laps} laps</span><span class="tag">${r.len.toFixed(3)} km lap</span><span class="tag">${(r.len*r.laps).toFixed(1)} km</span></div>
+      <div class="spec"><div><span class="lbl">Sessions done</span><b>${doneN} / ${keys.length||"—"}</b></div><div><span class="lbl">Pole</span><b>${pole?esc(code(pole[0][2])):"—"}</b></div><div><span class="lbl">${r.sprint?"Sprint winner":"Race winner"}</span><b>${r.sprint?(spw?esc(code(spw[0][2])):"—"):"—"}</b></div></div>
+      <p class="note2" style="margin:0">Results are added after each session finishes. Sessions still to run show as coming soon.</p>
+    </div>
+    <div class="map">
+      <span class="corner" style="top:8px;left:12px">FIG. ${String(r.r).padStart(2,"0")} · SECTORS</span>
+      ${plan(r.track,{big:true,label:r.circuit,len:r.len,sectors:true})}
+      <div class="legend"><span><i style="background:var(--s1)"></i>Sector 1</span><span><i style="background:var(--s2)"></i>Sector 2</span><span><i style="background:var(--s3)"></i>Sector 3</span><span>Split shown approximately</span></div>
+    </div>
+  </section>
+  <nav class="jump" aria-label="Jump to section">${jumps.map(j=>`<a href="#detail-${n}" data-jump="${j[0]}">${j[1]}</a>`).join("")}</nav>
+  <section class="dsec" id="s-weekend">
+    <div class="sec"><h2>Weekend</h2><span class="lbl">Select a session for its results</span></div>
+    ${sc?`<div class="sess" style="margin-top:0"><div class="row h"><span>Session</span><span>Your time</span><span>Track time</span></div>
+      ${sessions.map(([nm,st])=>{const k=SESKEY[nm];const s=sesState(n,k);return `<div class="row go${nm==="Grand Prix"?" gp":""}" ${sesAttr(n,nm)}><strong>${esc(nm)} <span class="wstat ${s}">${s==="done"?"Results":s==="live"?"Live":s==="wait"?"Updating":"Soon"}</span></strong><span class="t">${tfmt(st,null)}</span><span class="t">${tfmt(st,tz)}</span><div class="sres">${top3(n,k)}</div></div>`;}).join("")}</div>`:`<p class="note2">Schedule not published yet.</p>`}
+    ${S.tyres?`<p class="note2">Pirelli nominated C${S.tyres[0]}, C${S.tyres[1]} and C${S.tyres[2]} (hard, medium, soft).</p>`:""}
+  </section>
+  <section class="dsec" id="s-practice">
+    <div class="sec"><h2>Practice</h2><span class="lbl">Best lap per driver</span></div>
+    ${fps.length?`<div class="subtabs" role="group" aria-label="Practice session">${fps.map((k,j)=>`<button data-fp="${k}" aria-pressed="${j===0}">${k.toUpperCase()}</button>`).join("")}</div><div id="fp-out">${fpOut(n,fps[0])}</div>`:soonBox(n,"fp1")}
+    ${r.sprint?'<p class="note2">Sprint weekends have a single practice session.</p>':""}
+  </section>
+  ${r.sprint?`<section class="dsec" id="s-sq"><div class="sec"><h2>Sprint qualifying</h2><span class="lbl">SQ1 · SQ2 · SQ3</span></div>${tbl("sq",rows=>qualiTable(rows,n,["SQ1","SQ2","SQ3"]))}</section>
+  <section class="dsec" id="s-sprint"><div class="sec"><h2>Sprint</h2><span class="lbl">${spw?`${spw[0][3]} laps · winner ${esc(fullName(spw[0][2]))}`:"Sprint race"}</span></div>${tbl("sprint",rows=>classTable(rows,n,false))}</section>`:""}
+  <section class="dsec" id="s-quali"><div class="sec"><h2>Qualifying</h2><span class="lbl">Q1 · Q2 · Q3</span></div>${tbl("quali",rows=>qualiTable(rows,n,["Q1","Q2","Q3"])+`<p class="note2">Dashed lines mark the Q1 and Q2 cut-offs. Purple marks the fastest time in each part.</p>`)}</section>
+  <section class="dsec" id="s-grid"><div class="sec"><h2>Starting grid</h2><span class="lbl">After penalties</span></div>
+    <div class="soon ${pole?"wait":"soon"}"><span class="lbl">Starting grid</span><b>${pole?"Yet to update":"Coming soon"}</b><span>${pole?"The official grid, including any penalties, is added with the race result. Until then the qualifying order above is the provisional grid.":"The grid is set by qualifying."}</span></div></section>
+  <section class="dsec" id="s-race"><div class="sec"><h2>Race</h2><span class="lbl">${r.laps} laps</span></div>${soonBox(n,"race")}</section>
+  <section class="dsec" id="s-after"><div class="sec"><h2>Championship now</h2><span class="lbl">Includes points scored so far this weekend</span></div>
+    <div class="two">
+      <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th>Driver</th><th class="n">Pts</th></tr></thead><tbody>${DRIVERS.slice(0,10).map((d,k)=>`<tr><td class="n">${k+1}</td><td><span class="sw" style="background:${tcol(d[2])}"></span>${esc(d[0])}</td><td class="n">${d[3]}</td></tr>`).join("")}</tbody></table></div>
+      <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th>Constructor</th><th class="n">Pts</th></tr></thead><tbody>${CONSTRUCTORS.map((c,k)=>`<tr><td class="n">${k+1}</td><td><span class="sw" style="background:${tcol(c[0])}"></span>${esc(c[0])}</td><td class="n">${c[1]}</td></tr>`).join("")}</tbody></table></div>
+    </div></section>
+  <div class="dnav" style="margin-top:28px">${pv}<button class="navbtn" data-go="season">2026 Season</button>${nb}</div>`;}
+function scrollHome(sel){const go=()=>{const el=$(sel);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});};if($(".home"))go();else{location.hash="season";setTimeout(go,120);}}
 
 /* ---------- DETAIL PAGE ---------- */
 function tyreSVG(c,on){const col=["","var(--tH)","var(--tM)","var(--tS)"][on]||"var(--ink-3)";
@@ -967,7 +1081,7 @@ function applyLapSel(){const el=$("#lapchart");if(!el)return;el.classList.toggle
   el.querySelectorAll(".ln").forEach(x=>x.classList.toggle("on",lapSel.has(+x.dataset.d)));
   document.querySelectorAll("#lapkey [data-lap]").forEach(b=>{if(b.dataset.lap!=="clear")b.setAttribute("aria-pressed",lapSel.has(+b.dataset.lap));});}
 function viewDetail(n){
-  const r=RACES.find(x=>x.r===n); if(!r||!r.res) return viewSeason();
+  const r=RACES.find(x=>x.r===n); if(!r) return viewSeason(); if(!r.res) return viewLive(n);
   const S=SEASON[n], x=r.res, i=done.indexOf(r);
   const [pv,nx]=navPair(i,"data-detail");
   const days=n===15?["Thu","Fri","Sat"]:["Fri","Sat","Sun"];
@@ -1439,7 +1553,7 @@ function route(){document.body.classList.remove("fs-lock");document.title="Track
   else if(h==="drivers"||h.startsWith("driver-")){$("#app").innerHTML=viewDrivers();$("#sheetname").textContent="2026 DRIVERS";setNav("drivers");document.title="2026 Drivers · Track Almanac";if(h.startsWith("driver-"))openDriver(h.slice(7));}
   else if(h==="teams"||h.startsWith("team-")){$("#app").innerHTML=viewTeams();$("#sheetname").textContent="2026 TEAMS";setNav("teams");document.title="2026 Teams · Track Almanac";if(h.startsWith("team-")){const k=teamByKey(h.slice(5));if(k)openTeam(k);}}
   else if(h==="championship"){$("#app").innerHTML=viewChampionship();drawCharts();$("#sheetname").textContent="2026 CHAMPIONSHIP · POINTS";setNav("championship");}
-  else if(h.startsWith("detail-")){const n=+h.slice(7);lapSel=new Set();$("#app").innerHTML=viewDetail(n);drawLapChart();const r=RACES.find(x=>x.r===n);$("#sheetname").textContent=r?`R${n} · ${r.gp.toUpperCase()}`:"";setNav("season");}
+  else if(h.startsWith("detail-")){const [nn,jk]=h.slice(7).split("-");const n=+nn;lapSel=new Set();$("#app").innerHTML=viewDetail(n);drawLapChart();if(jk)jumpTo(jk);const r=RACES.find(x=>x.r===n);$("#sheetname").textContent=r?`R${n} · ${r.gp.toUpperCase()}`:"";setNav("season");}
   else{$("#app").innerHTML=viewSeason();tower("d");countdown();$("#sheetname").textContent="2026 WORLD CHAMPIONSHIP";setNav("season");
     if(h.startsWith("race-"))openRace(+h.slice(5));}
   window.scrollTo(0,0);
@@ -1459,6 +1573,9 @@ function countdown(){const box=$("#cdx");if(!box)return;const S=SCHED[nextRace.r
     document.querySelectorAll(".nxs .nr[data-t]").forEach(r=>{const a=+r.dataset.t,e=a+(+r.dataset.d)*60000;r.classList.toggle("past",now>=e);r.classList.toggle("live",now>=a&&now<e);r.classList.toggle("nextup",!!nxt&&!live&&a===Date.parse(nxt[1]));});};
   tick();t=setInterval(tick,1000);}
 document.addEventListener("click",e=>{
+  const sv=e.target.closest("[data-sess]");if(sv&&!e.target.closest("[data-detail],[data-quick]")){const [sn,sk]=sv.dataset.sess.split(":");const tgt="#detail-"+sn+"-"+sk;if(location.hash===tgt)route();else location.hash=tgt;return;}
+  const sc2=e.target.closest("[data-scroll]");if(sc2){scrollHome(sc2.dataset.scroll);return;}
+  if(e.target.closest("[data-lapcharts]")){location.hash="detail-"+done[done.length-1].r+"-chart";return;}
   const mc=e.target.closest("[data-mclose]");if(mc){closeModal(mc.dataset.mclose);return;}
   const dv=e.target.closest("[data-driver]");if(dv){openDriver(dv.dataset.driver);return;}
   const tm=e.target.closest("[data-team]");if(tm){openTeam(tm.dataset.team);return;}
@@ -1476,17 +1593,15 @@ document.addEventListener("click",e=>{
   if(b.dataset.chipset){const v=b.dataset.chipset;chartSel=new Set(v==="all"?DRIVERS.map(d=>d[0]):v==="top"?DRIVERS.slice(0,6).map(d=>d[0]):[]);drawCharts();return;}
   if(b.id==="t-d")return tower("d"); if(b.id==="t-c")return tower("c");
   if(b.dataset.jump){e.preventDefault();const s=$("#s-"+b.dataset.jump);if(s)s.scrollIntoView({behavior:"smooth",block:"start"});return;}
-  if(b.dataset.fp){const n=+location.hash.slice(8);document.querySelectorAll("[data-fp]").forEach(x=>x.setAttribute("aria-pressed",x===b));$("#fp-out").innerHTML=practiceTable(SEASON[n][b.dataset.fp],n);return;}
+  if(b.dataset.fp){const n=parseInt(location.hash.slice(8));document.querySelectorAll("[data-fp]").forEach(x=>x.setAttribute("aria-pressed",x===b));$("#fp-out").innerHTML=fpOut(n,b.dataset.fp);return;}
   if(b.dataset.chip){const k=b.dataset.chip;chartSel.has(k)?chartSel.delete(k):chartSel.add(k);drawCharts();return;}
   if(b.dataset.year){location.hash="archive-"+b.dataset.year;return;}
   if(b.dataset.go){location.hash=b.dataset.go;return;}
   if(b.dataset.detail){location.hash="detail-"+b.dataset.detail;return;}
   if(b.dataset.quick){const n=+b.dataset.quick;history.replaceState(null,"","#race-"+n);if(!$(".home")){route();}else openRace(n);}
 });
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$(".modal")){closeModal(pageBase());return;}if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches(".tower li[role=button]")){e.preventDefault();e.target.click();return;}if(e.key==="Escape"&&$(".fsbox.full")){toggleFS($(".fsbox.full").id,false);return;}if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("article[role=button]")){e.preventDefault();e.target.click();return;}if(e.key==="Escape"&&$(".drawer")){history.replaceState(null,"","#season");closeDrawer();}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$(".modal")){closeModal(pageBase());return;}if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches(".tower li[role=button],[data-sess]")){e.preventDefault();e.target.click();return;}if(e.key==="Escape"&&$(".fsbox.full")){toggleFS($(".fsbox.full").id,false);return;}if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("article[role=button]")){e.preventDefault();e.target.click();return;}if(e.key==="Escape"&&$(".drawer")){history.replaceState(null,"","#season");closeDrawer();}});
 window.addEventListener("hashchange",route);
 route();
 consentBanner();
 </script>
-
-</body></html>
