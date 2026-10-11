@@ -624,8 +624,7 @@ table.mxt th img.flg{width:16px;height:12px;margin:0}
 .moremenu{width:min(260px,calc(100vw - 32px))}
 .plate .cap h3 .ctyc{display:block;font-family:var(--f-data);font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--ink-3);margin-top:3px;text-transform:uppercase}
 .plate .cap h3{min-width:0}
-.plate .cap h3.long{font-size:19px;grid-column:1/-1}
-.plate .cap h3.long+.rn{grid-column:1/-1;text-align:left}
+.plate .cap h3.long{font-size:18px;letter-spacing:-.01em}
 .rib .today i{left:4px;top:-15px;white-space:nowrap;line-height:1.05;font-size:8.5px;font-weight:600}
 .tyrebox{display:flex;flex-direction:column;gap:6px;margin-top:12px}
 .tyrow{display:flex;gap:8px;flex-wrap:wrap}
@@ -634,6 +633,8 @@ table.mxt th img.flg{width:16px;height:12px;margin:0}
 .tychip b{font-family:var(--f-data);font-size:13px}
 .tychip small{font-family:var(--f-data);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 .tyna{font-size:13px;color:var(--ink-3)}
+.plate .fig{position:relative}
+.plate .spb{position:absolute;top:8px;right:8px;font-family:var(--f-data);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--plate-meta);color:var(--plate-meta);background:rgba(0,0,0,.55)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -875,8 +876,8 @@ const plateName=r=>`${esc(r.short.replace(" (Sepang)",""))}${PLATECTRY[r.short]?
 function plateHTML(r){
   if(r.res){const w=r.res.pod[0][0];return `
     <article class="plate" tabindex="0" role="button" data-quick="${r.r}" aria-label="${esc(r.gp)} quick info">
-      <div class="fig">${plan(r.track,{label:r.circuit})}</div>
-      <div class="cap"><h3${(r.short.replace(" (Sepang)","").length>=10||(r.sprint&&r.short.length>=8))?' class="long"':""}>${plateName(r)}</h3><span class="rn">R${String(r.r).padStart(2,"0")}${r.sprint?" · SPRINT":""}<br>${fmt(r.date)}</span>
+      <div class="fig">${r.sprint?'<span class="spb">Sprint weekend</span>':""}${plan(r.track,{label:r.circuit})}</div>
+      <div class="cap"><h3${r.short.replace(" (Sepang)","").length>=10?' class="long"':""}>${plateName(r)}</h3><span class="rn">R${String(r.r).padStart(2,"0")}<br>${fmt(r.date)}</span>
       <ol class="pod">${r.res.pod.map((p,k)=>`<li><b>P${k+1}</b><i style="background:${tcol(teamAt(p[0],r.r)||teamOf(p[0]))}"></i><span>${esc(p[0])}</span></li>`).join("")}</ol></div>
       <div class="acts"><button data-quick="${r.r}">Quick info</button><button data-detail="${r.r}">Detailed info</button></div>
     </article>`;}
@@ -884,8 +885,8 @@ function plateHTML(r){
   return `
     <article class="plate up${nx?" nx":""}" tabindex="0" role="button" data-quick="${r.r}" aria-label="${esc(r.gp)} weekend times">
       ${nx?'<span class="flag">Next race</span>':""}
-      <div class="fig">${plan(r.track,{label:r.circuit})}</div>
-      <div class="cap"><h3${(r.short.replace(" (Sepang)","").length>=10||(r.sprint&&r.short.length>=8))?' class="long"':""}>${plateName(r)}</h3><span class="rn">R${String(r.r).padStart(2,"0")}${r.sprint?" · SPRINT":""}<br>${esc(r.days)}</span>
+      <div class="fig">${r.sprint?'<span class="spb">Sprint weekend</span>':""}${plan(r.track,{label:r.circuit})}</div>
+      <div class="cap"><h3${r.short.replace(" (Sepang)","").length>=10?' class="long"':""}>${plateName(r)}</h3><span class="rn">R${String(r.r).padStart(2,"0")}<br>${esc(r.days)}</span>
       ${st?`<span class="when"><span class="lbl">Race · your time</span><b>${tfmt(st,null)}</b></span><span class="when"><span class="lbl">Race · track time</span><b>${tfmt(st,tz)}</b></span>`:""}</div>
       <div class="acts"><button data-quick="${r.r}">Weekend times</button><button data-detail="${r.r}">Detailed view</button></div>
     </article>`;
