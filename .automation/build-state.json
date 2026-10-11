@@ -1,0 +1,271 @@
+{
+ "generated": [
+  "/",
+  "/championship/",
+  "/drivers/",
+  "/teams/",
+  "/calendar/",
+  "/races/2026/australia/",
+  "/races/2026/china/",
+  "/races/2026/japan/",
+  "/races/2026/miami/",
+  "/races/2026/canada/",
+  "/races/2026/monaco/",
+  "/races/2026/barcelona/",
+  "/races/2026/austria/",
+  "/races/2026/britain/",
+  "/races/2026/belgium/",
+  "/races/2026/hungary/",
+  "/races/2026/netherlands/",
+  "/races/2026/italy/",
+  "/races/2026/madrid/",
+  "/races/2026/azerbaijan/",
+  "/races/2026/bahrain/",
+  "/races/2026/singapore/",
+  "/races/2026/usa/",
+  "/races/2026/mexico/",
+  "/races/2026/brazil/",
+  "/races/2026/las-vegas/",
+  "/races/2026/qatar/",
+  "/races/2026/abu-dhabi/",
+  "/archive/",
+  "/archive/2027/",
+  "/archive/2026/",
+  "/archive/2025/",
+  "/archive/2024/",
+  "/archive/2023/",
+  "/archive/2022/",
+  "/archive/2021/",
+  "/archive/2020/",
+  "/archive/2019/",
+  "/archive/2018/",
+  "/archive/2017/",
+  "/archive/2016/",
+  "/archive/2015/",
+  "/archive/2014/",
+  "/archive/2013/",
+  "/archive/2012/",
+  "/archive/2011/",
+  "/archive/2010/",
+  "/about/",
+  "/contact/",
+  "/privacy/",
+  "/terms/",
+  "/disclaimer/",
+  "/site-map/"
+ ],
+ "pages": {
+  "/": {
+   "hash": "c08462f1797633abcde387fe89f7aeffcb7e3673",
+   "lastmod": "2026-10-11"
+  },
+  "/championship/": {
+   "hash": "46aad2d13059139c3795c1d7f078f62128e8a124",
+   "lastmod": "2026-10-11"
+  },
+  "/drivers/": {
+   "hash": "2a277831ffbbe3b278782b31e26e719de132fdad",
+   "lastmod": "2026-10-11"
+  },
+  "/teams/": {
+   "hash": "6b1fb6ce1709781836032212ba8bb4cff9666b65",
+   "lastmod": "2026-10-11"
+  },
+  "/calendar/": {
+   "hash": "fc4874ed9b4fb11997e262654cb28e6434676bf5",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/australia/": {
+   "hash": "8f7c49107eb778f754989887c560f72f67add408",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/china/": {
+   "hash": "b2d935e062e6e7ac6dd59d84ceb53c74d1be7f4c",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/japan/": {
+   "hash": "fcbc004cd1af0b02283e6a856dcbdd1809c94e17",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/miami/": {
+   "hash": "3c272068663b8588041dec51e1f6fef9313a6fd6",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/canada/": {
+   "hash": "b3815e8ec53b7e28a9d3e568ff2aeadf06cc0a4c",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/monaco/": {
+   "hash": "8774e3afd3d76ea6e9448c7f9525730847697d6f",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/barcelona/": {
+   "hash": "08377bc6880b425c2250167a41bd41f80a9ac5a3",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/austria/": {
+   "hash": "c7fb7b202c8e9be418b4ece4ba03c6670ab9d4af",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/britain/": {
+   "hash": "34f5bb54fc743b902ea26bc1dfbf2c7f5583af5a",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/belgium/": {
+   "hash": "648c72662b7fe2a41d1ca2a5bece2959f274c35a",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/hungary/": {
+   "hash": "52c6cf8b4082693f576fa5174da87f15edda2d8d",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/netherlands/": {
+   "hash": "c9e7d3a8cb24cd12b1298ff2b9d49dffacca87d7",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/italy/": {
+   "hash": "3b5b431f2157ba71ef133ddec09afe70587adbb1",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/madrid/": {
+   "hash": "c54149b9f9d66c3eb59a163ba6f32d91b67b250e",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/azerbaijan/": {
+   "hash": "599f6d27c0685478dcd4bb8ad1cdb020e32f0d8d",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/bahrain/": {
+   "hash": "d636d69b08ad9b127af54888d3c447805251c244",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/singapore/": {
+   "hash": "ad616d89ca2c18ae0640c6796298154bb61bb0db",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/usa/": {
+   "hash": "f258b03edce6785602c1b32202c12b2b7d265d88",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/mexico/": {
+   "hash": "4544725eea5753e57360744ca2aa9918391b09c8",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/brazil/": {
+   "hash": "998aa16cb0a3e007c9a3d2f0706f671eb3fc9568",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/las-vegas/": {
+   "hash": "ffa5af2e729ee496242794d88bd51aeb1ebd542a",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/qatar/": {
+   "hash": "832834e67585f9c3e0fc1e78c0007120e3a222c8",
+   "lastmod": "2026-10-11"
+  },
+  "/races/2026/abu-dhabi/": {
+   "hash": "8fb7310bb400843336bb44cae7be33f66918de97",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/": {
+   "hash": "e2e628ff722e52ccd6f9398b1376632b6db0bd8f",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2027/": {
+   "hash": "f18fb8044415145da423c84361ee4fb50d3670d1",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2026/": {
+   "hash": "c8d5e4343836a264bc0a4b93d2cb3b44bea2d1e2",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2025/": {
+   "hash": "32652a33b76d46d81079defdd3b052ebe8dff47c",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2024/": {
+   "hash": "5c8520424f45ad72fd05523496b2fe597d7d43f1",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2023/": {
+   "hash": "73a05c401be7685191b21e3310763b3a2aaa983c",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2022/": {
+   "hash": "f53cb27addb076b732645a6fcf9e92f2e7efaba1",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2021/": {
+   "hash": "174561ef2363a698641c81be3dcb97a8b9f49b31",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2020/": {
+   "hash": "ac7c6153835cf9f34bde674944792975e74df327",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2019/": {
+   "hash": "d505f9c0fadc1897b2905246b2b5e5299ef4c040",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2018/": {
+   "hash": "725fbff969132fc2e401010f418982ba609fd63c",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2017/": {
+   "hash": "2d7fb3e107082d8ac77ca7d9b63b688c08721685",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2016/": {
+   "hash": "2e052cb3497ef589137aee368c502df37306385f",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2015/": {
+   "hash": "3f737df5e6fc9e4d3247aab6a069785ecaf5d011",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2014/": {
+   "hash": "4266440d9e2a80dcf97c9549f07333e38f189603",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2013/": {
+   "hash": "12c4d005c1ca4c9e582c390d728c06f367846a0d",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2012/": {
+   "hash": "285b14fb5c481dcf26d4787237e5ce6cbc437a52",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2011/": {
+   "hash": "f95c4ac91b78ddf16c9003dfd6ed105a2eceeec2",
+   "lastmod": "2026-10-11"
+  },
+  "/archive/2010/": {
+   "hash": "152ff595aa8b0ec1f1f0e14450ba10c918d96989",
+   "lastmod": "2026-10-11"
+  },
+  "/about/": {
+   "hash": "0a872141c7001f8c2bcad9da222292d73a4768eb",
+   "lastmod": "2026-10-11"
+  },
+  "/contact/": {
+   "hash": "6663eac5bce6689b1a4927c27891ac18c2d57215",
+   "lastmod": "2026-10-11"
+  },
+  "/privacy/": {
+   "hash": "1d06b091b03d97257b2581bdbd48e0c35e4cf4a9",
+   "lastmod": "2026-10-11"
+  },
+  "/terms/": {
+   "hash": "df06762f40543cd6870f679234b3e6af3de320cf",
+   "lastmod": "2026-10-11"
+  },
+  "/disclaimer/": {
+   "hash": "715a45daa4e592e7b002a518699d3fe797593409",
+   "lastmod": "2026-10-11"
+  },
+  "/site-map/": {
+   "hash": "680d271a632fc8d934f7c9684d6ec88994aee4c8",
+   "lastmod": "2026-10-11"
+  }
+ }
+}
