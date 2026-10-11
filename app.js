@@ -1,4 +1,6 @@
 
+const teamOf=n=>(DRIVERS.find(d=>d[0]===n)||[])[2];
+Object.keys(ARCHTXT).forEach(y=>{ARCHIVE[y]=ARCHTXT[y];});ARCHIVE[2027]={next:true};
 const $=s=>document.querySelector(s);
 /* ---------- ROUTING: #hash inside the claude.ai artifact, real paths on trackalmanac.com ---------- */
 const PATHMODE=!!window.TA_PATHS;

@@ -2,8 +2,15 @@
 """
 Track Almanac site builder.
 
-Turns the master page (src/master.html, a copy of the claude.ai master artifact)
-into the static site served by GitHub Pages:
+The GitHub repo is the master copy of the site. Sources:
+
+  src/data.json   all race data (RACES, SCHED, SEASON, LAPS, DRIVERS, CONSTRUCTORS,
+                  ARCHIVE, ...). Edited by hand and by scripts/update.py.
+  src/media.json  driver portraits and flags (design assets)
+  src/app.html    design and app: CSS, page markup and the app script.
+                  Its script holds a /*DATA*/ marker where data.js is loaded.
+
+build.py turns them into the static site served by GitHub Pages:
 
   /index.html, /championship/, /drivers/, /teams/, /calendar/,
   /races/2026/<slug>/, /archive/, /archive/<year>/,
@@ -16,20 +23,22 @@ JSON-LD (WebSite/Organization, SportsEvent, BreadcrumbList) and its main
 content as plain HTML before any JavaScript runs. The app (app.js) then takes
 over and routes on real paths because each page sets window.TA_PATHS=1.
 
-Data names and formats in the master page are unchanged (RACES, SEASON, SCHED,
-DRIVERS, CONSTRUCTORS, ARCHIVE, ...). Pure Python 3, no dependencies.
+Data names and formats are unchanged; data.js declares each top-level key of
+data.json (and media.json) as a JavaScript const. Pure Python 3, no dependencies.
 
-Usage:  python3 build.py            (reads src/master.html, writes the site)
+Usage:  python3 build.py            (reads src/, writes the site)
         python3 build.py --check    (build into a temp dir and report only)
 """
 import base64, datetime, hashlib, html, json, os, re, shutil, sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(ROOT, "src", "master.html")
+SRC = os.path.join(ROOT, "src", "app.html")
+DATA = os.path.join(ROOT, "src", "data.json")
+MEDIA = os.path.join(ROOT, "src", "media.json")
 SITE = "https://trackalmanac.com"
 STATE = os.path.join(ROOT, ".automation", "build-state.json")
 YEAR = 2026
-KEEP = {".git", ".automation", "src", "build.py", "CNAME", ".nojekyll", "README.md", "robots.txt",
+KEEP = {".git", ".github", ".automation", "src", "scripts", "build.py", "CNAME", ".nojekyll", "README.md", "robots.txt",
         "site.webmanifest", "og-image.png", "favicon.svg", "favicon.ico", "favicon-16.png", "favicon-32.png",
         "apple-touch-icon.png", "icon-192.png", "icon-512.png", ".gitignore"}
 
@@ -94,8 +103,38 @@ def const(js, name):
     p = JSParse(js); p.i = m.end(); return p.val()
 
 
-# ---------------------------------------------------------------- read master
-def read_master():
+# ---------------------------------------------------------------- data files
+def fmt_json(v, ind=0, width=120):
+    """JSON laid out for readable diffs: short values and lists of plain values on one
+    line, everything else one entry per line."""
+    flat = json.dumps(v, ensure_ascii=False, separators=(", ", ": "))
+    if not isinstance(v, (list, dict)) or not v or len(flat) + ind <= width or \
+            (isinstance(v, list) and not any(isinstance(x, (list, dict)) for x in v)):
+        return flat
+    pad, pad1 = " " * ind, " " * (ind + 1)
+    if isinstance(v, list):
+        return "[\n" + ",\n".join(pad1 + fmt_json(x, ind + 1, width) for x in v) + "\n" + pad + "]"
+    return "{\n" + ",\n".join(pad1 + json.dumps(k, ensure_ascii=False) + ": " + fmt_json(x, ind + 1, width) for k, x in v.items()) + "\n" + pad + "}"
+
+
+def load_data(path=DATA):
+    return json.load(open(path, encoding="utf-8"))
+
+
+def save_data(d, path=DATA):
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f: f.write(fmt_json(d) + "\n")
+    os.replace(tmp, path)
+
+
+def data_js(*dicts):
+    """const NAME=<json>; for every top-level key, in file order."""
+    return "".join("const %s=%s;\n" % (k, json.dumps(v, ensure_ascii=False, separators=(",", ":")))
+                   for d in dicts for k, v in d.items())
+
+
+# ---------------------------------------------------------------- read sources
+def read_master(data_path=DATA):
     s = open(SRC, encoding="utf-8").read()
     s = s[s.index("<title>"):] if "<title>" in s else s
     s = re.sub(r"\s*</body>\s*</html>\s*$", "", s)
@@ -105,8 +144,11 @@ def read_master():
     fonts = "\n".join(re.findall(r'<link rel="(?:preconnect|stylesheet)" href="https://fonts[^"]*"[^>]*>', head))
     body = s[head_end:s.index("<script>", head_end)]
     script = s[s.index("<script>", head_end) + 8:s.rindex("</script>")]
-    data, app = script.split("/*APP*/", 1)
-    return css, fonts, body, data, app
+    pre, app = script.split("/*APP*/", 1)
+    assert pre.strip() == "/*DATA*/", "src/app.html: the script must start with /*DATA*/ then /*APP*/"
+    D = load_data(data_path)
+    data = data_js(D, load_data(MEDIA))
+    return css, fonts, body, data, app, D
 
 
 def extract_images(text, imgdir, written):
@@ -143,11 +185,12 @@ def gp_name(r): return r["gp"].replace(" (Sepang)", "")
 
 
 class Site:
-    def __init__(self, data_js, app_js):
-        g = lambda n: const(data_js, n)
+    def __init__(self, D, app_js):
+        g = lambda n: D.get(n)
         self.RACES, self.SEASON, self.SCHED = g("RACES"), g("SEASON") or {}, g("SCHED") or {}
         self.DRIVERS, self.CONS = g("DRIVERS"), g("CONSTRUCTORS")
         self.ARCHIVE, self.ARCHDATA = g("ARCHIVE") or {}, g("ARCHDATA") or {}
+        self.ARCHIVE = dict(self.ARCHIVE)
         for y, t in (g("ARCHTXT") or {}).items(): self.ARCHIVE[y] = t
         if g("CAL2027"): self.ARCHIVE.setdefault("2027", {"next": True})
         self.CAL2027, self.ENT2027 = g("CAL2027") or [], g("ENTRIES2027") or []
@@ -455,8 +498,8 @@ def page_html(p, body_tpl, assets, fonts):
 
 
 # ---------------------------------------------------------------- build
-def build(out):
-    css, fonts, body, data, app = read_master()
+def build(out, data_path=DATA):
+    css, fonts, body, data, app, D = read_master(data_path)
     written = set(); imgdir = os.path.join(out, "img")
     if os.path.isdir(imgdir): shutil.rmtree(imgdir)
     body = extract_images(body, imgdir, written)
@@ -468,7 +511,7 @@ def build(out):
     open(os.path.join(out, "data.js"), "w", encoding="utf-8").write(data_x)
     open(os.path.join(out, "app.js"), "w", encoding="utf-8").write(app_x)
     assets = {"css": vhash(css_x), "data": vhash(data_x), "app": vhash(app_x)}
-    S = Site(data, app)
+    S = Site(D, app)
 
     home = [("Home", "/")]
     pages = []
