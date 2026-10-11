@@ -376,12 +376,18 @@ def crumbs(items):
             "itemListElement": [{"@type": "ListItem", "position": i + 1, "name": n, "item": SITE + p} for i, (n, p) in enumerate(items)]}
 
 
+def race_finish(start, hours=2):
+    """Expected race finish: lights out + 2 h, same ISO format as the input."""
+    if "T" not in start: return start
+    t = datetime.datetime.fromisoformat(start.replace("Z", "+00:00")) + datetime.timedelta(hours=hours)
+    return t.isoformat().replace("+00:00", "Z") if start.endswith("Z") else t.isoformat()
+
+
 def sports_event(S, r):
     sc = S.SCHED.get(str(r["r"])); cc = RACECC.get(r["track"], "")
-    if sc:
-        start, end = sc[1][0][1], (r.get("start") or sc[1][-1][1])
-    else:
-        d = datetime.date.fromisoformat(r["date"]); start, end = (d - datetime.timedelta(days=2)).isoformat(), r.get("start") or r["date"]
+    gp = r.get("start") or (next((x[1] for x in sc[1] if x[0] == "Grand Prix"), sc[1][-1][1]) if sc else None)
+    start = sc[1][0][1] if sc else (datetime.date.fromisoformat(r["date"]) - datetime.timedelta(days=2)).isoformat()
+    end = race_finish(gp) if gp else r["date"]
     ev = {"@context": "https://schema.org", "@type": "SportsEvent", "name": "%d %s" % (YEAR, gp_name(r)),
           "description": "Round %d of the %d Formula 1 World Championship at %s." % (r["r"], YEAR, r["circuit"]),
           "sport": "Formula One", "startDate": start, "endDate": end,

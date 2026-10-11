@@ -25,7 +25,7 @@ function pathToKey(){const p=location.pathname.replace(/index\.html$/,""),q=new 
   if(/^\/site-map\/?$/.test(p))return "sitemap";
   m=p.match(/^\/([a-z]+)\/?$/);return m&&STATIC_KEYS.includes(m[1])?m[1]:"notfound";}
 function curKey(){if(!PATHMODE)return (location.hash||"#season").slice(1)||"season";
-  const k=pathToKey();if(k&&k.legacy){history.replaceState(null,"",keyToPath(k.legacy));NAVD=true;return k.legacy;}return k;}
+  const k=pathToKey();if(k&&k.legacy){const L=k.legacy.replace(/^race-(\d+)$/,"detail-$1");history.replaceState(null,"",keyToPath(L));NAVD=true;return L;}return k;}
 function go(k,replace){NAVD=true;if(PATHMODE){history[replace?"replaceState":"pushState"](null,"",keyToPath(k));route();}
   else if(replace){history.replaceState(null,"","#"+k);route();} else if(location.hash==="#"+k)route(); else location.hash=k;}
 function pageTitle(k){const T=" | Track Almanac";let m;
@@ -35,8 +35,16 @@ function pageTitle(k){const T=" | Track Almanac";let m;
   if(k.startsWith("driver-")){const b=BIO[k.slice(7)];return b?`${b.name}: Profile, 2026 Season & Career Stats${T}`:`2026 F1 Drivers${T}`;}
   if(k.startsWith("team-")){const n=teamByKey(k.slice(5));return n?`${(TEAMBIO[n]||{}).name||n}: 2026 Line-up, Car & Record${T}`:`2026 F1 Teams${T}`;}
   return ({championship:"2026 F1 Championship Standings & Points Breakdown",drivers:"2026 F1 Drivers: Profiles, Stats & Standings",teams:"2026 F1 Teams: Line-ups, Cars & Standings",calendar:"2026 F1 Calendar: Dates, Circuits & Results",archive:"F1 Season Archive 2010–2025: Results & Champions",sitemap:"Site Map",notfound:"Page not found"}[k]||((PAGES[k]||{}).t)||"Track Almanac")+T;}
+function h1Text(k){let m;
+  if(!k||k==="season"||k.startsWith("race-"))return "2026 Formula 1 season";
+  if(m=k.match(/^detail-(\d+)/)){const r=RACES.find(x=>x.r===+m[1]);return r?r.gp.replace(" (Sepang)","")+" 2026":"";}
+  if(k==="archive")return "Formula 1 season archive";
+  if(m=k.match(/^archive-(\d{4})$/)){const a=ARCHIVE[+m[1]];return !a?"Formula 1 season archive":a.next?"2027 F1 calendar":m[1]+" Formula 1 season";}
+  if(k.startsWith("driver"))return "2026 F1 drivers";
+  if(k.startsWith("team"))return "2026 F1 teams";
+  return {championship:"2026 F1 Championship standings",calendar:"2026 F1 calendar"}[k]||"";}
 function setKey(k){if(PATHMODE)history.replaceState(null,"",keyToPath(k));else history.replaceState(null,"","#"+k);}
-function viewCalendar(){return `<div class="pagehead"><div><span class="lbl">2026 Formula 1 World Championship</span><h1>2026 Calendar</h1>
+function viewCalendar(){return `<div class="pagehead"><div><span class="lbl">2026 Formula 1 World Championship</span><h2 class="h1">2026 Calendar</h2>
   <p>All ${RACES.length} rounds of the 2026 season with dates, circuits and results. Select a race for the full weekend.</p></div></div>
   <div class="tw"><table class="t gpt"><thead><tr><th class="n">Rd</th><th>Grand Prix</th><th>Circuit</th><th>Weekend</th><th>Race (your time)</th><th>Format</th><th>Winner</th></tr></thead><tbody>
   ${RACES.map(r=>{const st=raceStart(r);const w=r.res?r.res.pod[0][0]:null;return `<tr class="go" data-detail="${r.r}"><td class="n">${r.r}</td><td>${flagOf(RACECC[r.track])} <a href="${H("detail-"+r.r)}" data-detail="${r.r}"><b>${esc(r.gp.replace(" (Sepang)",""))}</b></a></td><td style="color:var(--ink-2)">${esc(r.circuit)}, ${esc(r.city)}</td><td class="m">${esc(r.days||fmt(r.date))}</td><td class="m">${st?tfmt(st,null):fmt(r.date)}</td><td>${r.sprint?'<span class="tag sig" style="margin:0">Sprint</span>':'<span style="color:var(--ink-3)">Standard</span>'}</td><td>${w?`<b>${esc(w)}</b>`:r===nextRace?'<span class="tag" style="margin:0">Next</span>':'<span style="color:var(--ink-3)">—</span>'}</td></tr>`;}).join("")}
@@ -174,7 +182,7 @@ function viewSeason(){
     <section class="sheet" aria-labelledby="nr">
       <div class="l">
         <span class="lbl">Next · Round ${nr.r} / ${n}</span>
-        <h1 id="nr">${esc(nr.short)}</h1>
+        <h2 class="h1" id="nr">${esc(nr.short)}</h2>
         <div style="color:var(--ink-2)">${esc(nr.circuit)}, ${esc(nr.city)}</div>
         <div><span class="tag sig">${esc(nr.days)}</span>${nr.sprint?'<span class="tag">Sprint</span>':""}<span class="tag">Night</span></div>
         <div class="cdx" id="cdx" aria-live="off"></div>
@@ -246,7 +254,7 @@ function openUpcoming(r){
   <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dt">
     <div class="dtop">${pv}<button class="navbtn" data-close id="dclose">Close ✕</button>${nx}</div>
     <div class="lbl" style="margin-top:16px">Round ${r.r} · ${esc(r.days)} 2026${r===nextRace?" · next race":""}</div>
-    <div class="dhead"><h1 id="dt">${esc(r.short)}</h1><button class="navbtn sig" data-detail="${r.r}">Detailed view →</button></div>
+    <div class="dhead"><h2 class="h1" id="dt">${esc(r.short)}</h2><button class="navbtn sig" data-detail="${r.r}">Detailed view →</button></div>
     <div style="color:var(--ink-2)">${esc(r.gp)} · ${esc(r.circuit)}, ${esc(r.city)}</div>
     <div class="fig">${plan(r.track,{big:true,label:r.circuit,len:r.len,sectors:true})}</div>
     <div class="dl">
@@ -272,7 +280,7 @@ function openRace(n){
   <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dt">
     <div class="dtop">${pv}<button class="navbtn" data-close id="dclose">Close ✕</button>${nx}</div>
     <div class="lbl" style="margin-top:16px">Round ${r.r} · ${fmt(r.date,{day:"numeric",month:"long",year:"numeric"})}</div>
-    <div class="dhead"><h1 id="dt">${esc(r.short)}</h1><button class="navbtn sig" data-detail="${r.r}">Detailed view →</button></div>
+    <div class="dhead"><h2 class="h1" id="dt">${esc(r.short)}</h2><button class="navbtn sig" data-detail="${r.r}">Detailed view →</button></div>
     <div style="color:var(--ink-2)">${esc(r.gp)} · ${esc(r.circuit)}</div>
     <div class="fig">${plan(r.track,{big:true,label:r.circuit,len:r.len,sectors:true})}</div>
     <div class="res"><div class="hd lbl">Grand Prix podium · ${r.laps} laps</div>${x.pod.map((p,k)=>row(p[0],p[1],k,x.time)).join("")}</div>
@@ -327,7 +335,7 @@ function viewLive(n){
   <section class="dhero">
     <div class="info">
       <span class="lbl">Round ${r.r} of ${RACES.length} · ${esc(r.days)} 2026${r===nextRace?" · race weekend":""}</span>
-      <h1>${esc(r.short)}</h1>
+      <h2 class="h1">${esc(r.short)}</h2>
       <div style="color:var(--ink-2)">${esc(r.gp)} · ${esc(r.circuit)}, ${esc(r.city)}</div>
       <div>${r.sprint?'<span class="tag sig">Sprint weekend</span>':""}<span class="tag">${r.laps} laps</span><span class="tag">${r.len.toFixed(3)} km lap</span><span class="tag">${(r.len*r.laps).toFixed(1)} km</span></div>
       <div class="spec"><div><span class="lbl">Sessions done</span><b>${doneN} / ${keys.length||"—"}</b></div><div><span class="lbl">Pole</span><b>${pole?esc(code(pole[0][2])):"—"}</b></div><div><span class="lbl">${r.sprint?"Sprint winner":"Race winner"}</span><b>${r.sprint?(spw?esc(code(spw[0][2])):"—"):"—"}</b></div></div>
@@ -482,7 +490,7 @@ function viewDetail(n){
   <section class="dhero">
     <div class="info">
       <span class="lbl">Round ${r.r} of ${RACES.length} · ${fmt(r.date,{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</span>
-      <h1>${esc(r.short)}</h1>
+      <h2 class="h1">${esc(r.short)}</h2>
       <div style="color:var(--ink-2)">${esc(r.gp)} · ${esc(r.circuit)}, ${esc(r.city)}</div>
       <div>${r.sprint?'<span class="tag sig">Sprint weekend</span>':""}<span class="tag">${r.laps} laps</span><span class="tag">${r.len.toFixed(3)} km lap</span><span class="tag">${(r.len*r.laps).toFixed(1)} km</span></div>
       <div class="spec"><div><span class="lbl">Winner</span><b>${esc(code(x.pod[0][0]))}</b></div><div><span class="lbl">Pole</span><b>${esc(code(x.pole))}</b></div><div><span class="lbl">Fastest lap</span><b style="color:var(--purple)">${x.fl[1]}</b></div></div>
@@ -728,7 +736,7 @@ function drawArchCharts(y){const S=seasonModel(y);if(!S)return;const rn=S.R.map(
   const tser=S.C.slice(0,6).map((c,i)=>({name:c.name,lab:c.name.split(" ")[0],col:hcol(c.id,y),vals:[0,...S.ccum[i]]}));
   const te=$("#atchart");if(te)lineChart(te,tser,{h:300,rn,names});}
 function view2027(){const C=CAL2027;
-  return `<div class="arch" style="grid-template-columns:minmax(0,1fr)"><div class="txt"><span class="lbl">Season 2027</span><h1 style="font-size:clamp(56px,10vw,120px)">2027</h1>
+  return `<div class="arch" style="grid-template-columns:minmax(0,1fr)"><div class="txt"><span class="lbl">Season 2027</span><h2 class="h1" style="font-size:clamp(56px,10vw,120px)">2027</h2>
     <p style="font-size:19px;color:var(--ink)"><b>Calendar.</b> The 2027 calendar is confirmed: ${C.length} Grands Prix, ${C.filter(c=>c[6]).length} with a sprint, starting in Bahrain on 14 March and ending in Abu Dhabi on 12 December. Portugal and Türkiye return to the calendar. Pre-season testing runs in Bahrain from 24 to 27 February.</p></div></div>
   <div class="sec"><h2>2027 calendar</h2><span class="lbl">Provisional · subject to change</span></div>
   <div class="tw"><table class="t gpt"><thead><tr><th class="n">Rd</th><th>Grand Prix</th><th>Circuit</th><th>Location</th><th>Weekend</th><th>Format</th></tr></thead><tbody>
@@ -742,14 +750,14 @@ function viewArchive(yr){
   const ys=Object.keys(ARCHIVE).map(Number).sort((a,b)=>b-a); yr=yr||2025; const a=ARCHIVE[yr];
   const rail=`<div class="yrail" role="group" aria-label="Season">${ys.map(y=>`<a href="${H("archive-"+y)}" data-year="${y}" aria-pressed="${y===yr}">${y}${y===2027?'<small>Calendar</small>':""}</a>`).join("")}</div>`;
   if(a.next) return rail+view2027();
-  if(a.live) return rail+`<div class="arch"><div class="txt"><h1>${yr}</h1><p>In progress: ${done.length} of ${RACES.length} rounds run. ${esc(DRIVERS[0][0])} leads for Mercedes in the first year of the new power unit and active-aero rules.</p><button class="tag sig" data-go="championship" style="cursor:pointer">Open the 2026 championship →</button></div></div>`;
+  if(a.live) return rail+`<div class="arch"><div class="txt"><h2 class="h1">${yr}</h2><p>In progress: ${done.length} of ${RACES.length} rounds run. ${esc(DRIVERS[0][0])} leads for Mercedes in the first year of the new power unit and active-aero rules.</p><button class="tag sig" data-go="championship" style="cursor:pointer">Open the 2026 championship →</button></div></div>`;
   const S=seasonModel(yr), tn=id=>S?((S.C.find(c=>c.id===id)||{}).name||id):id;
   const top=S?S.D.slice(0,3).map(d=>[d.name,tn(d.team),d.pts,hcol(d.team,yr)]):[a.champ,a.p2,a.p3].map(p=>[p[0],p[1],p[2],tcol(p[1])]);
   const cons=S?[S.C[0].name,S.C[0].pts,hcol(S.C[0].id,yr)]:[a.cons[0],a.cons[1],tcol(a.cons[0])];
   const races=S?S.n:a.races, wins=S?S.R.filter(r=>r.win===0).length:+(a.wins||"").split(" ")[0];
   const row=(p,i)=>`<div class="row"><span class="pp">${i+1}</span><span class="c" style="background:${p[3]}"></span><span><strong>${esc(p[0])}</strong><small style="display:block;color:var(--ink-3);font-size:12px">${esc(p[1])}</small></span><span class="mono">${p[2]}</span></div>`;
   return rail+`<div class="arch">
-    <div class="txt"><span class="lbl">Season report</span><h1>${yr}</h1><p>${esc(a.sum)}</p><ul>${(a.keys||[]).map(k=>`<li>${esc(k)}</li>`).join("")}</ul></div>
+    <div class="txt"><span class="lbl">Season report</span><h2 class="h1">${yr}</h2><p>${esc(a.sum)}</p><ul>${(a.keys||[]).map(k=>`<li>${esc(k)}</li>`).join("")}</ul></div>
     <div class="side">
       <div class="box"><div class="bh lbl">Drivers' championship · top 3</div>${top.map(row).join("")}</div>
       <div class="box"><div class="bh lbl">Constructors' champion</div><div class="row"><span class="pp">1</span><span class="c" style="background:${cons[2]}"></span><strong>${esc(cons[0])}</strong><span class="mono">${cons[1]}</span></div></div>
@@ -800,7 +808,7 @@ function viewDrivers(){
   let list=[...grid26];
   if(driverSort==="team"){const ord=CONSTRUCTORS.map(c=>c[0]);list.sort((a,b)=>ord.indexOf(a[2])-ord.indexOf(b[2])||DRIVERS.indexOf(a)-DRIVERS.indexOf(b));}
   else if(driverSort==="num")list.sort((a,b)=>bioOf(a[0]).num-bioOf(b[0]).num);
-  return `<div class="pagehead"><div><span class="lbl">2026 Formula 1 World Championship</span><h1>Drivers</h1>
+  return `<div class="pagehead"><div><span class="lbl">2026 Formula 1 World Championship</span><h2 class="h1">Drivers</h2>
     <p>The ${grid26.length} drivers on the 2026 grid. Select a driver for their profile, 2026 season and career record.</p></div>
     <div class="dsort" role="group" aria-label="Sort drivers"><button data-dsort="team" aria-pressed="${driverSort==="team"}">By team</button><button data-dsort="pos" aria-pressed="${driverSort==="pos"}">By standings</button><button data-dsort="num" aria-pressed="${driverSort==="num"}">By number</button></div></div>
   <div class="dcards">${list.map(driverCard).join("")}</div>
@@ -811,7 +819,7 @@ function teamCard(c,i){const [team,pts]=c,tb=TEAMBIO[team]||{},ds=grid26.filter(
    <div class="ent"><span>${esc(tb.entry||"")}</span>${TEAMNAT[team]?`<span class="ctry">${TEAMNAT[team][1]}${flagOf(TEAMNAT[team][0],"big")}</span>`:""}</div>
    <div class="duo">${ds.map(d=>{const b=bioOf(d[0]);return `<div>${pimg(b.code,d[0])}<span>${esc(nameParts(d[0])[0])}<b>${esc(sur(d[0]))}</b></span></div>`;}).join("")}</div>
    <div class="tf"><div><span class="lbl">Chassis</span><b>${esc(tb.chassis||"—")}</b></div><div><span class="lbl">Power unit</span><b>${esc(tb.power||"—")}</b></div><div><span class="lbl">Titles</span><b>${tb.constructors_titles??"—"}</b></div></div></a>`;}
-function viewTeams(){return `<div class="pagehead"><div><span class="lbl">2026 Formula 1 World Championship</span><h1>Teams</h1>
+function viewTeams(){return `<div class="pagehead"><div><span class="lbl">2026 Formula 1 World Championship</span><h2 class="h1">Teams</h2>
   <p>All ${CONSTRUCTORS.length} constructors, in championship order. Select a team for its profile, line-up and record.</p></div></div>
   <div class="tcards">${CONSTRUCTORS.map(teamCard).join("")}</div>`;}
 const num=v=>v==null?"—":Number.isInteger(v)?v.toLocaleString("en-GB"):v.toLocaleString("en-GB",{maximumFractionDigits:1});
@@ -1025,6 +1033,7 @@ function route(){document.body.classList.remove("fs-lock");document.title="Track
   else if(h.startsWith("detail-")){const [nn,jk]=h.slice(7).split("-");const n=+nn;lapSel=new Set();$("#app").innerHTML=viewDetail(n);drawLapChart();if(jk)jumpTo(jk);const r=RACES.find(x=>x.r===n);$("#sheetname").textContent=r?`R${n} · ${r.gp.toUpperCase()}`:"";setNav("season");}
   else{$("#app").innerHTML=viewSeason();tower("d");countdown();$("#sheetname").textContent="2026 WORLD CHAMPIONSHIP";setNav("season");
     if(h.startsWith("race-"))openRace(+h.slice(5));}
+  {const app=$("#app"),t1=h1Text(h);if(t1&&!app.querySelector("h1"))app.insertAdjacentHTML("afterbegin",`<h1 class="sr">${esc(t1)}</h1>`);}
   if(PATHMODE&&NAVD){document.title=pageTitle(h);const c=document.querySelector('link[rel="canonical"]');if(c)c.href=location.origin+location.pathname;}
   if(!(PATHMODE&&location.hash&&/^detail-/.test(h)))window.scrollTo(0,0);
 }
