@@ -22,8 +22,14 @@ Rules
     finishing order agree between Jolpica-F1 and OpenF1; points add up to the
     published standings; standings sorted. A session that fails a check is not
     saved and the run exits with code 1, so GitHub emails the owner.
-  * Schedule: for the current and next round, if both sources agree on a session
-    start that differs from SCHED by more than 5 minutes, SCHED is updated.
+  * Schedule: for the current and next round, the time each source reports is
+    remembered in .automation/schedule-seen.json. SCHED is only changed when a
+    source's time CHANGES compared with what it reported before and both sources
+    agree on the new time (more than 5 minutes from SCHED). A difference that was
+    already there is left alone, so hand-entered times stick.
+  * A check failure fails the run (GitHub emails the owner) only the first time it
+    appears; repeats are logged as warnings and the run exits 0. Reported failures
+    are remembered in .automation/check-failures.json and forgotten once resolved.
 
 Usage
   python3 scripts/update.py                      normal run (writes data, rebuilds)
@@ -63,6 +69,8 @@ NATION = {"Italian": "ITA", "British": "GBR", "Dutch": "NED", "Monegasque": "MON
           "Brazilian": "BRA", "Canadian": "CAN", "Mexican": "MEX", "Finnish": "FIN", "Japanese": "JPN", "American": "USA",
           "Danish": "DEN", "Chinese": "CHN", "Swiss": "SUI", "Belgian": "BEL", "Austrian": "AUT", "Polish": "POL",
           "Swedish": "SWE", "Estonian": "EST", "Indian": "IND", "Israeli": "ISR", "Irish": "IRL", "Russian": "RUS"}
+SCHEDULE_SEEN = os.path.join(ROOT, ".automation", "schedule-seen.json")   # session times each source reported last
+FAILURES_SEEN = os.path.join(ROOT, ".automation", "check-failures.json")  # check failures already reported by email
 MIN_CARS, MAX_CARS = 20, 22
 LIVE_GRACE = dt.timedelta(minutes=10)   # wait this long after a session's scheduled end
 
@@ -469,9 +477,10 @@ def race_of(D, rnd): return next(r for r in D["RACES"] if r["r"] == rnd)
 
 # ---------------------------------------------------------------- the update
 class Updater:
-    def __init__(self, D, src, now, log=print):
+    def __init__(self, D, src, now, log=print, seen=None):
         self.D, self.src, self.now, self.log = D, src, now, log
-        self.added, self.failures, self.schedule_moves = [], [], []
+        self.seen = seen if seen is not None else {}   # {round: {session: {"jolpica": iso, "openf1": iso}}}
+        self.added, self.failures, self.schedule_moves, self.schedule_notes = [], [], [], []
 
     def ended(self, start, dur): return self.now >= start + dt.timedelta(minutes=dur or 120) + LIVE_GRACE
 
@@ -583,12 +592,18 @@ class Updater:
         return out[:2]
 
     def check_schedule(self):
+        """Moves a session in SCHED only when the sources' reported time CHANGES compared
+        with what they reported on an earlier run, and both agree on the new time. A
+        difference that was already there is left alone, so hand-entered times stick."""
         D = self.D
         rounds = self.current_rounds()
+        for rk in list(self.seen):                       # forget finished rounds
+            if int(rk) not in rounds: del self.seen[rk]
         if not rounds: return
         jol = self.src.schedule()
         for rnd in rounds:
             jr = jol.get(rnd)
+            seen_r = self.seen.setdefault(str(rnd), {})
             for item in D["SCHED"][str(rnd)][1]:
                 name, cur = item[0], parse_t(item[1])
                 jt = None
@@ -598,15 +613,25 @@ class Updater:
                     if blk and blk.get("time"): jt = parse_t("%sT%s" % (blk["date"], blk["time"]))
                 os_ = self.src.of1_session(name, cur)
                 ot = parse_t(os_["date_start"]) if os_ else None
+                prev = dict(seen_r.get(name) or {})
+                now_seen = {"jolpica": iso_z(jt) if jt else prev.get("jolpica"), "openf1": iso_z(ot) if ot else prev.get("openf1")}
+                seen_r[name] = {k: v for k, v in now_seen.items() if v}
                 if not jt or not ot: continue
                 if abs((jt - ot).total_seconds()) > 60: continue          # sources disagree: leave SCHED alone
                 if abs((jt - cur).total_seconds()) <= 300: continue       # within 5 minutes: no change
+                changed = [k for k, t in (("jolpica", jt), ("openf1", ot)) if prev.get(k) and prev[k] != iso_z(t)]
+                if not changed:
+                    why = "first time seen" if not prev else "sources unchanged since last run"
+                    self.schedule_notes.append("R%d %s: SCHED %s, both sources %s UTC; left alone (%s, so a hand-entered time stays)" % (
+                        rnd, name, cur.strftime("%Y-%m-%d %H:%M"), jt.strftime("%Y-%m-%d %H:%M"), why))
+                    continue
                 new = iso_z(jt)
                 r = race_of(D, rnd)
                 if name == "Grand Prix" and r.get("start") == item[1]: r["start"] = new
                 item[1] = new
                 msg = "R%d %s moved to %s UTC" % (rnd, name, jt.strftime("%Y-%m-%d %H:%M"))
                 self.schedule_moves.append(msg); self.log("Schedule: " + msg)
+        for n in self.schedule_notes: self.log("Schedule: " + n)
 
     def message(self):
         lines = []
@@ -719,10 +744,11 @@ def selftest(D, src, rnd, log):
     for c in other: log("  - " + c)
     log("\nCommit message would be:\n" + u.message())
     # schedule check, report only
-    S2 = copy.deepcopy(D); u2 = Updater(S2, src, dt.datetime.now(dt.timezone.utc), log)
+    # schedule check, report only: in-memory state, .automation/schedule-seen.json is not read or written
+    S2 = copy.deepcopy(D); u2 = Updater(S2, src, dt.datetime.now(dt.timezone.utc), log, seen={})
     try: u2.check_schedule()
     except NotReady as e: log("schedule check: %s" % e)
-    log("Schedule check (report only): %s" % (u2.schedule_moves or "SCHED matches both sources"))
+    log("Schedule check (report only): %s" % ("; ".join(u2.schedule_notes) if u2.schedule_notes else "SCHED matches both sources"))
     ok = not core and not u.failures
     log("\nSELF-TEST %s" % ("PASSED" if ok else "FAILED"))
     return ok
@@ -749,10 +775,20 @@ def main():
         if a.report: open(a.report, "w").write("\n".join(lines) + "\n")
         sys.exit(0 if ok else 1)
     now = parse_t(a.now) if a.now else dt.datetime.now(dt.timezone.utc)
+    seen = read_json(SCHEDULE_SEEN, {})
+    seen_before = json.dumps(seen, sort_keys=True)
     before = json.dumps(D, sort_keys=True)
-    u = Updater(D, src, now, log).run()
+    u = Updater(D, src, now, log, seen=seen).run()
     changed = json.dumps(D, sort_keys=True) != before
     msg = u.message()
+    # check failures: email (exit 1) only the first time a failure appears; repeats are warnings
+    reported = read_json(FAILURES_SEEN, {})
+    new_fail = [f for f in u.failures if f not in reported]
+    repeat_fail = [f for f in u.failures if f in reported]
+    failures_now = {f: reported.get(f, iso_z(now)) for f in u.failures}   # resolved failures drop out (reset)
+    if not a.dry_run:
+        state_changed = write_json(SCHEDULE_SEEN, seen, seen_before) | write_json(FAILURES_SEEN, failures_now, json.dumps(reported, sort_keys=True))
+        if state_changed and not msg: msg = "Auto: update source state\n"
     if changed and not a.dry_run:
         check_sorted(D)
         build.save_data(D)
@@ -763,9 +799,29 @@ def main():
         log("nothing new")
     if a.message_file: open(a.message_file, "w").write(msg)
     if msg: log(msg.strip())
-    if u.failures:
-        log("\nChecks failed, these were NOT published:\n  " + "\n  ".join(u.failures))
+    if repeat_fail:
+        log("\nWARNING: still failing a check (already reported by email), NOT published:\n  " + "\n  ".join(repeat_fail))
+        if os.environ.get("GITHUB_ACTIONS"):
+            for f in repeat_fail: print("::warning::Still not published (already reported): " + f.replace("\n", " "))
+    if new_fail:
+        log("\nChecks failed, these were NOT published:\n  " + "\n  ".join(new_fail))
         sys.exit(1)
+
+
+def read_json(path, default):
+    try:
+        return json.load(open(path, encoding="utf-8"))
+    except (OSError, ValueError):
+        return default
+
+
+def write_json(path, value, before_dump):
+    """Writes the file only when its content changed. Returns True if written."""
+    if json.dumps(value, sort_keys=True) == before_dump and os.path.exists(path): return False
+    if not value and not os.path.exists(path): return False
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f: f.write(json.dumps(value, indent=1, sort_keys=True) + "\n")
+    return True
 
 
 if __name__ == "__main__":
