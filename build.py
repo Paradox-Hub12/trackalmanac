@@ -473,6 +473,31 @@ def org_ld():
 
 
 # ---------------------------------------------------------------- page shell
+# ---------------------------------------------------------------- Google Analytics 4 (Consent Mode v2)
+GA_ID = "G-E8LPNWHWRT"
+GA_HOST = "trackalmanac.com"          # gtag.js only loads on the live site, never on local/test builds
+GA_STRICT = ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU",
+             "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "IS", "LI", "NO", "GB", "CH"]   # EEA, UK, Switzerland
+
+
+def ga_snippet():
+    """Consent defaults, the stored cookie choice and the gtag.js loader. window.taConsent(choice) is
+    called by the cookie banner; window.TA_GA is set only when analytics actually loads."""
+    return ("<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}\n"
+            "(function(){var D='denied',G='granted';"
+            "gtag('consent','default',{analytics_storage:D,ad_storage:D,ad_user_data:D,ad_personalization:D,region:%s,wait_for_update:500});"
+            "gtag('consent','default',{analytics_storage:G,ad_storage:D,ad_user_data:D,ad_personalization:D,wait_for_update:500});"
+            "window.taConsent=function(c){if(c!=='accept'&&c!=='reject')return;var v=c==='accept'?G:D;"
+            "gtag('consent','update',{analytics_storage:v,ad_storage:v,ad_user_data:v,ad_personalization:v});};"
+            "var c=null;try{c=localStorage.getItem('ta-consent');}catch(e){}window.taConsent(c);"
+            "if(location.hostname!==%s)return;"
+            "var legacy=location.pathname==='/'&&/^#(season|championship|drivers|teams|calendar|archive|about|contact|privacy|terms|disclaimer|sitemap|race-|detail-|driver-|team-)/.test(location.hash);"
+            "window.TA_GA=%s;window.TA_GA_FIRST=legacy?null:location.pathname+location.search;"
+            "var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+window.TA_GA;document.head.appendChild(s);"
+            "gtag('js',new Date());gtag('config',window.TA_GA,legacy?{send_page_view:false}:{});})();</script>"
+            % (json.dumps(GA_STRICT, separators=(",", ":")), json.dumps(GA_HOST), json.dumps(GA_ID)))
+
+
 def head(p, assets, fonts):
     t, d, url = esc(p["title"]), esc(p["desc"]), SITE + p["path"]
     ld = "".join('<script type="application/ld+json">%s</script>\n' % json.dumps(x, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/") for x in p["ld"])
@@ -491,6 +516,7 @@ def head(p, assets, fonts):
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#000000">
+{ga_snippet()}
 <meta property="og:type" content="{'article' if p['path'].startswith('/races/') else 'website'}">
 <meta property="og:site_name" content="Track Almanac">
 <meta property="og:url" content="{url}">

@@ -1642,7 +1642,7 @@ about:{t:"About Track Almanac",b:`
 <h3>Independence</h3>
 <p>Track Almanac is not affiliated with, endorsed by or connected to Formula 1, the FIA, Formula One Management or any team. See our <a href="${H("disclaimer")}" data-go="disclaimer">disclaimer</a> for details.</p>`},
 privacy:{t:"Privacy Policy",b:`
-<p class="meta">Last updated: ${SITE.updated}</p>
+<p class="meta">Last updated: 12 October 2026</p>
 <p>This policy explains what information ${SITE.name} ("we", "us") collects when you visit ${SITE.domain} (the "Site"), how it is used and the choices you have.</p>
 <h3>1. Information we collect</h3>
 <ul><li><b>Information you give us.</b> If you email us, we receive your email address and whatever you include in your message. We use it only to reply.</li>
@@ -1655,7 +1655,12 @@ privacy:{t:"Privacy Policy",b:`
 <li>To learn how Google uses information from sites that use its services, see <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">How Google uses information from sites or apps that use our services</a>.</li></ul>
 <p>Where required by law, including in the European Economic Area, the United Kingdom and Switzerland, we ask for your consent before non-essential cookies are used. You can change your choice at any time with the <b>Cookie settings</b> link in the footer.</p>
 <h3>3. Analytics</h3>
-<p>We may use privacy-respecting analytics to understand which pages are popular. Analytics providers process data under their own privacy policies.</p>
+<p>We use <b>Google Analytics 4</b>, a service provided by Google, to count visits and see which pages are popular, so we know what to improve.</p>
+<ul><li><b>What it collects.</b> The pages you view and their titles, the site that referred you, approximate location (country and city, worked out from your IP address; Google Analytics 4 does not store IP addresses), device type, browser, operating system, screen size and language, and basic interactions such as scrolling, time on page and clicks on links to other sites. It does not collect your name or email address.</li>
+<li><b>Cookies.</b> Google Analytics uses first-party cookies (<span class="mono">_ga</span> and <span class="mono">_ga_*</span>) to tell visits apart. They can last up to two years.</li>
+<li><b>Consent.</b> In the European Economic Area, the United Kingdom and Switzerland, analytics cookies are only set if you choose <b>Accept all</b>. Until then, or if you choose <b>Essential only</b>, no analytics cookies are stored; Google may receive limited signals without cookies or identifiers (for example, that a page was viewed), which it uses only in aggregate. Elsewhere, analytics cookies are used by default and you can turn them off by choosing <b>Essential only</b>.</li>
+<li><b>Changing your choice.</b> Use the <b>Cookie settings</b> link in the footer of any page at any time.</li>
+<li><b>More information and opting out.</b> See <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a> and <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">how Google uses information from sites that use its services</a>. You can also block Google Analytics on every website with the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics opt-out browser add-on</a>.</li></ul>
 <h3>4. How we use information</h3>
 <p>To operate and improve the Site, keep it secure, show advertising that funds it, and respond to messages. We do not sell your personal information.</p>
 <h3>5. Your rights</h3>
@@ -1744,6 +1749,8 @@ function route(){document.body.classList.remove("fs-lock");document.title="Track
     if(h.startsWith("race-"))openRace(+h.slice(5));}
   {const app=$("#app"),t1=h1Text(h);if(t1&&!app.querySelector("h1"))app.insertAdjacentHTML("afterbegin",`<h1 class="sr">${esc(t1)}</h1>`);}
   if(PATHMODE&&NAVD){document.title=pageTitle(h);const c=document.querySelector('link[rel="canonical"]');if(c)c.href=location.origin+location.pathname;}
+  /* GA4: the first load is counted by gtag config; count in-app page changes once the new title is set, only when the address changed */
+  if(PATHMODE&&window.TA_GA&&window.gtag){const pv=location.pathname+location.search;if(pv!==window.TA_GA_FIRST){window.TA_GA_FIRST=pv;gtag("event","page_view",{page_location:location.href,page_title:document.title});}}
   if(!(PATHMODE&&location.hash&&/^detail-/.test(h)))window.scrollTo(0,0);
 }
 function cdParts(ms,sm){let s=Math.max(0,Math.floor(ms/1000));const v=[Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60];
@@ -1776,7 +1783,7 @@ document.addEventListener("click",e=>{
   const b=e.target.closest("[data-quick],[data-detail],[data-go],[data-year],[data-fp],[data-chip],[data-jump],[data-order],[data-lap],[data-fs],[data-spd],[data-clock],[data-consent],[data-cookies],[data-copy],[data-chipset],#t-d,#t-c");if(!b)return;
   if(b.dataset.fs){toggleFS(b.dataset.fs);return;}
   if(b.dataset.clock){CLOCK=b.dataset.clock;try{localStorage.setItem("ta-clock",CLOCK)}catch(err){}const y=window.scrollY,open=$(".drawer")?location.hash:null;route();window.scrollTo(0,y);return;}
-  if(b.dataset.consent){try{localStorage.setItem("ta-consent",b.dataset.consent)}catch(err){}document.querySelectorAll(".consent").forEach(x=>x.remove());return;}
+  if(b.dataset.consent){try{localStorage.setItem("ta-consent",b.dataset.consent)}catch(err){}if(window.taConsent)window.taConsent(b.dataset.consent);document.querySelectorAll(".consent").forEach(x=>x.remove());return;}
   if(b.dataset.cookies){consentBanner(true);return;}
   if(b.dataset.copy){const v=b.dataset.copy;try{navigator.clipboard.writeText(v).then(()=>{b.textContent="Copied";},()=>{const r=document.createRange();r.selectNodeContents($("#cmail"));getSelection().removeAllRanges();getSelection().addRange(r);});}catch(err){}return;}
   if(b.dataset.spd){ANIM_SPEED=+b.dataset.spd;document.querySelectorAll("[data-spd]").forEach(x=>x.setAttribute("aria-pressed",+x.dataset.spd===ANIM_SPEED));return;}
