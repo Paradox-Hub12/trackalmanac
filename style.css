@@ -6,7 +6,7 @@
   --signal:#ff2d2d; --signal-ink:#000000; --done:#5f9dff;
   --s1:#ff3b5c; --s2:#ffd23f; --s3:#3d8bff; --purple:#c06bff;
   --gold:#e8c45a; --silver:#c7ccd3; --bronze:#d08f55; --pts:#2f8a55; --fin:#2e4f80; --ret:#5d3d84; --dns:#1b222d;
-  --tH:#f2f2f2; --tM:#ffd23f; --tS:#ff4d5e;
+  --tH:#f2f2f2; --tM:#ffd23f; --tS:#ff4d5e;--tI:#43c56b;--tW:#3d8bff;
   --up-bg:#0b1220; --up-rule:#2a4166;
   --plate-ink:#cfe3ff; --plate-meta:#c49bff;
   --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
@@ -253,6 +253,29 @@ table.t tr.fl td{color:var(--ink-2);font-size:12.5px}
 .lapchart.focus .ln.on{opacity:1}
 .lapchart .lbl2{font-family:var(--f-data);font-size:10px}
 .lapkey{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.racebands{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.racebands .rb{font-family:var(--f-data);font-size:12px;border:1px solid var(--rule-2);padding:4px 9px;color:var(--ink);display:inline-flex;gap:8px;align-items:center;background:var(--panel)}
+.racebands .rb small{color:var(--ink-3);font-size:11px}
+.rb i{width:14px;height:10px;display:inline-block;flex:none}
+.rb.sc i{background:rgba(255,210,63,.55)}
+.rb.vsc i{background:repeating-linear-gradient(135deg,rgba(255,210,63,.6) 0 2px,transparent 2px 5px);outline:1px dashed rgba(255,210,63,.8)}
+.rb.rf i{background:rgba(255,45,45,.7)}
+.rb.none{color:var(--ink-2)}
+.tyrechart{border:1.5px solid var(--rule-2);background:var(--panel);padding:12px;overflow-x:auto}
+.tyrechart svg{width:100%;min-width:620px;height:auto;display:block}
+.tyrechart .lbl2{font-family:var(--f-data);font-size:10px}
+.tyrechart .st:hover{opacity:.82}
+.tylegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-family:var(--f-data);font-size:11px;color:var(--ink-2)}
+.tylegend span{display:inline-flex;gap:6px;align-items:center}
+.tylegend i{width:16px;height:9px;display:inline-block;border-radius:2px}
+.pitsum{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.pitsum div{border:1px solid var(--rule-2);background:var(--panel);padding:8px 12px;min-width:140px}
+.pitsum b{display:block;font-family:var(--f-data);font-size:18px;margin-top:2px}
+.pitsum .s{color:var(--ink-3);font-size:12px}
+.pitt tr.best td{color:var(--tM)}
+@media (max-width:600px){.pitt .tm{display:none}.pitt{min-width:0!important}}
+.pitt .tyx{font-family:var(--f-data);white-space:nowrap}
+.tyb{display:inline-block;min-width:18px;text-align:center;border-radius:2px;color:#000;font-weight:700;font-size:11px;padding:0 3px}
 .lapkey button{background:none;border:1px solid var(--rule-2);padding:3px 7px;cursor:pointer;font-family:var(--f-data);font-size:11px;color:var(--ink-2);display:inline-flex;gap:6px;align-items:center}
 .lapkey button i{width:10px;height:3px;display:inline-block}
 .lapkey button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}

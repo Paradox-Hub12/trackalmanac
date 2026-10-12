@@ -11,7 +11,7 @@
   --signal:#ff2d2d; --signal-ink:#000000; --done:#5f9dff;
   --s1:#ff3b5c; --s2:#ffd23f; --s3:#3d8bff; --purple:#c06bff;
   --gold:#e8c45a; --silver:#c7ccd3; --bronze:#d08f55; --pts:#2f8a55; --fin:#2e4f80; --ret:#5d3d84; --dns:#1b222d;
-  --tH:#f2f2f2; --tM:#ffd23f; --tS:#ff4d5e;
+  --tH:#f2f2f2; --tM:#ffd23f; --tS:#ff4d5e;--tI:#43c56b;--tW:#3d8bff;
   --up-bg:#0b1220; --up-rule:#2a4166;
   --plate-ink:#cfe3ff; --plate-meta:#c49bff;
   --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
@@ -258,6 +258,29 @@ table.t tr.fl td{color:var(--ink-2);font-size:12.5px}
 .lapchart.focus .ln.on{opacity:1}
 .lapchart .lbl2{font-family:var(--f-data);font-size:10px}
 .lapkey{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.racebands{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.racebands .rb{font-family:var(--f-data);font-size:12px;border:1px solid var(--rule-2);padding:4px 9px;color:var(--ink);display:inline-flex;gap:8px;align-items:center;background:var(--panel)}
+.racebands .rb small{color:var(--ink-3);font-size:11px}
+.rb i{width:14px;height:10px;display:inline-block;flex:none}
+.rb.sc i{background:rgba(255,210,63,.55)}
+.rb.vsc i{background:repeating-linear-gradient(135deg,rgba(255,210,63,.6) 0 2px,transparent 2px 5px);outline:1px dashed rgba(255,210,63,.8)}
+.rb.rf i{background:rgba(255,45,45,.7)}
+.rb.none{color:var(--ink-2)}
+.tyrechart{border:1.5px solid var(--rule-2);background:var(--panel);padding:12px;overflow-x:auto}
+.tyrechart svg{width:100%;min-width:620px;height:auto;display:block}
+.tyrechart .lbl2{font-family:var(--f-data);font-size:10px}
+.tyrechart .st:hover{opacity:.82}
+.tylegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-family:var(--f-data);font-size:11px;color:var(--ink-2)}
+.tylegend span{display:inline-flex;gap:6px;align-items:center}
+.tylegend i{width:16px;height:9px;display:inline-block;border-radius:2px}
+.pitsum{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.pitsum div{border:1px solid var(--rule-2);background:var(--panel);padding:8px 12px;min-width:140px}
+.pitsum b{display:block;font-family:var(--f-data);font-size:18px;margin-top:2px}
+.pitsum .s{color:var(--ink-3);font-size:12px}
+.pitt tr.best td{color:var(--tM)}
+@media (max-width:600px){.pitt .tm{display:none}.pitt{min-width:0!important}}
+.pitt .tyx{font-family:var(--f-data);white-space:nowrap}
+.tyb{display:inline-block;min-width:18px;text-align:center;border-radius:2px;color:#000;font-weight:700;font-size:11px;padding:0 3px}
 .lapkey button{background:none;border:1px solid var(--rule-2);padding:3px 7px;cursor:pointer;font-family:var(--f-data);font-size:11px;color:var(--ink-2);display:inline-flex;gap:6px;align-items:center}
 .lapkey button i{width:10px;height:3px;display:inline-block}
 .lapkey button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
@@ -1067,6 +1090,55 @@ function gridSection(n){
     </div></div>`;
 }
 let lapSel=new Set();
+/* ---------- safety cars, tyre stints, pit stops ---------- */
+const NEUTRAL={SC:"Safety car",VSC:"Virtual safety car",RF:"Red flag"};
+const TYRE={S:["Soft","var(--tS)"],M:["Medium","var(--tM)"],H:["Hard","var(--tH)"],I:["Intermediate","var(--tI)"],W:["Wet","var(--tW)"],"?":["Unknown","var(--ink-3)"]};
+const lapsTxt=(a,b)=>a===b?`lap ${a}`:`laps ${a}–${b}`;
+function neutralAt(S,L){return (S.neutral||[]).find(([k,a,b])=>L>=a&&L<=b);}
+function neutralBands(S,X,y1,y2){const at={};return (S.neutral||[]).map(([k,a,b])=>{const x1=X(a-1),x2=X(b),w=Math.max(2,x2-x1),dy=10*((at[a]=(at[a]||0)+1)-1);
+  const fill=k==="RF"?"rgba(255,45,45,.20)":k==="SC"?"rgba(255,210,63,.16)":"rgba(255,210,63,.07)";
+  return `<g class="nb"><rect x="${x1}" y="${y1}" width="${w}" height="${y2-y1}" fill="${fill}"${k==="VSC"?' stroke="rgba(255,210,63,.55)" stroke-dasharray="3 3"':""}><title>${NEUTRAL[k]} · ${lapsTxt(a,b)}</title></rect>`+
+    `<text x="${x1+w/2}" y="${y1+9+dy}" text-anchor="middle" class="lbl2" font-weight="700" fill="${k==="RF"?"var(--signal)":"var(--tM)"}">${k}</text></g>`;}).join("");}
+function neutralChips(S){if(!S.neutral)return "";
+  if(!S.neutral.length)return `<div class="racebands"><span class="rb none">No safety car, virtual safety car or red flag</span></div>`;
+  return `<div class="racebands" role="list" aria-label="Safety cars and red flags">${S.neutral.map(([k,a,b])=>`<span class="rb ${k.toLowerCase()}" role="listitem"><i></i>${NEUTRAL[k]}<small>${lapsTxt(a,b)}</small></span>`).join("")}</div>`;}
+function tyreChart(n){const S=SEASON[n],ST=S.stints;
+  if(!ST)return `<div class="soon wait"><span class="lbl">Tyre strategy</span><b>Yet to update</b><span>Each driver's tyre stints are added from the official timing data after the race.</span></div>`;
+  const rows=S.race.filter(y=>ST[String(y[1])]);const r=RACES.find(x=>x.r===n);
+  const nL=Math.max(r.laps||0,...rows.map(y=>ST[String(y[1])].slice(-1)[0][2]));
+  const W=980,ml=118,mr=14,mt=16,rowH=19,H=mt+rows.length*rowH+26,X=i=>ml+(W-ml-mr)*i/nL;
+  let g=neutralBands(S,X,mt-4,H-22);
+  const step=nL>60?10:5;for(let i=0;i<=nL;i+=step)g+=`<line x1="${X(i)}" x2="${X(i)}" y1="${mt-4}" y2="${H-22}" stroke="var(--rule)"/><text x="${X(i)}" y="${H-8}" text-anchor="middle" class="lbl2" fill="var(--ink-3)">${i===0?"Start":"L"+i}</text>`;
+  const used=new Set();
+  rows.forEach((y,k)=>{const top=mt+k*rowH,t=teamAt(y[2],n),code=(LAPS[n]&&LAPS[n].c[S.race.indexOf(y)])||y[2].slice(0,3).toUpperCase();
+    g+=`<text x="8" y="${top+12.5}" class="lbl2" fill="var(--ink-3)">${esc(y[0])}</text><rect x="30" y="${top+4}" width="3" height="11" fill="${tcol(t)}"/><text x="38" y="${top+12.5}" class="lbl2" font-weight="600" fill="var(--ink)">${esc(y[2])}</text>`;
+    const ss=ST[String(y[1])];
+    ss.forEach(([c,a,b,age],j)=>{used.add(c);const x1=X(a-1)+1,w=Math.max(2,X(b)-X(a-1)-2),T=TYRE[c]||TYRE["?"];
+      const lab=w>34?`${c}${age?" ·"+age:""}`:w>12?c:"";
+      g+=`<g class="st"><rect x="${x1}" y="${top+3}" width="${w}" height="${rowH-6}" rx="2" fill="${T[1]}"/>${lab?`<text x="${x1+w/2}" y="${top+12.5}" text-anchor="middle" class="lbl2" font-weight="700" fill="#000">${lab}</text>`:""}<title>${esc(code)} · ${T[0]} · ${lapsTxt(a,b)} (${b-a+1} lap${b===a?"":"s"})${age?` · set ${age} laps old at fit`:" · new set"}</title></g>`;});
+    const last=ss.slice(-1)[0][2],ret=!/^\d+$/.test(y[0])||/DNF|DNS|DSQ/.test(y[4]);
+    if(ret&&last<nL)g+=`<text x="${X(last)+7}" y="${top+13}" text-anchor="middle" font-size="11" fill="var(--ink-3)">✕</text>`;});
+  const legend=["S","M","H","I","W","?"].filter(c=>used.has(c)).map(c=>`<span><i style="background:${TYRE[c][1]}"></i>${TYRE[c][0]}</span>`).join("")+
+    ((S.neutral||[]).length?`<span><i style="background:rgba(255,210,63,.35)"></i>SC / VSC laps</span>`:"")+((S.neutral||[]).some(x=>x[0]==="RF")?`<span><i style="background:rgba(255,45,45,.5)"></i>Red flag</span>`:"");
+  const outl=(S.neutral||[]).map(([k,a,b])=>{const x1=X(a-1),w=Math.max(2,X(b)-x1);return `<rect x="${x1}" y="${mt-4}" width="${w}" height="${H-22-mt+4}" fill="none" stroke="${k==="RF"?"var(--signal)":"var(--tM)"}" stroke-width="1.2"${k==="VSC"?' stroke-dasharray="4 3"':""} pointer-events="none"/>`;}).join("");
+  return `<div class="tyrechart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tyre strategy for every driver, lap by lap">${g}${outl}</svg></div><div class="tylegend">${legend}<span>Number = laps already on the set when fitted</span></div>`;}
+function pitTable(n){const S=SEASON[n],P=S.pits;
+  if(!P)return `<div class="soon wait"><span class="lbl">Pit stops</span><b>Yet to update</b><span>Every pit stop is added from the official timing data after the race.</span></div>`;
+  if(!P.length)return `<p class="note2">No pit stops.</p>`;
+  const byNum={};S.race.forEach(y=>byNum[y[1]]=y);const ST=S.stints||{};const stopNo={};
+  const best=P.reduce((m,p)=>p[2]<m[2]?p:m,P[0]);const hasStat=P.some(p=>p[3]!=null);
+  const bestStat=hasStat?P.filter(p=>p[3]!=null).reduce((m,p)=>p[3]<m[3]?p:m):null;
+  const fmtS=v=>v>=60?`${Math.floor(v/60)}:${(v%60).toFixed(3).padStart(6,"0")}`:v.toFixed(3);
+  const tyreSwap=(num,lap)=>{const ss=ST[String(num)];if(!ss)return "";const k=ss.findIndex(s=>Math.abs(s[1]-(lap+1))<=1);if(k<1)return '<span title="No tyre change in the timing data" style="color:var(--ink-3)">–</span>';
+    const b=(c)=>`<span class="tyb" style="background:${(TYRE[c]||TYRE["?"])[1]}" title="${(TYRE[c]||TYRE["?"])[0]}">${c}</span>`;return `${b(ss[k-1][0])} → ${b(ss[k][0])}`;};
+  const counts={};P.forEach(p=>counts[p[0]]=(counts[p[0]]||0)+1);const most=Math.max(...Object.values(counts));
+  const rows=P.map(p=>{const y=byNum[p[0]];stopNo[p[0]]=(stopNo[p[0]]||0)+1;const nm=y?fullName(y[2]):"#"+p[0],t=y?teamAt(y[2],n):"";
+    return `<tr class="${p===best?"best":""}"><td class="n">${p[1]}</td><td><span class="sw" style="background:${tcol(t)}"></span>${esc(nm)}</td><td class="tm">${esc(t)}</td><td class="n">${stopNo[p[0]]}</td><td class="n">${fmtS(p[2])}s</td>${hasStat?`<td class="n">${p[3]!=null?p[3].toFixed(2)+"s":"–"}</td>`:""}<td class="tyx">${tyreSwap(p[0],p[1])}</td></tr>`;}).join("");
+  const bn=byNum[best[0]];
+  return `<div class="pitsum"><div><span class="lbl">Stops</span><b>${P.length}</b><span class="s">${Object.keys(counts).length} drivers · most ${most} by one driver</span></div>
+    <div><span class="lbl">Fastest pit lane time</span><b>${fmtS(best[2])}s</b><span class="s">${esc(bn?fullName(bn[2]):"#"+best[0])} · lap ${best[1]}</span></div>
+    ${bestStat?`<div><span class="lbl">Fastest stationary time</span><b>${bestStat[3].toFixed(2)}s</b><span class="s">${esc(byNum[bestStat[0]]?fullName(byNum[bestStat[0]][2]):"#"+bestStat[0])} · lap ${bestStat[1]}</span></div>`:""}</div>
+    <div class="tw"><table class="t pitt"><thead><tr><th class="n">Lap</th><th>Driver</th><th class="tm">Team</th><th class="n">Stop</th><th class="n">Pit lane</th>${hasStat?'<th class="n">Stationary</th>':""}<th>Tyres</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
 function drawLapChart(){
   const el=$("#lapchart"); if(!el) return; cancelAnimationFrame(el._raf);el._playing=false;
   const n=+el.dataset.round, L=LAPS[n], S=SEASON[n];
@@ -1091,7 +1163,7 @@ function drawLapChart(){
   const cw=Math.max(4,(W-ml-mr)/nL);
   const strip=Array.from({length:nL+1},(_,i)=>`<rect class="lapcell" data-l="${i}" x="${X(i)-cw/2}" y="${mt}" width="${cw}" height="${H-mt-24}" fill="transparent"/>`).join("");
   el.innerHTML=animBar("lapchart","race")+`<div class="lapstep" role="group" aria-label="Inspect a lap"><button class="navbtn" id="lp-prev" aria-label="Previous lap">‹</button><span id="lp-lab" class="lbl">Hover or tap a lap to see the order</span><button class="navbtn" id="lp-next" aria-label="Next lap">›</button><button class="navbtn" id="lp-clr" hidden>Clear</button></div>`+
-    `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Lap-by-lap positions"><defs><clipPath id="${cid}"><rect x="0" y="0" width="${W}" height="${H}"/></clipPath></defs>${g}<g class="cells">${strip}</g>${lines}<g id="lapinsp" style="display:none"></g></svg>`;
+    `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Lap-by-lap positions"><defs><clipPath id="${cid}"><rect x="0" y="0" width="${W}" height="${H}"/></clipPath></defs>${neutralBands(S,X,mt,H-24)}${g}<g class="cells">${strip}</g>${lines}<g id="lapinsp" style="display:none"></g></svg>`;
   const insp=el.querySelector("#lapinsp"), lab=el.querySelector("#lp-lab"), clr=el.querySelector("#lp-clr"), svgEl=el.querySelector("svg");
   const orderAt=L=>L===0?Object.keys(gridPos).map(Number).sort((a,b)=>gridPos[a]-gridPos[b]):laps[L-1];
   function showLap(L){L=Math.max(0,Math.min(nL,L));const ord=orderAt(L);const x=X(L);const left=L>nL*0.72;
@@ -1099,7 +1171,8 @@ function drawLapChart(){
     ord.forEach((di,k)=>{const t=teamAt(S.race[di][2],n),y=Y(k+1),bx=left?x-62:x+6;
       h+=`<rect x="${bx}" y="${y-7.5}" width="56" height="15" fill="var(--sheet)" stroke="${tcol(t)}" stroke-width="1"/><text x="${bx+5}" y="${y+3.5}" class="lbl2" fill="var(--ink-3)">${k+1}</text><text x="${bx+22}" y="${y+3.5}" class="lbl2" font-weight="600" fill="${tcol(t)}">${codes[di]}</text>`;});
     insp.innerHTML=h;insp.style.display="";el._lap=L;
-    lab.textContent=L===0?`Grid · pole ${codes[ord[0]]}`:`Lap ${L}/${nL} · leader ${codes[ord[0]]} · ${ord.length} running`;}
+    const nz=L?neutralAt(S,L):null;
+    lab.textContent=L===0?`Grid · pole ${codes[ord[0]]}`:`Lap ${L}/${nL} · leader ${codes[ord[0]]} · ${ord.length} running${nz?" · "+NEUTRAL[nz[0]]:""}`;}
   function hideLap(){if(el._pin!=null){showLap(el._pin);return;}insp.style.display="none";el._lap=null;lab.textContent="Hover or tap a lap to see the order";}
   const lapFromEvt=e=>{const b=svgEl.getBoundingClientRect();const x=(e.clientX-b.left)/b.width*W;return Math.round((x-ml)/(W-ml-mr)*nL);};
   svgEl.addEventListener("pointermove",e=>{if(el._playing||el._pin!=null)return;const L=lapFromEvt(e);if(L<0||L>nL){hideLap();return;}showLap(L);});
@@ -1130,7 +1203,7 @@ function viewDetail(n){
   const ses=r.sprint?[["Practice 1","Sprint Qualifying"],["Sprint","Qualifying"],["Grand Prix"]]:[["Practice 1","Practice 2"],["Practice 3","Qualifying"],["Grand Prix"]];
   const wx=S.wx;
   const tyreNames=["Hard","Medium","Soft"];
-  const jumps=[["weekend","Weekend"],["practice","Practice"],...(r.sprint?[["sq","Sprint quali"],["sprint","Sprint"]]:[]),["quali","Qualifying"],["grid","Grid"],["race","Race"],["after","Standings"],["chart","Race chart"]];
+  const jumps=[["weekend","Weekend"],["practice","Practice"],...(r.sprint?[["sq","Sprint quali"],["sprint","Sprint"]]:[]),["quali","Qualifying"],["grid","Grid"],["race","Race"],["after","Standings"],["chart","Race chart"],["tyres","Tyres"],["pits","Pit stops"]];
   const g=SEASON[n].race.filter(y=>y[6]!=="").slice().sort((a,b)=>(a[6]==="PL"?99:a[6])-(b[6]==="PL"?99:b[6]));
   const fps=["fp1","fp2","fp3"].filter(k=>S[k]);
   const ds=standingsAfter(n), dsPrev=i>0?standingsAfter(done[i-1].r):[];
@@ -1202,8 +1275,21 @@ function viewDetail(n){
 
   <section class="dsec" id="s-chart">
     <div class="sec"><h2>How the race went</h2><span class="lbl">Position on every lap · start = grid</span></div>
+    ${neutralChips(S)}
     ${fsbox("fs-lap",`${esc(r.short)} · lap chart`,`<div class="lapchart" id="lapchart" data-round="${n}"></div><div class="lapkey" id="lapkey" role="group" aria-label="Highlight drivers"></div>`)}
-    <p class="note2">Lines show running order at the end of each lap from the official lap timing. A cross marks a retirement. Post-race time penalties can change the final classification, so the last lap may differ from the result table.</p>
+    <p class="note2">Lines show running order at the end of each lap from the official lap timing. A cross marks a retirement. ${(S.neutral||[]).length?"Shaded laps were run under the safety car (SC), virtual safety car (VSC) or red flag (RF). ":""}Post-race time penalties can change the final classification, so the last lap may differ from the result table.</p>
+  </section>
+
+  <section class="dsec" id="s-tyres">
+    <div class="sec"><h2>Tyre strategy</h2><span class="lbl">Every stint, lap by lap · finishing order</span></div>
+    ${tyreChart(n)}
+    <p class="note2">Bars show which compound each driver ran on every lap, from the official timing data (OpenF1). Hover or tap a bar for the laps and the age of the set.</p>
+  </section>
+
+  <section class="dsec" id="s-pits">
+    <div class="sec"><h2>Pit stops</h2><span class="lbl">In lap order</span></div>
+    ${pitTable(n)}
+    <p class="note2">Pit lane time runs from pit entry to pit exit (official FIA timing via Jolpica-F1). ${(S.pits||[]).some(p=>p[3]!=null)?"Stationary time is the time the car stood still. ":""}Tyres show the compound before and after the stop.</p>
   </section>
 
   <div class="dnav" style="margin-top:28px">${pv}<button class="navbtn" data-go="championship">2026 Championship</button>${nx}</div>`;

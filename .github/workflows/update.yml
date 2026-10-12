@@ -11,6 +11,11 @@ on:
         description: "Optional test: rebuild this finished round on a copy of the data and compare (nothing is saved)"
         required: false
         default: ""
+      backfill:
+        description: "Also add safety cars, tyre stints and pit stops for every finished race that is missing them"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -26,6 +31,7 @@ jobs:
     timeout-minutes: 25
     env:
       SELFTEST: ${{ inputs.selftest_round }}
+      BACKFILL: ${{ inputs.backfill && '--backfill' || '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -44,7 +50,7 @@ jobs:
           status=0
           update() {
             set +e
-            python3 scripts/update.py --message-file "$msg"
+            python3 scripts/update.py $BACKFILL --message-file "$msg"
             status=$?
             set -e
             if [ -n "$(git status --porcelain)" ]; then

@@ -41,13 +41,19 @@ The build makes one folder with an `index.html` for every page (`/`, `/champions
 2. runs `python3 scripts/update.py`, which
    - finds every session in `SCHED` that has ended but has no data yet
    - fetches it from the free [Jolpica-F1](https://github.com/jolpica/jolpica-f1) API (race, sprint and qualifying results, standings, schedule) and the free [OpenF1](https://openf1.org) API (practice and sprint-qualifying classifications, lap-by-lap timing, pit stops, schedule)
-   - writes it into `src/data.json` in the formats the site already uses: session tables, the race summary (`res`, without the `cls` note), the lap chart (`LAPS`), the sprint winner, and the points in `DRIVERS` and `CONSTRUCTORS`
+   - writes it into `src/data.json` in the formats the site already uses: session tables, the race summary (`res`, without the `cls` note), the lap chart (`LAPS`), the sprint winner, the points in `DRIVERS` and `CONSTRUCTORS`, and the race extras below
    - runs `build.py`
 3. commits the change as `Auto: R<round> <GP>: <session> results` and pushes it. If `main` changed in the meantime (for example a manual update), it redoes the update on top of the latest version first.
 
 ### Rules the script follows
 
 - **Only adds missing data.** A session table, result, lap chart or note that already exists is never changed, so hand corrections are never undone. Standings only change by the points of a sprint or race the script adds itself.
+- **Race extras** for each race (in `SEASON[round]`), shown on the race page under "How the race went", "Tyre strategy" and "Pit stops":
+  - `neutral`: safety car, virtual safety car and red flag periods from OpenF1 race control, e.g. `[["VSC", 8, 9], ["SC", 22, 27], ["RF", 3, 3]]` (type, first lap, last lap; `[]` = none). A VSC turned into a safety car ends the lap before; a red flag ends any running SC/VSC; stewards' notes are ignored.
+  - `stints`: every driver's tyre stints from OpenF1, `{"<car number>": [["M", 1, 32, 0], ["H", 33, 62, 0]]}` (compound S/M/H/I/W, first lap, last lap, laps on the set when fitted).
+  - `pits`: every pit stop, `[[car number, lap, pit lane seconds, stationary seconds or null]]`, pit lane times from Jolpica-F1 (official FIA timing), stationary times from OpenF1 when published.
+  
+  Normal runs add these for races of the last 7 days. *Run workflow* with **backfill** ticked adds them for every finished race that's missing them. Like everything else they're only added when missing, so hand corrections stay.
 - **Never writes** race notes (`cls`), grid notes, archive text, tyre compounds or weather.
 - **No data yet → no change.** If a source hasn't published a session, it's skipped and the next run tries again.
 - **Checks before saving.** These cover 20–22 cars per session; the same finishing order in Jolpica-F1 and OpenF1 for races and sprints; points that add up to the published standings; and standings sorted by points. A session that fails a check is not saved.
@@ -64,6 +70,7 @@ The build makes one folder with an `index.html` for every page (`/`, `/champions
   python3 scripts/update.py --dry-run        # show what would be added, change nothing
   python3 scripts/update.py                  # add missing results and rebuild
   python3 scripts/update.py --selftest 17    # rebuild round 17 on a copy and compare
+  python3 scripts/update.py --backfill       # also add missing race extras for every finished race
   ```
 
 ### Manual corrections

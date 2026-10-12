@@ -472,13 +472,99 @@ def lap_chart(src, people, rows, race_start):
     return {"c": c, "l": out}
 
 
+# ---------------------------------------------------------------- race extras: safety cars, tyre stints, pit stops
+COMPOUND = {"SOFT": "S", "MEDIUM": "M", "HARD": "H", "INTERMEDIATE": "I", "WET": "W"}
+EXTRAS = ("neutral", "stints", "pits")
+EXTRAS_DAYS = 7        # normal runs fill extras for races of the last 7 days; --backfill does every race
+
+
+def neutral_periods(msgs, nL):
+    """SEASON[r].neutral: [["SC"|"VSC"|"RF", first lap, last lap], ...] from OpenF1 race
+    control messages, in lap order. [] means the race had none.
+      SC   "SAFETY CAR DEPLOYED" ... "SAFETY CAR IN THIS LAP"
+      VSC  "VSC DEPLOYED" / "VIRTUAL SAFETY CAR DEPLOYED" ... "VSC ENDING"; a VSC turned
+           into a safety car ends the lap before the safety car comes out
+      RF   "RED FLAG" (text or flag); ends any running SC/VSC; one lap: the lap it came out"""
+    out, open_ = [], {}
+    def lap(m): return max(1, min(nL, m.get("lap_number") or 1))
+    def close(kind, l):
+        if kind in open_: a = open_.pop(kind); out.append([kind, a, max(a, l)])
+    for m in sorted(msgs, key=lambda x: x.get("date") or ""):
+        t = (m.get("message") or "").upper(); flag = (m.get("flag") or "").upper(); L = lap(m)
+        if flag == "CHEQUERED" or "CHEQUERED FLAG" in t: break
+        if t.startswith(("INCIDENT", "FIA STEWARDS", "NOTED")) or any(w in t for w in ("INFRINGEMENT", "INVESTIGAT", "PENALTY")):
+            continue   # stewards' notes ("RED FLAG INFRINGEMENT", "VSC INFRINGEMENT") are not track status
+        if "RED FLAG" in t or (flag == "RED" and (m.get("scope") or "Track") == "Track"):
+            close("SC", L); close("VSC", L)
+            if "RF" not in open_: open_["RF"] = L
+        elif "RF" in open_ and any(w in t for w in ("RESUME", "SESSION STARTED", "STANDING START", "ROLLING START")):
+            close("RF", open_["RF"])
+        elif t.startswith("VSC ") or "VIRTUAL SAFETY CAR" in t:
+            if "DEPLOYED" in t and "VSC" not in open_: open_["VSC"] = L
+            elif "ENDING" in t: close("VSC", L)
+        elif "SAFETY CAR DEPLOYED" in t:
+            close("VSC", L - 1)
+            if "SC" not in open_: open_["SC"] = L
+        elif "SAFETY CAR IN THIS LAP" in t:
+            close("SC", L)
+    for k in list(open_): close(k, nL if k != "RF" else open_[k])
+    return sorted(out, key=lambda x: x[1])   # stable: same-lap periods keep the order they happened in
+
+
+def race_extra(src, people, rnd, key, rows, start, D):
+    nL = max(r[3] for r in rows if isinstance(r[3], int))
+    s = src.of1_session("Grand Prix", start)
+    if key == "neutral":
+        if not s: raise NotReady("OpenF1 has no race session")
+        msgs = src.of1("race_control?session_key=%d" % s["session_key"])
+        if not msgs: raise NotReady("OpenF1 has no race control messages yet")
+        if not any((m.get("flag") or "").upper() == "CHEQUERED" for m in msgs): raise NotReady("race control incomplete (no chequered flag)")
+        return neutral_periods(msgs, nL)
+    nums = [r[1] for r in rows]
+    if key == "stints":
+        if not s: raise NotReady("OpenF1 has no race session")
+        st = src.of1("stints?session_key=%d" % s["session_key"])
+        if not st: raise NotReady("OpenF1 has no tyre stints yet")
+        laps = {r[1]: r[3] if isinstance(r[3], int) else 0 for r in rows}
+        out = {}
+        for x in sorted(st, key=lambda x: (x["driver_number"], x.get("stint_number") or 0)):
+            n = x["driver_number"]
+            if n not in laps or not x.get("lap_start"): continue
+            a = x["lap_start"]; b = x.get("lap_end") or laps[n]
+            out.setdefault(str(n), []).append([COMPOUND.get((x.get("compound") or "").upper(), "?"), a, min(b, nL), x.get("tyre_age_at_start") or 0])
+        if len(out) < MIN_CARS - 2: raise NotReady("OpenF1 tyre stints incomplete (%d cars)" % len(out))
+        for n, v in out.items():   # sanity: stints in lap order, ending at the laps the car completed
+            if any(v[i][1] > v[i + 1][1] for i in range(len(v) - 1)): raise CheckFailed("tyre stints out of order for car %s" % n)
+        return {str(n): out[str(n)] for n in nums if str(n) in out}
+    if key == "pits":
+        R = src.race_table(rnd, "results", "Results")
+        ids = {x["Driver"]["driverId"]: int(x["number"]) for x in R}
+        P = src.race_table(rnd, "pitstops", "PitStops")
+        stat = {}
+        if s:
+            for p in src.of1("pit?session_key=%d" % s["session_key"]):
+                if p.get("stop_duration"): stat[(p["driver_number"], p.get("lap_number"))] = p["stop_duration"]
+        out = []
+        if P:
+            for p in P:
+                n = ids.get(p["driverId"])
+                if n is None: continue
+                out.append([n, int(p["lap"]), round(lap_secs(p["duration"]), 3), stat.get((n, int(p["lap"])))])
+        elif s:
+            for p in src.of1("pit?session_key=%d" % s["session_key"]):
+                d = p.get("lane_duration") or p.get("pit_duration")
+                if p.get("driver_number") in nums and d: out.append([p["driver_number"], p.get("lap_number"), round(d, 3), p.get("stop_duration")])
+        if not out: raise NotReady("no pit stop data yet")
+        return sorted(out, key=lambda x: (x[1], x[0]))
+
+
 def race_of(D, rnd): return next(r for r in D["RACES"] if r["r"] == rnd)
 
 
 # ---------------------------------------------------------------- the update
 class Updater:
-    def __init__(self, D, src, now, log=print, seen=None):
-        self.D, self.src, self.now, self.log = D, src, now, log
+    def __init__(self, D, src, now, log=print, seen=None, backfill=False):
+        self.D, self.src, self.now, self.log, self.backfill = D, src, now, log, backfill
         self.seen = seen if seen is not None else {}   # {round: {session: {"jolpica": iso, "openf1": iso}}}
         self.added, self.failures, self.schedule_moves, self.schedule_notes = [], [], [], []
 
@@ -493,6 +579,9 @@ class Updater:
             rnd = int(rk)
             if rounds and rnd not in rounds: continue
             self.do_round(rnd)
+        if self.backfill:
+            try: self.backfill_rounds()
+            except NotReady as e: self.log("backfill: %s" % e)
         return self
 
     # -- one round
@@ -520,6 +609,33 @@ class Updater:
             self.attempt(rnd, "Grand Prix result summary", lambda: self.add_res(rnd, race_ended[0]))
         if race_ended and S.get("race") and str(rnd) not in D["LAPS"]:
             self.attempt(rnd, "lap chart", lambda: self.add_laps(rnd, race_ended[0]))
+        if race_ended and S.get("race") and (self.backfill or self.now - race_ended[0] < dt.timedelta(days=EXTRAS_DAYS)):
+            self.do_extras(rnd, race_ended[0])
+
+    def do_extras(self, rnd, start):
+        for key in EXTRAS:
+            if key not in self.season(rnd):
+                self.attempt(rnd, {"neutral": "safety cars", "stints": "tyre stints", "pits": "pit stops"}[key],
+                             lambda key=key: self.add_extra(rnd, key, start))
+
+    def add_extra(self, rnd, key, start):
+        S = self.season(rnd)
+        v = race_extra(self.src, People(self.D), rnd, key, S["race"], start, self.D)
+        S[key] = v
+        self.added.append((rnd, "race extras")); self.log("R%d %s added (%s)" % (rnd, key, len(v)))
+
+    def backfill_rounds(self):
+        """--backfill: race extras for every finished race, including rounds without SCHED."""
+        jol = None
+        for r in self.D["RACES"]:
+            if not r.get("res") or str(r["r"]) in self.D["SCHED"] or not self.D["SEASON"].get(str(r["r"]), {}).get("race"): continue
+            start = r.get("start")
+            if not start:
+                if jol is None: jol = self.src.schedule()
+                j = jol.get(r["r"])
+                if not j or not j.get("time"): continue
+                start = "%sT%s" % (j["date"], j["time"])
+            self.do_extras(r["r"], parse_t(start))
 
     def attempt(self, rnd, what, fn):
         snap = copy.deepcopy(self.D)
@@ -637,8 +753,12 @@ class Updater:
         lines = []
         by = {}
         for rnd, what in self.added: by.setdefault(rnd, []).append(what)
+        if by and all(set(w) == {"race extras"} for w in by.values()):
+            lines.append("Auto: safety cars, tyre stints and pit stops for %s" % ", ".join("R%d" % r for r in sorted(by)))
+            by = {}
         for rnd, whats in by.items():
-            names = [w for w in whats if w not in ("Grand Prix summary", "lap chart")] or whats
+            whats = list(dict.fromkeys(whats))
+            names = [w for w in whats if w not in ("Grand Prix summary", "lap chart", "race extras")] or whats
             lines.append("Auto: R%d %s: %s results" % (rnd, race_of(self.D, rnd)["short"], ", ".join(names)))
         lines += ["Schedule: " + m for m in self.schedule_moves]
         if not lines: return ""
@@ -657,6 +777,7 @@ def strip_round(D, rnd, log=print):
     r.pop("res", None)
     if isinstance(r.get("sprint"), str): r.pop("sprint")
     T["LAPS"].pop(str(rnd), None)
+    for k in EXTRAS: S.pop(k, None)
     return standings_before(T, D, rnd)
 
 
@@ -709,6 +830,11 @@ def compare(orig, new, rnd):
     a, b = ro.get("res") or {}, rn.get("res") or {}
     for f in ("time", "pod", "pole", "fl", "pit"):
         if a.get(f) != b.get(f): (core if f in ("pod", "pole") else other).append("res.%s: site %r, rebuilt %r" % (f, a.get(f), b.get(f)))
+    for k in EXTRAS:
+        a, b = So.get(k), Sn.get(k)
+        if b is None: other.append("%s: not rebuilt" % k)
+        elif a is not None and a != b: other.append("%s differs from the site's" % k)
+        else: other.append("%s: %s" % (k, json.dumps(b)[:400] if k != "stints" else "%d cars, %d stints" % (len(b), sum(len(v) for v in b.values()))))
     La, Lb = orig["LAPS"].get(str(rnd)), new["LAPS"].get(str(rnd))
     if La and not Lb: other.append("lap chart: not rebuilt")
     elif La and Lb:
@@ -764,6 +890,7 @@ def main():
     ap.add_argument("--record"); ap.add_argument("--replay")
     ap.add_argument("--report")
     ap.add_argument("--no-build", action="store_true")
+    ap.add_argument("--backfill", action="store_true", help="also add safety cars, tyre stints and pit stops for every finished race")
     a = ap.parse_args()
     lines = []
     def log(s=""):
@@ -778,7 +905,7 @@ def main():
     seen = read_json(SCHEDULE_SEEN, {})
     seen_before = json.dumps(seen, sort_keys=True)
     before = json.dumps(D, sort_keys=True)
-    u = Updater(D, src, now, log, seen=seen).run()
+    u = Updater(D, src, now, log, seen=seen, backfill=a.backfill).run()
     changed = json.dumps(D, sort_keys=True) != before
     msg = u.message()
     # check failures: email (exit 1) only the first time a failure appears; repeats are warnings

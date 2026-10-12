@@ -277,6 +277,40 @@ def practice_table(S, rows):
     return table(["Pos", "No", "Driver", "Time / gap", "Laps"], [[x[0], x[1], esc(S.fullname(x[2])), esc(x[3]) or "No time", x[4]] for x in rows])
 
 
+NEUTRAL = {"SC": "Safety car", "VSC": "Virtual safety car", "RF": "Red flag"}
+TYRES = {"S": "Soft", "M": "Medium", "H": "Hard", "I": "Intermediate", "W": "Wet", "?": "Unknown"}
+
+
+def laps_txt(a, b): return "lap %d" % a if a == b else "laps %d–%d" % (a, b)
+
+
+def race_extras_html(S, se):
+    """Safety cars, tyre strategy and pit stops as plain HTML (the app draws the charts)."""
+    out = []
+    nz = se.get("neutral")
+    if nz is not None:
+        txt = "; ".join("%s: %s" % (NEUTRAL[k], laps_txt(a, b)) for k, a, b in nz) or "No safety car, virtual safety car or red flag."
+        out.append(sec("How the race went", "<p>%s</p>" % esc(txt), "Safety cars and red flags"))
+    st = se.get("stints")
+    if st:
+        rows = []
+        for y in se["race"]:
+            v = st.get(str(y[1]))
+            if v: rows.append([esc(y[0]), esc(S.fullname(y[2])), esc(" · ".join("%s %s" % (TYRES.get(c, c), laps_txt(a, b)) for c, a, b, age in v)), len(v) - 1])
+        out.append(sec("Tyre strategy", table(["Pos", "Driver", "Stints", "Stops"], rows), "Every stint, lap by lap"))
+    P = se.get("pits")
+    if P:
+        num = {y[1]: y[2] for y in se["race"]}; k = {}
+        rows = []
+        for n, lap, lane, stat in P:
+            k[n] = k.get(n, 0) + 1
+            rows.append([lap, esc(S.fullname(num.get(n, str(n)))), k[n], "%.3fs" % lane] + (["%.2fs" % stat if stat is not None else "–"] if any(p[3] is not None for p in P) else []))
+        head = ["Lap", "Driver", "Stop", "Pit lane"] + (["Stationary"] if any(p[3] is not None for p in P) else [])
+        best = min(P, key=lambda p: p[2])
+        out.append(sec("Pit stops", "<p>%d stops. Fastest pit lane time: %s, %.3fs on lap %d.</p>" % (len(P), esc(S.fullname(num.get(best[0], str(best[0])))), best[2], best[1]) + table(head, rows), "In lap order"))
+    return "".join(out)
+
+
 def race_page(S, r):
     se = S.SEASON.get(str(r["r"]), {}); res = r.get("res"); name = gp_name(r)
     cc = RACECC.get(r["track"], ""); ctry = COUNTRY.get(cc, "")
@@ -290,6 +324,7 @@ def race_page(S, r):
         parts.append("<p>Session times, results and the starting grid are added after each session of the weekend.</p>")
     parts.append("</div></section>")
     if se.get("race"): parts.append(sec("Race classification", class_table(S, se["race"], grid=True), "%d laps" % r["laps"]))
+    if se.get("race"): parts.append(race_extras_html(S, se))
     if S.GRIDNOTES.get(str(r["r"])): parts.append(sec("Starting grid", "<p>%s</p>" % esc(S.GRIDNOTES[str(r["r"])]), "Penalties and pit lane starts"))
     if se.get("quali"): parts.append(sec("Qualifying", quali_table(S, se["quali"], ["Q1", "Q2", "Q3"]), "Q1 · Q2 · Q3"))
     if se.get("sprint"): parts.append(sec("Sprint", class_table(S, se["sprint"]), "Sprint classification"))
