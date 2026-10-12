@@ -88,7 +88,7 @@ class Http:
     def __init__(self, record=None, replay=None, log=print):
         self.cache, self.record, self.replay, self.log = {}, record, replay, log
         self.last = {}
-        self.gap = {"openf1": 2.1, "jolpica": 0.35}   # OpenF1 free: 30 req/min. Jolpica: 4 req/s, 500/h.
+        self.gap = {"openf1": 2.1, "jolpica": 0.35, "github": 0.1}   # OpenF1 free: 30 req/min. Jolpica: 4 req/s, 500/h.
 
     def _file(self, url):
         return os.path.join(self.record or self.replay, hashlib.md5(url.encode()).hexdigest()[:16] + ".json")
@@ -109,7 +109,7 @@ class Http:
         return data
 
     def _fetch(self, url):
-        host = "openf1" if "openf1" in url else "jolpica"
+        host = "openf1" if "openf1" in url else "github" if "githubusercontent" in url else "jolpica"
         for attempt in range(4):
             wait = self.last.get(host, 0) + self.gap[host] - time.time()
             if wait > 0: time.sleep(wait)
@@ -120,6 +120,7 @@ class Http:
                     return json.loads(r.read().decode("utf-8"))
             except urllib.error.HTTPError as e:
                 if e.code == 404 and host == "openf1": return []        # OpenF1: 404 = "No results found"
+                if e.code == 404 and host == "github": return None      # file not published (yet)
                 if e.code in (429, 500, 502, 503, 504) and attempt < 3:
                     time.sleep(int(e.headers.get("Retry-After") or 0) or 5 * (attempt + 1)); continue
                 raise NotReady("%s answered HTTP %d for %s" % (host, e.code, url))
@@ -472,9 +473,9 @@ def lap_chart(src, people, rows, race_start):
     return {"c": c, "l": out}
 
 
-# ---------------------------------------------------------------- race extras: safety cars, tyre stints, pit stops
+# ---------------------------------------------------------------- race extras: safety cars, tyre stints
 COMPOUND = {"SOFT": "S", "MEDIUM": "M", "HARD": "H", "INTERMEDIATE": "I", "WET": "W"}
-EXTRAS = ("neutral", "stints", "pits")
+EXTRAS = ("neutral", "stints")
 EXTRAS_DAYS = 7        # normal runs fill extras for races of the last 7 days; --backfill does every race
 
 
@@ -522,40 +523,102 @@ def race_extra(src, people, rnd, key, rows, start, D):
         return neutral_periods(msgs, nL)
     nums = [r[1] for r in rows]
     if key == "stints":
-        if not s: raise NotReady("OpenF1 has no race session")
-        st = src.of1("stints?session_key=%d" % s["session_key"])
-        if not st: raise NotReady("OpenF1 has no tyre stints yet")
-        laps = {r[1]: r[3] if isinstance(r[3], int) else 0 for r in rows}
-        out = {}
-        for x in sorted(st, key=lambda x: (x["driver_number"], x.get("stint_number") or 0)):
-            n = x["driver_number"]
-            if n not in laps or not x.get("lap_start"): continue
-            a = x["lap_start"]; b = x.get("lap_end") or laps[n]
-            out.setdefault(str(n), []).append([COMPOUND.get((x.get("compound") or "").upper(), "?"), a, min(b, nL), x.get("tyre_age_at_start") or 0])
-        if len(out) < MIN_CARS - 2: raise NotReady("OpenF1 tyre stints incomplete (%d cars)" % len(out))
-        for n, v in out.items():   # sanity: stints in lap order, ending at the laps the car completed
-            if any(v[i][1] > v[i + 1][1] for i in range(len(v) - 1)): raise CheckFailed("tyre stints out of order for car %s" % n)
-        return {str(n): out[str(n)] for n in nums if str(n) in out}
-    if key == "pits":
-        R = src.race_table(rnd, "results", "Results")
-        ids = {x["Driver"]["driverId"]: int(x["number"]) for x in R}
-        P = src.race_table(rnd, "pitstops", "PitStops")
-        stat = {}
-        if s:
-            for p in src.of1("pit?session_key=%d" % s["session_key"]):
-                if p.get("stop_duration"): stat[(p["driver_number"], p.get("lap_number"))] = p["stop_duration"]
-        out = []
-        if P:
-            for p in P:
-                n = ids.get(p["driverId"])
-                if n is None: continue
-                out.append([n, int(p["lap"]), round(lap_secs(p["duration"]), 3), stat.get((n, int(p["lap"])))])
-        elif s:
-            for p in src.of1("pit?session_key=%d" % s["session_key"]):
-                d = p.get("lane_duration") or p.get("pit_duration")
-                if p.get("driver_number") in nums and d: out.append([p["driver_number"], p.get("lap_number"), round(d, 3), p.get("stop_duration")])
-        if not out: raise NotReady("no pit stop data yet")
-        return sorted(out, key=lambda x: (x[1], x[0]))
+        return race_stints(src, rnd, rows, start, D, s)
+
+
+# Tyre stints come from TracingInsights (github.com/TracingInsights/<year>, Apache-2.0): per-lap
+# compound, stint and tyre life from the official F1 timing feed, processed with FastF1.
+# OpenF1's own stints were checked against the official pit laps for all 2026 races and were
+# often a lap early or scrambled (wet races, pit-lane starts), so OpenF1 is only used to name a
+# compound the timing feed left unknown.
+TI_BASE = "https://raw.githubusercontent.com/TracingInsights/%d/main/" % YEAR
+TI_ALIASES = {"Barcelona-Catalunya Grand Prix": ["Barcelona Grand Prix", "Spanish Grand Prix"],
+              "Spanish Grand Prix": ["Madrid Grand Prix"], "United States Grand Prix": ["United States Grand Prix"],
+              "Mexico City Grand Prix": ["Mexican Grand Prix"], "Mexican Grand Prix": ["Mexico City Grand Prix"],
+              "Brazilian Grand Prix": ["São Paulo Grand Prix"], "São Paulo Grand Prix": ["Brazilian Grand Prix"]}
+
+
+def ti_url(*parts):
+    import urllib.parse
+    return TI_BASE + "/".join(urllib.parse.quote(p) for p in parts)
+
+
+def ti_folder(src, rnd, D):
+    r = race_of(D, rnd)
+    cands = [r["gp"], r["gp"].replace(" (Sepang)", "")] + TI_ALIASES.get(r["gp"], [])
+    try:
+        jr = src.schedule().get(rnd)
+        if jr: cands.append(jr["raceName"])
+    except NotReady:
+        pass
+    for c in dict.fromkeys(cands):
+        d = src.h.get(ti_url(c, "Race", "drivers.json"))
+        if isinstance(d, dict) and d.get("drivers"): return c, d["drivers"]
+    raise NotReady("TracingInsights has no race data for %s yet" % r["gp"])
+
+
+def ti_driver_stints(L, done):
+    """[[compound, first lap, last lap, laps on the set when fitted], ...] from one driver's laptimes.json."""
+    def i(v):
+        try: return int(float(v))
+        except (TypeError, ValueError): return None
+    laps = sorted((i(l), c, i(st), i(life)) for l, c, st, life in zip(L.get("lap", []), L.get("compound", []), L.get("stint", []), L.get("life", [])) if i(l))
+    out = []
+    for lap, comp, stint, life in laps:
+        if lap > done: break
+        c = COMPOUND.get((comp or "").upper(), "?")
+        if out and (stint is None or out[-1][4] == stint) and (out[-1][0] == c or "?" in (c, out[-1][0])):
+            out[-1][2] = lap
+            if out[-1][0] == "?": out[-1][0] = c
+        else:
+            out.append([c, lap, lap, max(0, (life or 1) - 1), stint if stint is not None else (out[-1][4] + 1 if out else 1)])
+    return [x[:4] for x in out]
+
+
+def race_stints(src, rnd, rows, start, D, of1_session):
+    folder, drivers = ti_folder(src, rnd, D)
+    done = {r[1]: r[3] if isinstance(r[3], int) else 0 for r in rows}
+    want = [n for n in done if done[n] > 0]
+    out = {}
+    for d in drivers:
+        try: n = int(d.get("dn"))
+        except (TypeError, ValueError): continue
+        if n not in want: continue
+        L = src.h.get(ti_url(folder, "Race", d["driver"], "laptimes.json"))
+        if not isinstance(L, dict) or not L.get("lap"): raise NotReady("TracingInsights lap data for %s not published yet" % d["driver"])
+        out[n] = ti_driver_stints(L, done[n])
+    missing = [n for n in want if not out.get(n)]
+    if missing: raise NotReady("TracingInsights has no tyre data yet for cars %s" % missing)
+    # name compounds the timing feed left unknown, from OpenF1, only when it gives one compound for those laps
+    if any(x[0] == "?" for v in out.values() for x in v) and of1_session:
+        o = src.of1("stints?session_key=%d" % of1_session["session_key"])
+        for n, v in out.items():
+            for x in v:
+                if x[0] != "?": continue
+                cs = {COMPOUND.get((y.get("compound") or "").upper()) for y in o if y.get("driver_number") == n and y.get("lap_start")
+                      and y["lap_start"] <= x[2] and (y.get("lap_end") or 999) >= x[1]} - {None}
+                if len(cs) == 1: x[0] = cs.pop()
+    # check against the official pit laps: every stop starts a new stint on the next lap, and every
+    # new stint follows a stop (or a red flag, when teams may change tyres in the pit lane)
+    R = src.race_table(rnd, "results", "Results")
+    ids = {x["Driver"]["driverId"]: int(x["number"]) for x in R}
+    P = src.race_table(rnd, "pitstops", "PitStops")
+    if not P: raise NotReady("Jolpica-F1 has no pit stops yet (needed to check the tyre data)")
+    pits = {}
+    for p in P:
+        if ids.get(p["driverId"]) is not None: pits.setdefault(ids[p["driverId"]], set()).add(int(p["lap"]))
+    rf = [a for k, a, b in (D["SEASON"].get(str(rnd), {}).get("neutral") or []) if k == "RF"]
+    bad = []
+    for n, v in out.items():
+        if v[0][1] != 1 or v[-1][2] != done[n] or any(v[k][2] + 1 != v[k + 1][1] for k in range(len(v) - 1)):
+            bad.append("car %d: stints don't cover laps 1-%d" % (n, done[n])); continue
+        b = {x[1] - 1 for x in v[1:]}
+        stops = {l for l in pits.get(n, set()) if l < done[n]}
+        if stops - b: bad.append("car %d: stop on lap %s but no tyre change in the timing data" % (n, sorted(stops - b)))
+        extra = {l for l in b - stops if not any(abs(l - x) <= 1 for x in rf)}
+        if extra: bad.append("car %d: tyre change after lap %s without a pit stop" % (n, sorted(extra)))
+    if bad: raise CheckFailed("tyre stints disagree with the official pit stops: " + "; ".join(bad[:6]))
+    return {str(r[1]): out[r[1]] for r in rows if r[1] in out}
 
 
 def race_of(D, rnd): return next(r for r in D["RACES"] if r["r"] == rnd)
@@ -615,7 +678,7 @@ class Updater:
     def do_extras(self, rnd, start):
         for key in EXTRAS:
             if key not in self.season(rnd):
-                self.attempt(rnd, {"neutral": "safety cars", "stints": "tyre stints", "pits": "pit stops"}[key],
+                self.attempt(rnd, {"neutral": "safety cars", "stints": "tyre stints"}[key],
                              lambda key=key: self.add_extra(rnd, key, start))
 
     def add_extra(self, rnd, key, start):
@@ -754,7 +817,7 @@ class Updater:
         by = {}
         for rnd, what in self.added: by.setdefault(rnd, []).append(what)
         if by and all(set(w) == {"race extras"} for w in by.values()):
-            lines.append("Auto: safety cars, tyre stints and pit stops for %s" % ", ".join("R%d" % r for r in sorted(by)))
+            lines.append("Auto: safety cars and tyre stints for %s" % ", ".join("R%d" % r for r in sorted(by)))
             by = {}
         for rnd, whats in by.items():
             whats = list(dict.fromkeys(whats))
@@ -890,7 +953,7 @@ def main():
     ap.add_argument("--record"); ap.add_argument("--replay")
     ap.add_argument("--report")
     ap.add_argument("--no-build", action="store_true")
-    ap.add_argument("--backfill", action="store_true", help="also add safety cars, tyre stints and pit stops for every finished race")
+    ap.add_argument("--backfill", action="store_true", help="also add safety cars and tyre stints for every finished race")
     a = ap.parse_args()
     lines = []
     def log(s=""):

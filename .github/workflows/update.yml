@@ -12,7 +12,7 @@ on:
         required: false
         default: ""
       backfill:
-        description: "Also add safety cars, tyre stints and pit stops for every finished race that is missing them"
+        description: "Also add safety cars and tyre stints for every finished race that is missing them"
         type: boolean
         required: false
         default: false

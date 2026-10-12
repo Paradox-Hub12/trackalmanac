@@ -418,7 +418,7 @@ function gridSection(n){
     </div></div>`;
 }
 let lapSel=new Set();
-/* ---------- safety cars, tyre stints, pit stops ---------- */
+/* ---------- safety cars and tyre stints ---------- */
 const NEUTRAL={SC:"Safety car",VSC:"Virtual safety car",RF:"Red flag"};
 const TYRE={S:["Soft","var(--tS)"],M:["Medium","var(--tM)"],H:["Hard","var(--tH)"],I:["Intermediate","var(--tI)"],W:["Wet","var(--tW)"],"?":["Unknown","var(--ink-3)"]};
 const lapsTxt=(a,b)=>a===b?`lap ${a}`:`laps ${a}–${b}`;
@@ -450,23 +450,6 @@ function tyreChart(n){const S=SEASON[n],ST=S.stints;
     ((S.neutral||[]).length?`<span><i style="background:rgba(255,210,63,.35)"></i>SC / VSC laps</span>`:"")+((S.neutral||[]).some(x=>x[0]==="RF")?`<span><i style="background:rgba(255,45,45,.5)"></i>Red flag</span>`:"");
   const outl=(S.neutral||[]).map(([k,a,b])=>{const x1=X(a-1),w=Math.max(2,X(b)-x1);return `<rect x="${x1}" y="${mt-4}" width="${w}" height="${H-22-mt+4}" fill="none" stroke="${k==="RF"?"var(--signal)":"var(--tM)"}" stroke-width="1.2"${k==="VSC"?' stroke-dasharray="4 3"':""} pointer-events="none"/>`;}).join("");
   return `<div class="tyrechart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tyre strategy for every driver, lap by lap">${g}${outl}</svg></div><div class="tylegend">${legend}<span>Number = laps already on the set when fitted</span></div>`;}
-function pitTable(n){const S=SEASON[n],P=S.pits;
-  if(!P)return `<div class="soon wait"><span class="lbl">Pit stops</span><b>Yet to update</b><span>Every pit stop is added from the official timing data after the race.</span></div>`;
-  if(!P.length)return `<p class="note2">No pit stops.</p>`;
-  const byNum={};S.race.forEach(y=>byNum[y[1]]=y);const ST=S.stints||{};const stopNo={};
-  const best=P.reduce((m,p)=>p[2]<m[2]?p:m,P[0]);const hasStat=P.some(p=>p[3]!=null);
-  const bestStat=hasStat?P.filter(p=>p[3]!=null).reduce((m,p)=>p[3]<m[3]?p:m):null;
-  const fmtS=v=>v>=60?`${Math.floor(v/60)}:${(v%60).toFixed(3).padStart(6,"0")}`:v.toFixed(3);
-  const tyreSwap=(num,lap)=>{const ss=ST[String(num)];if(!ss)return "";const k=ss.findIndex(s=>Math.abs(s[1]-(lap+1))<=1);if(k<1)return '<span title="No tyre change in the timing data" style="color:var(--ink-3)">–</span>';
-    const b=(c)=>`<span class="tyb" style="background:${(TYRE[c]||TYRE["?"])[1]}" title="${(TYRE[c]||TYRE["?"])[0]}">${c}</span>`;return `${b(ss[k-1][0])} → ${b(ss[k][0])}`;};
-  const counts={};P.forEach(p=>counts[p[0]]=(counts[p[0]]||0)+1);const most=Math.max(...Object.values(counts));
-  const rows=P.map(p=>{const y=byNum[p[0]];stopNo[p[0]]=(stopNo[p[0]]||0)+1;const nm=y?fullName(y[2]):"#"+p[0],t=y?teamAt(y[2],n):"";
-    return `<tr class="${p===best?"best":""}"><td class="n">${p[1]}</td><td><span class="sw" style="background:${tcol(t)}"></span>${esc(nm)}</td><td class="tm">${esc(t)}</td><td class="n">${stopNo[p[0]]}</td><td class="n">${fmtS(p[2])}s</td>${hasStat?`<td class="n">${p[3]!=null?p[3].toFixed(2)+"s":"–"}</td>`:""}<td class="tyx">${tyreSwap(p[0],p[1])}</td></tr>`;}).join("");
-  const bn=byNum[best[0]];
-  return `<div class="pitsum"><div><span class="lbl">Stops</span><b>${P.length}</b><span class="s">${Object.keys(counts).length} drivers · most ${most} by one driver</span></div>
-    <div><span class="lbl">Fastest pit lane time</span><b>${fmtS(best[2])}s</b><span class="s">${esc(bn?fullName(bn[2]):"#"+best[0])} · lap ${best[1]}</span></div>
-    ${bestStat?`<div><span class="lbl">Fastest stationary time</span><b>${bestStat[3].toFixed(2)}s</b><span class="s">${esc(byNum[bestStat[0]]?fullName(byNum[bestStat[0]][2]):"#"+bestStat[0])} · lap ${bestStat[1]}</span></div>`:""}</div>
-    <div class="tw"><table class="t pitt"><thead><tr><th class="n">Lap</th><th>Driver</th><th class="tm">Team</th><th class="n">Stop</th><th class="n">Pit lane</th>${hasStat?'<th class="n">Stationary</th>':""}<th>Tyres</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
 function drawLapChart(){
   const el=$("#lapchart"); if(!el) return; cancelAnimationFrame(el._raf);el._playing=false;
   const n=+el.dataset.round, L=LAPS[n], S=SEASON[n];
@@ -531,7 +514,7 @@ function viewDetail(n){
   const ses=r.sprint?[["Practice 1","Sprint Qualifying"],["Sprint","Qualifying"],["Grand Prix"]]:[["Practice 1","Practice 2"],["Practice 3","Qualifying"],["Grand Prix"]];
   const wx=S.wx;
   const tyreNames=["Hard","Medium","Soft"];
-  const jumps=[["weekend","Weekend"],["practice","Practice"],...(r.sprint?[["sq","Sprint quali"],["sprint","Sprint"]]:[]),["quali","Qualifying"],["grid","Grid"],["race","Race"],["after","Standings"],["chart","Race chart"],["tyres","Tyres"],["pits","Pit stops"]];
+  const jumps=[["weekend","Weekend"],["practice","Practice"],...(r.sprint?[["sq","Sprint quali"],["sprint","Sprint"]]:[]),["quali","Qualifying"],["grid","Grid"],["race","Race"],["after","Standings"],["chart","Race chart"],["tyres","Tyres"]];
   const g=SEASON[n].race.filter(y=>y[6]!=="").slice().sort((a,b)=>(a[6]==="PL"?99:a[6])-(b[6]==="PL"?99:b[6]));
   const fps=["fp1","fp2","fp3"].filter(k=>S[k]);
   const ds=standingsAfter(n), dsPrev=i>0?standingsAfter(done[i-1].r):[];
@@ -611,14 +594,9 @@ function viewDetail(n){
   <section class="dsec" id="s-tyres">
     <div class="sec"><h2>Tyre strategy</h2><span class="lbl">Every stint, lap by lap · finishing order</span></div>
     ${tyreChart(n)}
-    <p class="note2">Bars show which compound each driver ran on every lap, from the official timing data (OpenF1). Hover or tap a bar for the laps and the age of the set.</p>
+    <p class="note2">Bars show which compound each driver ran on every lap, from the official F1 timing feed (via TracingInsights), checked against the official pit stop laps. Hover or tap a bar for the laps and the age of the set.</p>
   </section>
 
-  <section class="dsec" id="s-pits">
-    <div class="sec"><h2>Pit stops</h2><span class="lbl">In lap order</span></div>
-    ${pitTable(n)}
-    <p class="note2">Pit lane time runs from pit entry to pit exit (official FIA timing via Jolpica-F1). ${(S.pits||[]).some(p=>p[3]!=null)?"Stationary time is the time the car stood still. ":""}Tyres show the compound before and after the stop.</p>
-  </section>
 
   <div class="dnav" style="margin-top:28px">${pv}<button class="navbtn" data-go="championship">2026 Championship</button>${nx}</div>`;
 }

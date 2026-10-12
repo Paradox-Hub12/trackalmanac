@@ -268,14 +268,6 @@ table.t tr.fl td{color:var(--ink-2);font-size:12.5px}
 .tylegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-family:var(--f-data);font-size:11px;color:var(--ink-2)}
 .tylegend span{display:inline-flex;gap:6px;align-items:center}
 .tylegend i{width:16px;height:9px;display:inline-block;border-radius:2px}
-.pitsum{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 12px}
-.pitsum div{border:1px solid var(--rule-2);background:var(--panel);padding:8px 12px;min-width:140px}
-.pitsum b{display:block;font-family:var(--f-data);font-size:18px;margin-top:2px}
-.pitsum .s{color:var(--ink-3);font-size:12px}
-.pitt tr.best td{color:var(--tM)}
-@media (max-width:600px){.pitt .tm{display:none}.pitt{min-width:0!important}}
-.pitt .tyx{font-family:var(--f-data);white-space:nowrap}
-.tyb{display:inline-block;min-width:18px;text-align:center;border-radius:2px;color:#000;font-weight:700;font-size:11px;padding:0 3px}
 .lapkey button{background:none;border:1px solid var(--rule-2);padding:3px 7px;cursor:pointer;font-family:var(--f-data);font-size:11px;color:var(--ink-2);display:inline-flex;gap:6px;align-items:center}
 .lapkey button i{width:10px;height:3px;display:inline-block}
 .lapkey button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}

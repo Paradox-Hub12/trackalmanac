@@ -285,7 +285,7 @@ def laps_txt(a, b): return "lap %d" % a if a == b else "laps %d–%d" % (a, b)
 
 
 def race_extras_html(S, se):
-    """Safety cars, tyre strategy and pit stops as plain HTML (the app draws the charts)."""
+    """Safety cars and tyre strategy as plain HTML (the app draws the charts)."""
     out = []
     nz = se.get("neutral")
     if nz is not None:
@@ -298,16 +298,6 @@ def race_extras_html(S, se):
             v = st.get(str(y[1]))
             if v: rows.append([esc(y[0]), esc(S.fullname(y[2])), esc(" · ".join("%s %s" % (TYRES.get(c, c), laps_txt(a, b)) for c, a, b, age in v)), len(v) - 1])
         out.append(sec("Tyre strategy", table(["Pos", "Driver", "Stints", "Stops"], rows), "Every stint, lap by lap"))
-    P = se.get("pits")
-    if P:
-        num = {y[1]: y[2] for y in se["race"]}; k = {}
-        rows = []
-        for n, lap, lane, stat in P:
-            k[n] = k.get(n, 0) + 1
-            rows.append([lap, esc(S.fullname(num.get(n, str(n)))), k[n], "%.3fs" % lane] + (["%.2fs" % stat if stat is not None else "–"] if any(p[3] is not None for p in P) else []))
-        head = ["Lap", "Driver", "Stop", "Pit lane"] + (["Stationary"] if any(p[3] is not None for p in P) else [])
-        best = min(P, key=lambda p: p[2])
-        out.append(sec("Pit stops", "<p>%d stops. Fastest pit lane time: %s, %.3fs on lap %d.</p>" % (len(P), esc(S.fullname(num.get(best[0], str(best[0])))), best[2], best[1]) + table(head, rows), "In lap order"))
     return "".join(out)
 
 
