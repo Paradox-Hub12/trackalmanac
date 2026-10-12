@@ -485,7 +485,8 @@ def neutral_periods(msgs, nL):
       SC   "SAFETY CAR DEPLOYED" ... "SAFETY CAR IN THIS LAP"
       VSC  "VSC DEPLOYED" / "VIRTUAL SAFETY CAR DEPLOYED" ... "VSC ENDING"; a VSC turned
            into a safety car ends the lap before the safety car comes out
-      RF   "RED FLAG" (text or flag); ends any running SC/VSC; one lap: the lap it came out"""
+      RF   "RED FLAG" (text or flag); ends any running SC/VSC; one lap: the lap it came out
+      PIT  "ALL CARS / SAFETY CAR THROUGH THE PIT LANE": the field drove through the pit lane"""
     out, open_ = [], {}
     def lap(m): return max(1, min(nL, m.get("lap_number") or 1))
     def close(kind, l):
@@ -500,6 +501,8 @@ def neutral_periods(msgs, nL):
             if "RF" not in open_: open_["RF"] = L
         elif "RF" in open_ and any(w in t for w in ("RESUME", "SESSION STARTED", "STANDING START", "ROLLING START")):
             close("RF", open_["RF"])
+        elif "THROUGH THE PIT LANE" in t:
+            out.append(["PIT", L, L])                  # field sent through the pit lane (no tyre change)
         elif t.startswith("VSC ") or "VIRTUAL SAFETY CAR" in t:
             if "DEPLOYED" in t and "VSC" not in open_: open_["VSC"] = L
             elif "ENDING" in t: close("VSC", L)
@@ -558,35 +561,42 @@ def ti_folder(src, rnd, D):
 
 
 def ti_driver_stints(L, done):
-    """[[compound, first lap, last lap, laps on the set when fitted], ...] from one driver's laptimes.json."""
+    """([[compound, first lap, last lap, laps on the set when fitted], ...], {pit lane laps without a tyre change})
+    from one driver's laptimes.json. The timing feed starts a new stint on every trip down the pit
+    lane; when the compound is the same and the tyre age just carries on, it's the same set, so the
+    stints are joined (e.g. the field sent through the pit lane behind the safety car)."""
     def i(v):
         try: return int(float(v))
         except (TypeError, ValueError): return None
     laps = sorted((i(l), c, i(st), i(life)) for l, c, st, life in zip(L.get("lap", []), L.get("compound", []), L.get("stint", []), L.get("life", [])) if i(l))
-    out = []
+    out, passes, last_life = [], set(), None
     for lap, comp, stint, life in laps:
         if lap > done: break
         c = COMPOUND.get((comp or "").upper(), "?")
-        if out and (stint is None or out[-1][4] == stint) and (out[-1][0] == c or "?" in (c, out[-1][0])):
+        same_cmp = bool(out) and (out[-1][0] == c or "?" in (c, out[-1][0]))
+        if out and (stint is None or out[-1][4] == stint) and same_cmp:
             out[-1][2] = lap
-            if out[-1][0] == "?": out[-1][0] = c
+        elif out and same_cmp and life is not None and last_life is not None and life == last_life + 1:
+            passes.add(out[-1][2]); out[-1][2] = lap; out[-1][4] = stint     # same set, carried on
         else:
             out.append([c, lap, lap, max(0, (life or 1) - 1), stint if stint is not None else (out[-1][4] + 1 if out else 1)])
-    return [x[:4] for x in out]
+        if out[-1][0] == "?" and c != "?": out[-1][0] = c
+        last_life = life
+    return [x[:4] for x in out], passes
 
 
 def race_stints(src, rnd, rows, start, D, of1_session):
     folder, drivers = ti_folder(src, rnd, D)
     done = {r[1]: r[3] if isinstance(r[3], int) else 0 for r in rows}
     want = [n for n in done if done[n] > 0]
-    out = {}
+    out, passes = {}, {}
     for d in drivers:
         try: n = int(d.get("dn"))
         except (TypeError, ValueError): continue
         if n not in want: continue
         L = src.h.get(ti_url(folder, "Race", d["driver"], "laptimes.json"))
         if not isinstance(L, dict) or not L.get("lap"): raise NotReady("TracingInsights lap data for %s not published yet" % d["driver"])
-        out[n] = ti_driver_stints(L, done[n])
+        out[n], passes[n] = ti_driver_stints(L, done[n])
     missing = [n for n in want if not out.get(n)]
     if missing: raise NotReady("TracingInsights has no tyre data yet for cars %s" % missing)
     # name compounds the timing feed left unknown, from OpenF1, only when it gives one compound for those laps
@@ -607,14 +617,17 @@ def race_stints(src, rnd, rows, start, D, of1_session):
     pits = {}
     for p in P:
         if ids.get(p["driverId"]) is not None: pits.setdefault(ids[p["driverId"]], set()).add(int(p["lap"]))
-    rf = [a for k, a, b in (D["SEASON"].get(str(rnd), {}).get("neutral") or []) if k == "RF"]
+    nz = D["SEASON"].get(str(rnd), {}).get("neutral") or []
+    rf = [a for k, a, b in nz if k == "RF"]
+    pit_laps = [a for k, a, b in nz if k == "PIT"]   # field through the pit lane: counted as a stop, no tyre change
     bad = []
     for n, v in out.items():
         if v[0][1] != 1 or v[-1][2] != done[n] or any(v[k][2] + 1 != v[k + 1][1] for k in range(len(v) - 1)):
             bad.append("car %d: stints don't cover laps 1-%d" % (n, done[n])); continue
         b = {x[1] - 1 for x in v[1:]}
         stops = {l for l in pits.get(n, set()) if l < done[n]}
-        if stops - b: bad.append("car %d: stop on lap %s but no tyre change in the timing data" % (n, sorted(stops - b)))
+        nochange = stops - b - passes.get(n, set()) - set(pit_laps)
+        if nochange: bad.append("car %d: stop on lap %s but no tyre change in the timing data" % (n, sorted(nochange)))
         extra = {l for l in b - stops if not any(abs(l - x) <= 1 for x in rf)}
         if extra: bad.append("car %d: tyre change after lap %s without a pit stop" % (n, sorted(extra)))
     if bad: raise CheckFailed("tyre stints disagree with the official pit stops: " + "; ".join(bad[:6]))

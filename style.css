@@ -260,6 +260,7 @@ table.t tr.fl td{color:var(--ink-2);font-size:12.5px}
 .rb.sc i{background:rgba(255,210,63,.55)}
 .rb.vsc i{background:repeating-linear-gradient(135deg,rgba(255,210,63,.6) 0 2px,transparent 2px 5px);outline:1px dashed rgba(255,210,63,.8)}
 .rb.rf i{background:rgba(255,45,45,.7)}
+.rb.pit i{width:2px;margin:0 6px;background:repeating-linear-gradient(180deg,var(--ink-2) 0 2px,transparent 2px 4px)}
 .rb.none{color:var(--ink-2)}
 .tyrechart{border:1.5px solid var(--rule-2);background:var(--panel);padding:12px;overflow-x:auto}
 .tyrechart svg{width:100%;min-width:620px;height:auto;display:block}

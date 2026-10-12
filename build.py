@@ -277,7 +277,7 @@ def practice_table(S, rows):
     return table(["Pos", "No", "Driver", "Time / gap", "Laps"], [[x[0], x[1], esc(S.fullname(x[2])), esc(x[3]) or "No time", x[4]] for x in rows])
 
 
-NEUTRAL = {"SC": "Safety car", "VSC": "Virtual safety car", "RF": "Red flag"}
+NEUTRAL = {"SC": "Safety car", "VSC": "Virtual safety car", "RF": "Red flag", "PIT": "Field through the pit lane"}
 TYRES = {"S": "Soft", "M": "Medium", "H": "Hard", "I": "Intermediate", "W": "Wet", "?": "Unknown"}
 
 
