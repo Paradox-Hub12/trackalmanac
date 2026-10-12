@@ -971,7 +971,7 @@ about:{t:"About Track Almanac",b:`
 <li><b>Circuit maps.</b> Drawn from GPS-traced track geometry, with an approximate three-sector split.</li>
 <li><b>An archive.</b> Summaries of past seasons, which we are expanding into full race-by-race records.</li></ul>
 <h3>Where the data comes from</h3>
-<p>Results, grids and session times are compiled from official published classifications and timing, cross-checked against independent sources such as the Jolpica F1 API. Every driver's points total is reconciled against the official championship standings before publication. Tyre compound selections and weekend forecasts come from published team and supplier previews. Circuit layouts use the open f1-circuits dataset by Tomislav Bacinger (MIT licence).</p>
+<p>Results, grids and session times are compiled from official published classifications and timing, cross-checked against independent sources: the Jolpica F1 API, <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> (openf1.org) for practice classifications, lap timing and race control, and <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> for per-lap tyre data from the official timing feed (Apache-2.0). Every driver's points total is reconciled against the official championship standings before publication. Tyre compound selections and weekend forecasts come from published team and supplier previews. Circuit layouts use the open f1-circuits dataset by Tomislav Bacinger (MIT licence).</p>
 <h3>Accuracy and corrections</h3>
 <p>We work hard to get the numbers right, but mistakes happen and results can change after stewards' decisions. If you spot an error, please <a href="${H("contact")}" data-go="contact">tell us</a> and we will correct it.</p>
 <h3>Independence</h3>
@@ -1029,7 +1029,7 @@ disclaimer:{t:"Disclaimer & Copyright",b:`
 <p>We do not use official F1, team or sponsor logos, photographs or broadcast imagery. Team colours are approximations used to tell teams apart in tables and charts. Circuit maps are drawn from open GPS-traced geometry and are not official track maps.</p>
 <h3>Data sources and credits</h3>
 <ul><li>Race classifications, qualifying, practice, starting grids and session times: compiled from official published results and timing.</li>
-<li>Lap-by-lap positions: Jolpica F1 API (successor to the Ergast API).</li>
+<li>Lap-by-lap positions: Jolpica F1 API (successor to the Ergast API).</li> <li>Practice and sprint qualifying classifications, lap timing, safety car, virtual safety car and red flag periods, and session times: <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> (openf1.org).</li> <li>Tyre strategy and circuit telemetry: <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a>, from the official F1 timing feed (Apache-2.0).</li>
 <li>Circuit layouts: <a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noopener">f1-circuits</a> by Tomislav Bacinger, MIT licence.</li>
 <li>Tyre compound selections and weekend forecasts: published team and supplier race previews.</li>
 <li>Fonts: Big Shoulders Display, IBM Plex Sans Condensed and IBM Plex Mono via Google Fonts (SIL Open Font Licence).</li></ul>
