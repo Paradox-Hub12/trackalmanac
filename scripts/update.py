@@ -475,7 +475,7 @@ def lap_chart(src, people, rows, race_start):
 
 # ---------------------------------------------------------------- race extras: safety cars, tyre stints
 COMPOUND = {"SOFT": "S", "MEDIUM": "M", "HARD": "H", "INTERMEDIATE": "I", "WET": "W"}
-EXTRAS = ("neutral", "stints")
+EXTRAS = ("neutral", "stints", "wxm")
 EXTRAS_DAYS = 7        # normal runs fill extras for races of the last 7 days; --backfill does every race
 
 
@@ -527,6 +527,8 @@ def race_extra(src, people, rnd, key, rows, start, D):
     nums = [r[1] for r in rows]
     if key == "stints":
         return race_stints(src, rnd, rows, start, D, s)
+    if key == "wxm":
+        return race_weather(src, rnd, D)
 
 
 # Tyre stints come from TracingInsights (github.com/TracingInsights/<year>, Apache-2.0): per-lap
@@ -558,6 +560,34 @@ def ti_folder(src, rnd, D):
         d = src.h.get(ti_url(c, "Race", "drivers.json"))
         if isinstance(d, dict) and d.get("drivers"): return c, d["drivers"]
     raise NotReady("TracingInsights has no race data for %s yet" % r["gp"])
+
+
+WEEKEND = {False: [["Practice 1", "Practice 2"], ["Practice 3", "Qualifying"], ["Race"]],
+           True: [["Practice 1", "Sprint Qualifying"], ["Sprint", "Qualifying"], ["Race"]]}
+
+
+def race_weather(src, rnd, D):
+    """SEASON[r].wxm: weather measured at the track, one entry per day of the weekend, in the same
+    order as the race page's day cards: [air min, air max, track min, track max (°C),
+    % of readings with rain, max wind (m/s)]. From TracingInsights' weather.json (official
+    timing feed). A day with no published session data is null."""
+    folder, _ = ti_folder(src, rnd, D)
+    r = race_of(D, rnd)
+    out = []
+    for day in WEEKEND[bool(r.get("sprint"))]:
+        air, trk, rain, wind = [], [], [], []
+        for sess in day:
+            w = src.h.get(ti_url(folder, sess, "weather.json"))
+            if not isinstance(w, dict) or not w.get("wAT"): continue
+            air += [x for x in w["wAT"] if isinstance(x, (int, float)) and x > 0]      # 0 = missing reading
+            trk += [x for x in w.get("wTT", []) if isinstance(x, (int, float)) and x > 0]
+            rain += [bool(x) for x in w.get("wR", []) if x is not None]
+            wind += [x for x in w.get("wWS", []) if isinstance(x, (int, float))]
+        if not air: out.append(None); continue
+        out.append([round(min(air), 1), round(max(air), 1), round(min(trk), 1) if trk else None, round(max(trk), 1) if trk else None,
+                    round(100 * sum(rain) / len(rain)) if rain else 0, round(max(wind), 1) if wind else None])
+    if out[-1] is None: raise NotReady("TracingInsights has no race weather yet")
+    return out
 
 
 def ti_driver_stints(L, done):
@@ -691,7 +721,7 @@ class Updater:
     def do_extras(self, rnd, start):
         for key in EXTRAS:
             if key not in self.season(rnd):
-                self.attempt(rnd, {"neutral": "safety cars", "stints": "tyre stints"}[key],
+                self.attempt(rnd, {"neutral": "safety cars", "stints": "tyre stints", "wxm": "track weather"}[key],
                              lambda key=key: self.add_extra(rnd, key, start))
 
     def add_extra(self, rnd, key, start):

@@ -342,7 +342,7 @@ function viewLive(n){
   const jumps=[["weekend","Weekend"],["practice","Practice"],...(r.sprint?[["sq","Sprint quali"],["sprint","Sprint"]]:[]),["quali","Qualifying"],["grid","Grid"],["race","Race"],["after","Standings"]];
   const tbl=(k,f)=>sesRows(n,k)?f(sesRows(n,k)):soonBox(n,k);
   return `
-  <div class="dnav pin">${pv}<button class="navbtn" data-go="season">2026 Season</button>${nb}</div>
+  <div class="dnav pin">${pv}<span class="dmid"><button class="navbtn" data-go="season">Home</button><button class="navbtn" data-top>Top ↑</button></span>${nb}</div>
   <section class="dhero">
     <div class="info">
       <span class="lbl">Round ${r.r} of ${RACES.length} · ${esc(r.days)} 2026${r===nextRace?" · race weekend":""}</span>
@@ -381,7 +381,7 @@ function viewLive(n){
       <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th>Driver</th><th class="n">Pts</th></tr></thead><tbody>${DRIVERS.slice(0,10).map((d,k)=>`<tr><td class="n">${k+1}</td><td><span class="sw" style="background:${tcol(d[2])}"></span>${esc(d[0])}</td><td class="n">${d[3]}</td></tr>`).join("")}</tbody></table></div>
       <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th>Constructor</th><th class="n">Pts</th></tr></thead><tbody>${CONSTRUCTORS.map((c,k)=>`<tr><td class="n">${k+1}</td><td><span class="sw" style="background:${tcol(c[0])}"></span>${esc(c[0])}</td><td class="n">${c[1]}</td></tr>`).join("")}</tbody></table></div>
     </div></section>
-  <div class="dnav" style="margin-top:28px">${pv}<button class="navbtn" data-go="season">2026 Season</button>${nb}</div>`;}
+  <div class="dnav" style="margin-top:28px">${pv}<span class="dmid"><button class="navbtn" data-go="season">Home</button><button class="navbtn" data-top>Top ↑</button></span>${nb}</div>`;}
 function scrollHome(sel){const go2=()=>{const el=$(sel);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});};if($(".home"))go2();else{go("season");setTimeout(go2,120);}}
 
 /* ---------- DETAIL PAGE ---------- */
@@ -532,7 +532,7 @@ function viewDetail(n){
   const gain=(prev,z)=>{const p=prev.find(y=>y[0]===z[0]);const g=z[1]-(p?p[1]:0);return g>0?`<span class="gain">+${g}</span>`:'<span style="color:var(--ink-3)">–</span>';};
   const mv=(list,prev,name,k)=>{if(!prev.length)return"–";const j=prev.findIndex(z=>z[0]===name);if(j<0)return"–";const d=j-k;return d>0?`<span class="up">▲${d}</span>`:d<0?`<span class="dn">▼${-d}</span>`:"–";};
   return `
-  <div class="dnav pin">${pv}<button class="navbtn" data-go="season">2026 Season</button>${nx}</div>
+  <div class="dnav pin">${pv}<span class="dmid"><button class="navbtn" data-go="season">Home</button><button class="navbtn" data-top>Top ↑</button></span>${nx}</div>
   <section class="dhero">
     <div class="info">
       <span class="lbl">Round ${r.r} of ${RACES.length} · ${fmt(r.date,{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</span>
@@ -553,9 +553,10 @@ function viewDetail(n){
 
   <section class="dsec" id="s-weekend">
     <div class="sec"><h2>Weekend</h2><span class="lbl">Sessions · weather · tyres</span></div>
-    <div class="week">${days.map((d,k)=>{const w=wx?wx[k]:null;return `<div class="day"><span class="lbl">${d==="Thu"?"Thursday":d==="Fri"?"Friday":d==="Sat"?"Saturday":"Sunday"}</span><h3>${ses[k].join(" · ")}</h3>
-      <div class="wx">${w?`<b>${w[2]?w[2]+"°C":"—"}</b><span>${esc(w[1])}${w[3]?` · rain ${esc(w[3])}`:""}</span>`:`<span>Forecast not available</span>`}</div></div>`;}).join("")}</div>
-    <p class="note2">Weather is the weekend forecast published before the event (high temperature, conditions, chance of rain).${S.wxnote?" On the day: "+esc(S.wxnote):""}</p>
+    <div class="week">${days.map((d,k)=>{const w=wx?wx[k]:null,m=S.wxm?S.wxm[k]:null;return `<div class="day"><span class="lbl">${d==="Thu"?"Thursday":d==="Fri"?"Friday":d==="Sat"?"Saturday":"Sunday"}</span><h3 class="sesn">${ses[k].map(x=>`<span>${x}</span>`).join("")}</h3>
+      ${m?`<div class="wx"><b>${Math.round(m[1])}°C</b><span>${m[3]!=null?`Track up to ${Math.round(m[3])}°C · `:""}${m[4]>=50?"Wet":m[4]>0?"Some rain":"Dry"}${m[5]!=null?` · wind up to ${spd(m[5]*3.6,0)}`:""}</span></div>${w?`<div class="wxf">Forecast: ${w[2]?w[2]+"°C, ":""}${esc(w[1])}${w[3]?` · rain ${esc(w[3])}`:""}</div>`:""}`
+        :`<div class="wx">${w?`<b>${w[2]?w[2]+"°C":"—"}</b><span>${esc(w[1])}${w[3]?` · rain ${esc(w[3])}`:""}</span>`:`<span>Weather not available</span>`}</div>`}</div>`;}).join("")}</div>
+    <p class="note2">${S.wxm?"Weather measured at the track during the sessions: highest air temperature, highest track temperature, rain and strongest wind (official F1 timing feed via TracingInsights). The forecast published before the event is shown underneath.":"Weather is the weekend forecast published before the event (high temperature, conditions, chance of rain)."}${S.wxnote?" On the day: "+esc(S.wxnote):""}</p>
     <div class="tyres">${[1,2,3,4,5].map(c=>{const k=S.tyres.indexOf(String(c));const on=k>=0?k+1:0;return `<div class="ty ${on?"on":""}">${tyreSVG(c,on)}<b>C${c}</b><span>${on?tyreNames[k]:"Not used"}</span></div>`;}).join("")}</div>
     <p class="note2">Pirelli nominated C${S.tyres[0]}, C${S.tyres[1]} and C${S.tyres[2]}. C1 is the hardest compound in the range and C5 the softest.</p>
   </section>
@@ -610,7 +611,7 @@ function viewDetail(n){
   </section>
 
 
-  <div class="dnav" style="margin-top:28px">${pv}<button class="navbtn" data-go="championship">2026 Championship</button>${nx}</div>`;
+  <div class="dnav" style="margin-top:28px">${pv}<span class="dmid"><button class="navbtn" data-go="season">Home</button><button class="navbtn" data-top>Top ↑</button></span>${nx}</div>`;
 }
 
 /* ---------- full-screen chart boxes ---------- */
@@ -1085,6 +1086,9 @@ function consentBanner(force){let c=null;try{c=localStorage.getItem("ta-consent"
 /* ---------- ROUTER ---------- */
 let t=null;
 function setNav(k){["season","championship","drivers","teams","archive"].forEach(x=>{const b=$("#n-"+x);if(x===k)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
+/* the race bar and section tabs stay pinned: the tabs sit just under the bar */
+function pinSizes(){const p=$(".dnav.pin"),j=$(".jump"),R=document.documentElement.style;R.setProperty("--pinh",(p?p.offsetHeight:0)+"px");R.setProperty("--jumph",(j?j.offsetHeight:0)+"px");}
+window.addEventListener("resize",()=>pinSizes());
 function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body.classList.remove("fs-lock");document.title="Track Almanac · Races. Drivers. Teams. Numbers.";
   document.querySelectorAll("[data-clock]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.clock===CLOCK));
   document.querySelectorAll("[data-unit]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.unit===UNIT));
@@ -1105,6 +1109,7 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   if(PATHMODE&&NAVD){document.title=pageTitle(h);const c=document.querySelector('link[rel="canonical"]');if(c)c.href=location.origin+location.pathname;}
   /* GA4: the first load is counted by gtag config; count in-app page changes once the new title is set, only when the address changed */
   if(PATHMODE&&window.TA_GA&&window.gtag){const pv=location.pathname+location.search;if(pv!==window.TA_GA_FIRST){window.TA_GA_FIRST=pv;gtag("event","page_view",{page_location:location.href,page_title:document.title});}}
+  pinSizes();
   if(!(PATHMODE&&location.hash&&/^detail-/.test(h)))window.scrollTo(0,0);
 }
 function cdParts(ms,sm){let s=Math.max(0,Math.floor(ms/1000));const v=[Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60];
@@ -1134,8 +1139,9 @@ document.addEventListener("click",e=>{
   const tm=e.target.closest("[data-team]");if(tm){openTeam(tm.dataset.team);return;}
   const ds=e.target.closest("[data-dsort]");if(ds){driverSort=ds.dataset.dsort;try{localStorage.setItem("ta-dsort",driverSort)}catch(err){}const y=window.scrollY;$("#app").innerHTML=viewDrivers();window.scrollTo(0,y);return;}
   if(e.target.closest("[data-close]")){setKey("season");closeDrawer();return;}
-  const b=e.target.closest("[data-quick],[data-detail],[data-go],[data-year],[data-fp],[data-chip],[data-jump],[data-order],[data-lap],[data-fs],[data-spd],[data-clock],[data-unit],[data-theme-set],[data-standall],[data-consent],[data-cookies],[data-copy],[data-chipset],#t-d,#t-c");if(!b)return;
+  const b=e.target.closest("[data-quick],[data-detail],[data-go],[data-year],[data-fp],[data-chip],[data-jump],[data-order],[data-lap],[data-fs],[data-spd],[data-clock],[data-unit],[data-theme-set],[data-standall],[data-top],[data-consent],[data-cookies],[data-copy],[data-chipset],#t-d,#t-c");if(!b)return;
   if(b.dataset.fs){toggleFS(b.dataset.fs);return;}
+  if(b.hasAttribute("data-top")){window.scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});return;}
   if(b.hasAttribute("data-standall")){const st=b.closest(".stand"),on=!st.classList.contains("all");st.classList.toggle("all",on);b.setAttribute("aria-expanded",String(on));
     b.textContent=on?"Show top 10":`Show all ${st.querySelectorAll("tbody")[0].rows.length} drivers`;return;}
   if(b.dataset.themeSet){setTheme(b.dataset.themeSet);const y=window.scrollY;route();window.scrollTo(0,y);return;}
