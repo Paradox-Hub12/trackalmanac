@@ -134,6 +134,10 @@ const RCODE={1:"AUS",2:"CHN",3:"JPN",4:"MIA",5:"CAN",6:"MON",7:"BCN",8:"AUT",9:"
 const TODAY=new Date();
 let CLOCK="12";try{CLOCK=localStorage.getItem("ta-clock")||"12";}catch(e){}
 /* distance units: KM (default) or MI; distances in km and speeds in km/h are converted when MI is chosen */
+/* colour theme: dark (default) or light; build.py applies a saved choice before the page draws */
+let THEME=document.documentElement.getAttribute("data-theme")==="light"?"light":"dark";
+function setTheme(t){THEME=t==="light"?"light":"dark";if(THEME==="light")document.documentElement.setAttribute("data-theme","light");else document.documentElement.removeAttribute("data-theme");
+  try{localStorage.setItem("ta-theme",THEME)}catch(e){}const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=THEME==="light"?"#f3f5f8":"#000000";}
 let UNIT="km";try{UNIT=localStorage.getItem("ta-unit")==="mi"?"mi":"km";}catch(e){}
 const KM2MI=0.621371;
 const dist=(km,d)=>UNIT==="mi"?(km*KM2MI).toFixed(d)+" mi":km.toFixed(d)+" km";
@@ -992,7 +996,7 @@ privacy:{t:"Privacy Policy",b:`
 <p>This policy explains what information ${SITE.name} ("we", "us") collects when you visit ${SITE.domain} (the "Site"), how it is used and the choices you have.</p>
 <h3>1. Information we collect</h3>
 <ul><li><b>Information you give us.</b> If you email us, we receive your email address and whatever you include in your message. We use it only to reply.</li>
-<li><b>Preferences stored on your device.</b> The Site saves small settings in your browser's local storage, such as your 12/24-hour clock choice, kilometres or miles, race card order and cookie choice. These stay on your device and are not sent to us.</li>
+<li><b>Preferences stored on your device.</b> The Site saves small settings in your browser's local storage, such as your 12/24-hour clock choice, kilometres or miles, light or dark theme, race card order and cookie choice. These stay on your device and are not sent to us.</li>
 <li><b>Automatically collected information.</b> Like most websites, our hosting provider and any analytics or advertising partners may receive standard technical data such as IP address, browser type, device type, pages viewed and referring page.</li></ul>
 <h3>2. Cookies and advertising</h3>
 <p>We may use third-party advertising, including Google AdSense, to keep the Site free. Third-party vendors, including Google, use cookies to serve ads based on your prior visits to this Site or other websites.</p>
@@ -1082,6 +1086,7 @@ function setNav(k){["season","championship","drivers","teams","archive"].forEach
 function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body.classList.remove("fs-lock");document.title="Track Almanac · Races. Drivers. Teams. Numbers.";
   document.querySelectorAll("[data-clock]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.clock===CLOCK));
   document.querySelectorAll("[data-unit]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.unit===UNIT));
+  document.querySelectorAll("[data-theme-set]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.themeSet===THEME));
   clearInterval(t); closeDrawer();
   const h=curKey();
   if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
@@ -1127,8 +1132,9 @@ document.addEventListener("click",e=>{
   const tm=e.target.closest("[data-team]");if(tm){openTeam(tm.dataset.team);return;}
   const ds=e.target.closest("[data-dsort]");if(ds){driverSort=ds.dataset.dsort;try{localStorage.setItem("ta-dsort",driverSort)}catch(err){}const y=window.scrollY;$("#app").innerHTML=viewDrivers();window.scrollTo(0,y);return;}
   if(e.target.closest("[data-close]")){setKey("season");closeDrawer();return;}
-  const b=e.target.closest("[data-quick],[data-detail],[data-go],[data-year],[data-fp],[data-chip],[data-jump],[data-order],[data-lap],[data-fs],[data-spd],[data-clock],[data-unit],[data-consent],[data-cookies],[data-copy],[data-chipset],#t-d,#t-c");if(!b)return;
+  const b=e.target.closest("[data-quick],[data-detail],[data-go],[data-year],[data-fp],[data-chip],[data-jump],[data-order],[data-lap],[data-fs],[data-spd],[data-clock],[data-unit],[data-theme-set],[data-consent],[data-cookies],[data-copy],[data-chipset],#t-d,#t-c");if(!b)return;
   if(b.dataset.fs){toggleFS(b.dataset.fs);return;}
+  if(b.dataset.themeSet){setTheme(b.dataset.themeSet);const y=window.scrollY;route();window.scrollTo(0,y);return;}
   if(b.dataset.unit){UNIT=b.dataset.unit==="mi"?"mi":"km";try{localStorage.setItem("ta-unit",UNIT)}catch(err){}const y=window.scrollY;route();window.scrollTo(0,y);return;}
   if(b.dataset.clock){CLOCK=b.dataset.clock;try{localStorage.setItem("ta-clock",CLOCK)}catch(err){}const y=window.scrollY,open=$(".drawer")?location.hash:null;route();window.scrollTo(0,y);return;}
   if(b.dataset.consent){try{localStorage.setItem("ta-consent",b.dataset.consent)}catch(err){}if(window.taConsent)window.taConsent(b.dataset.consent);document.querySelectorAll(".consent").forEach(x=>x.remove());return;}

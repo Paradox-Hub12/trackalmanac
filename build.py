@@ -516,6 +516,7 @@ def head(p, assets, fonts):
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#000000">
+<script>try{{if(localStorage.getItem("ta-theme")==="light"){{document.documentElement.setAttribute("data-theme","light");document.querySelector('meta[name="theme-color"]').content="#f3f5f8";}}}}catch(e){{}}</script>
 {ga_snippet()}
 <meta property="og:type" content="{'article' if p['path'].startswith('/races/') else 'website'}">
 <meta property="og:site_name" content="Track Almanac">
