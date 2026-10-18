@@ -95,7 +95,7 @@ function plan(key,{big=false,label="",len=null,sectors=false}={}){
     chk+=`<rect x="${(cx-0.475).toFixed(2)}" y="${(cy-0.475).toFixed(2)}" width=".95" height=".95" fill="${(a+b)%2?"#fff":"#111"}" transform="rotate(${(Math.atan2(t0[1],t0[0])*180/Math.PI).toFixed(1)} ${cx.toFixed(2)} ${cy.toFixed(2)})"/>`;}
   const ang=Math.atan2(t0[1],t0[0]),ax=s0[0]+t0[0]*4.2,ay=s0[1]+t0[1]*4.2;
   const arrow=`<path d="M${(ax+Math.cos(ang)*1.8).toFixed(2)},${(ay+Math.sin(ang)*1.8).toFixed(2)} L${(ax+Math.cos(ang+2.5)*1.3).toFixed(2)},${(ay+Math.sin(ang+2.5)*1.3).toFixed(2)} L${(ax+Math.cos(ang-2.5)*1.3).toFixed(2)},${(ay+Math.sin(ang-2.5)*1.3).toFixed(2)}Z" fill="var(--ink-2)"><title>Direction of travel</title></path>`;
-  const dims=`<g stroke="var(--ink-3)" stroke-width=".3" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace" font-size="2.6"><line x1="${x0}" y1="${y1+6}" x2="${x1}" y2="${y1+6}"/><line x1="${x0}" y1="${y1+4}" x2="${x0}" y2="${y1+8}"/><line x1="${x1}" y1="${y1+4}" x2="${x1}" y2="${y1+8}"/>${len?`<text x="${(x0+x1)/2}" y="${y1+10.5}" text-anchor="middle" stroke="none">LAP ${len.toFixed(3)} KM</text>`:""}</g>`;
+  const dims=`<g stroke="var(--ink-3)" stroke-width=".3" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace" font-size="2.6"><line x1="${x0}" y1="${y1+6}" x2="${x1}" y2="${y1+6}"/><line x1="${x0}" y1="${y1+4}" x2="${x0}" y2="${y1+8}"/><line x1="${x1}" y1="${y1+4}" x2="${x1}" y2="${y1+8}"/>${len?`<text x="${(x0+x1)/2}" y="${y1+10.5}" text-anchor="middle" stroke="none">LAP ${dist(len,3).toUpperCase()}</text>`:""}</g>`;
   return `<svg viewBox="-3 -4 106 ${y1+20}" role="img" aria-label="${esc(label)} layout with turn numbers, sectors and aero zones">
     <path d="${d}" fill="none" stroke="var(--rule-2)" stroke-width="4.2" stroke-linejoin="round"/>
     <path d="${d}" fill="none" stroke="#05070b" stroke-width="3.1" stroke-linejoin="round"/>
@@ -133,6 +133,11 @@ function teamStandingsAfter(r){const tot={};Object.keys(TEAMS).forEach(t=>tot[t]
 const RCODE={1:"AUS",2:"CHN",3:"JPN",4:"MIA",5:"CAN",6:"MON",7:"BCN",8:"AUT",9:"GBR",10:"BEL",11:"HUN",12:"NED",13:"ITA",14:"MAD",15:"AZE",16:"BHR",17:"SGP",18:"USA",19:"MEX",20:"BRA",21:"LVG",22:"QAT",23:"ABU"};
 const TODAY=new Date();
 let CLOCK="12";try{CLOCK=localStorage.getItem("ta-clock")||"12";}catch(e){}
+/* distance units: KM (default) or MI; distances in km and speeds in km/h are converted when MI is chosen */
+let UNIT="km";try{UNIT=localStorage.getItem("ta-unit")==="mi"?"mi":"km";}catch(e){}
+const KM2MI=0.621371;
+const dist=(km,d)=>UNIT==="mi"?(km*KM2MI).toFixed(d)+" mi":km.toFixed(d)+" km";
+const spd=(kmh,d)=>UNIT==="mi"?(kmh*KM2MI).toFixed(d)+" mph":kmh.toFixed(d)+" km/h";
 function tfmt(iso,tz,o={weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}){try{const h=o.hour?{hour:CLOCK==="12"?"numeric":"2-digit",hour12:CLOCK==="12"}:{};return new Intl.DateTimeFormat("en-GB",{...o,...h,...(tz?{timeZone:tz}:{})}).format(new Date(iso)).replace(/\b(am|pm)\b/g,m=>m.toUpperCase());}catch(e){return new Date(iso).toUTCString().slice(0,22);}}
 function tzName(iso,tz){try{const p=new Intl.DateTimeFormat("en-GB",{timeZoneName:"short",...(tz?{timeZone:tz}:{})}).formatToParts(new Date(iso));return (p.find(x=>x.type==="timeZoneName")||{}).value||"";}catch(e){return "";}}
 const raceStart=r=>SCHED[r.r]?SCHED[r.r][1].slice(-1)[0][1]:null;
@@ -188,7 +193,7 @@ function viewSeason(){
         <div style="color:var(--ink-2)">${esc(nr.circuit)}, ${esc(nr.city)}</div>
         <div><span class="tag sig">${esc(nr.days)}</span>${nr.sprint?'<span class="tag">Sprint</span>':""}<span class="tag">Night</span></div>
         <div class="cdx" id="cdx" aria-live="off"></div>
-        <div class="spec"><div><span class="lbl">Lap</span><b>${nr.len.toFixed(3)} km</b></div><div><span class="lbl">Laps</span><b>${nr.laps}</b></div><div><span class="lbl">Distance</span><b>${(nr.len*nr.laps).toFixed(1)} km</b></div></div>
+        <div class="spec"><div><span class="lbl">Lap</span><b>${dist(nr.len,3)}</b></div><div><span class="lbl">Laps</span><b>${nr.laps}</b></div><div><span class="lbl">Distance</span><b>${dist(nr.len*nr.laps,1)}</b></div></div>
         ${tyreBlock(nr.r)}
         <button class="navbtn" data-quick="${nr.r}" style="align-self:flex-start">Weekend schedule →</button>
       </div>
@@ -261,7 +266,7 @@ function openUpcoming(r){
     <div class="fig">${plan(r.track,{big:true,label:r.circuit,len:r.len,sectors:true})}</div>
     <div class="dl">
       <div><span class="lbl">Format</span><b>${r.sprint?"Sprint weekend":"Standard"}</b><span class="s">${r.sprint?"1 practice, sprint quali, sprint":"3 practice sessions"}</span></div>
-      <div><span class="lbl">Race distance</span><b>${r.laps} laps</b><span class="s">${(r.len*r.laps).toFixed(1)} km · ${r.len.toFixed(3)} km lap</span></div>
+      <div><span class="lbl">Race distance</span><b>${r.laps} laps</b><span class="s">${dist(r.len*r.laps,1)} · ${dist(r.len,3)} lap</span></div>
     </div>
     ${tyreBlock(r.r)}
     ${sessionTable(r)}
@@ -290,10 +295,10 @@ function openRace(n){
     <div class="dl">
       <div><span class="lbl">Fastest lap</span><b class="fl">${x.fl[1]}</b><span class="s">${esc(x.fl[0])} · lap ${x.fl[2]}</span></div>
       <div><span class="lbl">Pole</span><b>${esc(code(x.pole))}</b><span class="s">${esc(x.pole)}</span></div>
-      <div><span class="lbl">FL avg speed</span><b>${x.fl[3].toFixed(1)} km/h</b><span class="s">Best lap average</span></div>
+      <div><span class="lbl">FL avg speed</span><b>${spd(x.fl[3],1)}</b><span class="s">Best lap average</span></div>
       ${x.pit?`<div><span class="lbl">Fastest pit stop</span><b>${x.pit[2]}</b><span class="s">${esc(x.pit[0])}</span></div>`:na("Fastest pit stop","Not in published results")}
       <div><span class="lbl">Tyres</span><b>C${S.tyres[0]} · C${S.tyres[1]} · C${S.tyres[2]}</b><span class="s">Hard · Medium · Soft</span></div>
-      <div><span class="lbl">${r.sprint?"Sprint winner":"Distance"}</span><b>${r.sprint?esc(code(r.sprint)):(r.len*r.laps).toFixed(1)+" km"}</b><span class="s">${r.sprint?esc(r.sprint):r.laps+" laps"}</span></div>
+      <div><span class="lbl">${r.sprint?"Sprint winner":"Distance"}</span><b>${r.sprint?esc(code(r.sprint)):dist(r.len*r.laps,1)}</b><span class="s">${r.sprint?esc(r.sprint):r.laps+" laps"}</span></div>
     </div>
     <p class="dnote">${esc(x.cls)}</p>
     <div class="dnav">${pv}<button class="navbtn sig" data-detail="${r.r}">Detailed info →</button>${nx}</div>
@@ -339,7 +344,7 @@ function viewLive(n){
       <span class="lbl">Round ${r.r} of ${RACES.length} · ${esc(r.days)} 2026${r===nextRace?" · race weekend":""}</span>
       <h2 class="h1">${esc(r.short)}</h2>
       <div style="color:var(--ink-2)">${esc(r.gp)} · ${esc(r.circuit)}, ${esc(r.city)}</div>
-      <div>${r.sprint?'<span class="tag sig">Sprint weekend</span>':""}<span class="tag">${r.laps} laps</span><span class="tag">${r.len.toFixed(3)} km lap</span><span class="tag">${(r.len*r.laps).toFixed(1)} km</span></div>
+      <div>${r.sprint?'<span class="tag sig">Sprint weekend</span>':""}<span class="tag">${r.laps} laps</span><span class="tag">${dist(r.len,3)} lap</span><span class="tag">${dist(r.len*r.laps,1)}</span></div>
       <div class="spec"><div><span class="lbl">Sessions done</span><b>${doneN} / ${keys.length||"—"}</b></div><div><span class="lbl">Pole</span><b>${pole?esc(code(pole[0][2])):"—"}</b></div><div><span class="lbl">${r.sprint?"Sprint winner":"Race winner"}</span><b>${r.sprint?(spw?esc(code(spw[0][2])):"—"):"—"}</b></div></div>
       <p class="note2" style="margin:0">Results are added after each session finishes. Sessions still to run show as coming soon.</p>
     </div>
@@ -528,7 +533,7 @@ function viewDetail(n){
       <span class="lbl">Round ${r.r} of ${RACES.length} · ${fmt(r.date,{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</span>
       <h2 class="h1">${esc(r.short)}</h2>
       <div style="color:var(--ink-2)">${esc(r.gp)} · ${esc(r.circuit)}, ${esc(r.city)}</div>
-      <div>${r.sprint?'<span class="tag sig">Sprint weekend</span>':""}<span class="tag">${r.laps} laps</span><span class="tag">${r.len.toFixed(3)} km lap</span><span class="tag">${(r.len*r.laps).toFixed(1)} km</span></div>
+      <div>${r.sprint?'<span class="tag sig">Sprint weekend</span>':""}<span class="tag">${r.laps} laps</span><span class="tag">${dist(r.len,3)} lap</span><span class="tag">${dist(r.len*r.laps,1)}</span></div>
       <div class="spec"><div><span class="lbl">Winner</span><b>${esc(code(x.pod[0][0]))}</b></div><div><span class="lbl">Pole</span><b>${esc(code(x.pole))}</b></div><div><span class="lbl">Fastest lap</span><b style="color:var(--purple)">${x.fl[1]}</b></div></div>
       <p class="note2" style="margin:0">${esc(x.cls)}</p>
     </div>
@@ -574,7 +579,7 @@ function viewDetail(n){
   <section class="dsec" id="s-race">
     <div class="sec"><h2>Race classification</h2><span class="lbl">${r.laps} laps · ${esc(x.time)}</span></div>
     ${classTable(S.race,n,true,x.fl[0])}
-    <p class="note2"><span style="color:var(--purple)">◆</span> Fastest lap: ${esc(x.fl[0])}, ${x.fl[1]} on lap ${x.fl[2]} (${x.fl[3].toFixed(3)} km/h average). ${x.pit?`Fastest pit stop: ${esc(x.pit[1])}, ${esc(x.pit[0])}, ${x.pit[2]}.`:""} No point is awarded for fastest lap in 2026.</p>
+    <p class="note2"><span style="color:var(--purple)">◆</span> Fastest lap: ${esc(x.fl[0])}, ${x.fl[1]} on lap ${x.fl[2]} (${spd(x.fl[3],3)} average). ${x.pit?`Fastest pit stop: ${esc(x.pit[1])}, ${esc(x.pit[0])}, ${x.pit[2]}.`:""} No point is awarded for fastest lap in 2026.</p>
   </section>
 
   <section class="dsec" id="s-after">
@@ -983,11 +988,11 @@ about:{t:"About Track Almanac",b:`
 <h3>Independence</h3>
 <p>Track Almanac is not affiliated with, endorsed by or connected to Formula 1, the FIA, Formula One Management or any team. See our <a href="${H("disclaimer")}" data-go="disclaimer">disclaimer</a> for details.</p>`},
 privacy:{t:"Privacy Policy",b:`
-<p class="meta">Last updated: 12 October 2026</p>
+<p class="meta">Last updated: 18 October 2026</p>
 <p>This policy explains what information ${SITE.name} ("we", "us") collects when you visit ${SITE.domain} (the "Site"), how it is used and the choices you have.</p>
 <h3>1. Information we collect</h3>
 <ul><li><b>Information you give us.</b> If you email us, we receive your email address and whatever you include in your message. We use it only to reply.</li>
-<li><b>Preferences stored on your device.</b> The Site saves small settings in your browser's local storage, such as your 12/24-hour clock choice, race card order and cookie choice. These stay on your device and are not sent to us.</li>
+<li><b>Preferences stored on your device.</b> The Site saves small settings in your browser's local storage, such as your 12/24-hour clock choice, kilometres or miles, race card order and cookie choice. These stay on your device and are not sent to us.</li>
 <li><b>Automatically collected information.</b> Like most websites, our hosting provider and any analytics or advertising partners may receive standard technical data such as IP address, browser type, device type, pages viewed and referring page.</li></ul>
 <h3>2. Cookies and advertising</h3>
 <p>We may use third-party advertising, including Google AdSense, to keep the Site free. Third-party vendors, including Google, use cookies to serve ads based on your prior visits to this Site or other websites.</p>
@@ -1076,6 +1081,7 @@ let t=null;
 function setNav(k){["season","championship","drivers","teams","archive"].forEach(x=>{const b=$("#n-"+x);if(x===k)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
 function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body.classList.remove("fs-lock");document.title="Track Almanac · Races. Drivers. Teams. Numbers.";
   document.querySelectorAll("[data-clock]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.clock===CLOCK));
+  document.querySelectorAll("[data-unit]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.unit===UNIT));
   clearInterval(t); closeDrawer();
   const h=curKey();
   if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
@@ -1121,8 +1127,9 @@ document.addEventListener("click",e=>{
   const tm=e.target.closest("[data-team]");if(tm){openTeam(tm.dataset.team);return;}
   const ds=e.target.closest("[data-dsort]");if(ds){driverSort=ds.dataset.dsort;try{localStorage.setItem("ta-dsort",driverSort)}catch(err){}const y=window.scrollY;$("#app").innerHTML=viewDrivers();window.scrollTo(0,y);return;}
   if(e.target.closest("[data-close]")){setKey("season");closeDrawer();return;}
-  const b=e.target.closest("[data-quick],[data-detail],[data-go],[data-year],[data-fp],[data-chip],[data-jump],[data-order],[data-lap],[data-fs],[data-spd],[data-clock],[data-consent],[data-cookies],[data-copy],[data-chipset],#t-d,#t-c");if(!b)return;
+  const b=e.target.closest("[data-quick],[data-detail],[data-go],[data-year],[data-fp],[data-chip],[data-jump],[data-order],[data-lap],[data-fs],[data-spd],[data-clock],[data-unit],[data-consent],[data-cookies],[data-copy],[data-chipset],#t-d,#t-c");if(!b)return;
   if(b.dataset.fs){toggleFS(b.dataset.fs);return;}
+  if(b.dataset.unit){UNIT=b.dataset.unit==="mi"?"mi":"km";try{localStorage.setItem("ta-unit",UNIT)}catch(err){}const y=window.scrollY;route();window.scrollTo(0,y);return;}
   if(b.dataset.clock){CLOCK=b.dataset.clock;try{localStorage.setItem("ta-clock",CLOCK)}catch(err){}const y=window.scrollY,open=$(".drawer")?location.hash:null;route();window.scrollTo(0,y);return;}
   if(b.dataset.consent){try{localStorage.setItem("ta-consent",b.dataset.consent)}catch(err){}if(window.taConsent)window.taConsent(b.dataset.consent);document.querySelectorAll(".consent").forEach(x=>x.remove());return;}
   if(b.dataset.cookies){consentBanner(true);return;}
