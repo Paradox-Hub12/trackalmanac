@@ -6921,7 +6921,8 @@
     "pod": [["Max Verstappen", "Winner"], ["Charles Leclerc", "+7.335s"], ["Kimi Antonelli", "+24.573s"]],
     "pole": "Max Verstappen",
     "fl": ["Charles Leclerc", "1:35.202", 41, 186.311],
-    "cls": "Bortoleto, Colapinto and Stroll retired. Two Virtual Safety Cars, on laps 8 and 39."
+    "cls": "Verstappen converted pole into his first Singapore win, completing a Sprint and Grand Prix double: he squeezed Leclerc at Turn 1 and kept the lead through his only stop. Leclerc took second by passing Hamilton on lap 46, and Antonelli climbed to third late on, passing Norris and Hamilton, while Hamilton, who had switched to softs early, faded to sixth. Russell recovered from 19th on the grid to ninth. Antonelli now leads Russell by 102 points and can clinch the title in Austin.",
+    "pit": ["Red Bull Racing", "Max Verstappen", "2.20s"]
    }
   },
   {
@@ -9504,13 +9505,13 @@
     ["12", 55, "Sainz", 20, "+52.467s", 0],
     ["13", 41, "Lindblad", 20, "+55.792s", 0],
     ["14", 81, "Piastri", 19, "+1 lap", 0],
-    ["NC", 23, "Albon", "—", "DNF", 0],
-    ["NC", 5, "Bortoleto", "—", "DNF", 0],
-    ["NC", 77, "Bottas", "—", "DNF", 0],
-    ["NC", 43, "Colapinto", "—", "DNF", 0],
-    ["NC", 6, "Hadjar", "—", "DNF", 0],
-    ["NC", 63, "Russell", 0, "DNF", 0],
-    ["NC", 11, "Perez", "—", "DNF", 0],
+    ["NC", 23, "Albon", 14, "DNF", 0],
+    ["NC", 5, "Bortoleto", 6, "DNF", 0],
+    ["NC", 77, "Bottas", 6, "DNF", 0],
+    ["NC", 6, "Hadjar", 2, "DNF", 0],
+    ["NC", 43, "Colapinto", 2, "DNF", 0],
+    ["NC", 63, "Russell", 1, "DNF", 0],
+    ["NC", 11, "Perez", 1, "DNF", 0],
     ["NC", 18, "Stroll", 0, "DNF", 0]
    ],
    "quali": [
@@ -9634,7 +9635,8 @@
     "18": [["S", 1, 26, 0], ["M", 27, 36, 0]],
     "43": [["M", 1, 29, 0]],
     "5": [["M", 1, 7, 0]]
-   }
+   },
+   "wxnote": "Dry race on slicks throughout. Torrential rain delayed Saturday's Sprint, which started on intermediates from a standing start after two formation laps behind the safety car."
   }
  },
  "LAPS": {
