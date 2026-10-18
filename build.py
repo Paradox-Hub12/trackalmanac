@@ -414,7 +414,7 @@ def archive_index_page(S):
         champ = A["D"][0][0] if A else (a.get("champ") or ["—"])[0] if not a.get("live") and not a.get("next") else ("In progress" if a.get("live") else "Calendar")
         cons = A["C"][0][1] if A else (a.get("cons") or ["—"])[0] if not a.get("live") and not a.get("next") else "—"
         rows.append([S.a("archive-%d" % y, str(y)), esc(champ), esc(cons), len(A["R"]) if A else ""])
-    return pagehead("Formula 1 season archive", "Every Formula 1 season from 2010 with full results, standings and charts.", "Season archive") + \
+    return pagehead("Formula 1 season archive", "Every Formula 1 season from 2000 with full results, standings and charts.", "Season archive") + \
         table(["Season", "Drivers' champion", "Constructors' champion", "Races"], rows)
 
 
@@ -597,8 +597,8 @@ def build(out, data_path=DATA):
             desc = "%s %d (%s, %s): session times, tyre compounds, circuit map and results from every session of the weekend." % (name, YEAR, r.get("days", fmt_date(r["date"])), r["circuit"])
         add("detail-%d" % r["r"], title, desc, "%s %d" % (name, YEAR), race_page(S, r), "R%d · %s" % (r["r"], name.upper()),
             home + [("2026 Season", "/calendar/"), (name, S.path("detail-%d" % r["r"]))], [sports_event(S, r)])
-    add("archive", "F1 Season Archive 2010–2025: Results & Champions | Track Almanac",
-        "Every Formula 1 season since 2010: champions, Grand Prix winners, poles, fastest laps, sprint results and full standings.",
+    add("archive", "F1 Season Archive 2000–2025: Results & Champions | Track Almanac",
+        "Every Formula 1 season since 2000: champions, Grand Prix winners, poles, fastest laps, sprint results and full standings.",
         "Formula 1 season archive", archive_index_page(S), "SEASON ARCHIVE", home + [("Archive", "/archive/")])
     for y in sorted((int(k) for k in S.ARCHIVE), reverse=True):
         a = S.ARCHIVE[str(y)]; A = S.ARCHDATA.get(str(y))

@@ -701,7 +701,7 @@ function pageTitle(k){const T=" | Track Almanac";let m;
   if(m=k.match(/^archive-(\d{4})$/)){const y=+m[1],a=ARCHIVE[y]||{};return a.next?`2027 F1 Calendar: All ${CAL2027.length} Races & Sprint Dates${T}`:a.live?`2026 Formula 1 Season${T}`:`${y} Formula 1 Season: Results, Standings & Champion${T}`;}
   if(k.startsWith("driver-")){const b=BIO[k.slice(7)];return b?`${b.name}: Profile, 2026 Season & Career Stats${T}`:`2026 F1 Drivers${T}`;}
   if(k.startsWith("team-")){const n=teamByKey(k.slice(5));return n?`${(TEAMBIO[n]||{}).name||n}: 2026 Line-up, Car & Record${T}`:`2026 F1 Teams${T}`;}
-  return ({championship:"2026 F1 Championship Standings & Points Breakdown",drivers:"2026 F1 Drivers: Profiles, Stats & Standings",teams:"2026 F1 Teams: Line-ups, Cars & Standings",calendar:"2026 F1 Calendar: Dates, Circuits & Results",archive:"F1 Season Archive 2010–2025: Results & Champions",sitemap:"Site Map",notfound:"Page not found"}[k]||((PAGES[k]||{}).t)||"Track Almanac")+T;}
+  return ({championship:"2026 F1 Championship Standings & Points Breakdown",drivers:"2026 F1 Drivers: Profiles, Stats & Standings",teams:"2026 F1 Teams: Line-ups, Cars & Standings",calendar:"2026 F1 Calendar: Dates, Circuits & Results",archive:"F1 Season Archive 2000–2025: Results & Champions",sitemap:"Site Map",notfound:"Page not found"}[k]||((PAGES[k]||{}).t)||"Track Almanac")+T;}
 function h1Text(k){let m;
   if(!k||k==="season"||k.startsWith("race-"))return "2026 Formula 1 season";
   if(m=k.match(/^detail-(\d+)/)){const r=RACES.find(x=>x.r===+m[1]);return r?r.gp.replace(" (Sepang)","")+" 2026":"";}
@@ -1379,8 +1379,8 @@ function drawCharts(){
   lineChart($("#tchart"),tser,{h:300});
 }
 
-/* ---------- SEASON ARCHIVE: full championship pages 2010–2025 ---------- */
-const HCOL={"red-bull":"#3671c6","mercedes":"#00a19c","ferrari":"#dc0000","mclaren":"#ff8000","williams":"#1868db","renault":"#ffd800","lotus-f1":"#c9a227","force-india":"#f596c8","racing-point":"#f596c8","aston-martin":"#229971","alpine":"#ff5fa2","sauber":"#9b9fa6","alfa-romeo":"#a6192e","kick-sauber":"#52e252","toro-rosso":"#469bff","alphatauri":"#7d9bb8","rb":"#6c98ff","racing-bulls":"#6c98ff","haas":"#b6babd","caterham":"#1f9e57","lotus-racing":"#1f9e57","virgin":"#d62d3a","marussia":"#e2231a","manor":"#e8434b","hrt":"#b5a26a"};
+/* ---------- SEASON ARCHIVE: full championship pages 2000–2025 ---------- */
+const HCOL={"red-bull":"#3671c6","mercedes":"#00a19c","ferrari":"#dc0000","mclaren":"#ff8000","williams":"#1868db","renault":"#ffd800","lotus-f1":"#c9a227","force-india":"#f596c8","racing-point":"#f596c8","aston-martin":"#229971","alpine":"#ff5fa2","sauber":"#9b9fa6","alfa-romeo":"#a6192e","kick-sauber":"#52e252","toro-rosso":"#469bff","alphatauri":"#7d9bb8","rb":"#6c98ff","racing-bulls":"#6c98ff","haas":"#b6babd","caterham":"#1f9e57","lotus-racing":"#1f9e57","virgin":"#d62d3a","marussia":"#e2231a","manor":"#e8434b","hrt":"#b5a26a","benetton":"#5fb0e8","jordan":"#c6d300","arrows":"#ff8c1a","bar":"#f0f0f0","jaguar":"#1a8a55","prost":"#2f49c4","minardi":"#b07cc6","toyota":"#ff6f61","honda":"#4caf50","bmw-sauber":"#bcd4f6","super-aguri":"#d94f8b","midland":"#b23a48","spyker":"#ff7f00","brawn":"#c8f000"};
 const hcol=(id,y)=>id==="mclaren"&&y<2017?"#a8b0b8":id==="force-india"&&y<2017?"#ff8f1f":id==="williams"&&y<2014?"#5b8ad6":HCOL[id]||"var(--ink-3)";
 const gpShort=n=>n.replace(/ Grand Prix$/,"").replace(/^Grand Prix of /,"");
 const RACECC={albert:"AU",shanghai:"CN",suzuka:"JP",miami:"US",montreal:"CA",monaco:"MC",catalunya:"ES",rbring:"AT",silverstone:"GB",spa:"BE",hungaro:"HU",zandvoort:"NL",monza:"IT",madring:"ES",baku:"AZ",sepang:"MY",marina:"SG",cota:"US",mexico:"MX",interlagos:"BR",vegas:"US",lusail:"QA",yas:"AE"};
@@ -1389,7 +1389,7 @@ function seasonModel(y){const A=ARCHDATA[y];if(!A)return null;
   return {y,n:A.R.length,R:A.R.map(r=>({r:r[0],gp:r[1],cc:r[2],date:r[3],circuit:r[4],pole:r[5],fl:r[6],win:r[7],wc:r[8],sw:r[9]})),
     D:A.D.map((d,i)=>({name:d[0],abbr:d[1],team:d[2],pts:d[3],pos:d[4],cc:d[5],i})),C:A.C.map(c=>({id:c[0],name:c[1],pts:c[2],pos:c[3],cc:c[4]})),
     res,sp,team:(i,k)=>(tm[i][k]||A.D[i][2]),cum:A.cum,ccum:A.ccum};}
-const ptsCut=(y)=>10, spCut=y=>y===2021?3:8;
+const ptsCut=y=>y<2003?6:y<2010?8:10, spCut=y=>y===2021?3:8;   /* points went to the top 6 until 2002, top 8 2003-2009 */
 function aCell(t,y){if(!t)return {cls:"c-none",txt:""};if(/^\d+$/.test(t)){const p=+t;return {txt:t,cls:p===1?"c-p1":p===2?"c-p2":p===3?"c-p3":p<=ptsCut(y)?"c-pts":"c-fin"};}
   if(t==="Ret"||t==="NC")return {txt:t,cls:"c-ret"};return {txt:t,cls:"c-dns"};}
 const spTag=(t,y)=>t?`<small class="spx${/^\d+$/.test(t)&&+t<=spCut(y)?" pts":""}">S${t.replace("Ret","R")}</small>`:"";
@@ -1455,6 +1455,12 @@ function view2027(){const C=CAL2027;
   <p class="note2">Sources: Formula 1 calendar announcement (16 September 2026), RaceFans and Wikipedia. Full race weekends, results and standings will appear here once the season starts.</p>`;}
 
 /* ---------- ARCHIVE ---------- */
+/* year rail: keep the selected year in the middle; slides from where the rail was before the page re-rendered */
+function centreYrail(prevX){const rail=$(".yrail"),on=rail&&rail.querySelector('[aria-pressed="true"]');if(!on)return;
+  const rb=rail.getBoundingClientRect(),ob=on.getBoundingClientRect();
+  const x=Math.max(0,Math.min(rail.scrollWidth-rail.clientWidth,rail.scrollLeft+(ob.left-rb.left)-(rail.clientWidth-ob.width)/2-rail.clientLeft));
+  const calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(prevX==null||calm){rail.scrollLeft=x;return;}rail.scrollLeft=prevX;requestAnimationFrame(()=>rail.scrollTo({left:x,behavior:"smooth"}));}
 function viewArchive(yr){
   const ys=Object.keys(ARCHIVE).map(Number).sort((a,b)=>b-a); yr=yr||2025; const a=ARCHIVE[yr];
   const rail=`<div class="yrail" role="group" aria-label="Season">${ys.map(y=>`<a href="${H("archive-"+y)}" data-year="${y}" aria-pressed="${y===yr}">${y}${y===2027?'<small>Calendar</small>':""}</a>`).join("")}</div>`;
@@ -1700,7 +1706,7 @@ disclaimer:{t:"Disclaimer & Copyright",b:`
 <h3>Data sources and credits</h3>
 <ul><li>Race classifications, qualifying, practice, starting grids and session times: compiled from official published results and timing.</li>
 <li>Results, qualifying, sprint results, championship standings and the race schedule: Jolpica F1 API (successor to the Ergast API).</li> <li>Lap-by-lap positions: <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> timing data (Apache-2.0), and <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> for new races.</li> <li>Practice and sprint qualifying classifications, lap timing, safety car, virtual safety car and red flag periods, and session times: <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> (openf1.org).</li> <li>Tyre strategy: <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a>, from the official F1 timing feed (Apache-2.0).</li>
-<li>Circuit maps: drawn from <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> car telemetry (Apache-2.0).</li> <li>Past seasons (archive, 2010–2025): <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a>, CC BY 4.0.</li> <li>Country flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, MIT licence.</li>
+<li>Circuit maps: drawn from <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> car telemetry (Apache-2.0).</li> <li>Past seasons (archive, 2000–2025): <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a>, CC BY 4.0.</li> <li>Country flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, MIT licence.</li>
 <li>Tyre compound selections and weekend forecasts: published team and supplier race previews.</li>
 <li>Fonts: Big Shoulders Display, IBM Plex Sans Condensed and IBM Plex Mono via Google Fonts (SIL Open Font Licence).</li></ul>
 <h3>Copyright</h3>
@@ -1733,14 +1739,14 @@ function consentBanner(force){let c=null;try{c=localStorage.getItem("ta-consent"
 /* ---------- ROUTER ---------- */
 let t=null;
 function setNav(k){["season","championship","drivers","teams","archive"].forEach(x=>{const b=$("#n-"+x);if(x===k)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
-function route(){document.body.classList.remove("fs-lock");document.title="Track Almanac · Races. Drivers. Teams. Numbers.";
+function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body.classList.remove("fs-lock");document.title="Track Almanac · Races. Drivers. Teams. Numbers.";
   document.querySelectorAll("[data-clock]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.clock===CLOCK));
   clearInterval(t); closeDrawer();
   const h=curKey();
   if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
   else if(h==="notfound"){$("#app").innerHTML=viewNotFound();$("#sheetname").textContent="NOT FOUND";setNav("");}
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}
-  else if(h.startsWith("archive")){const y=+h.split("-")[1];$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ARCHIVE[y]?y:2025);$("#sheetname").textContent="SEASON ARCHIVE";setNav("archive");}
+  else if(h.startsWith("archive")){const y=+h.split("-")[1];$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ARCHIVE[y]?y:2025);centreYrail(yrX);$("#sheetname").textContent="SEASON ARCHIVE";setNav("archive");}
   else if(h==="drivers"||h.startsWith("driver-")){$("#app").innerHTML=viewDrivers();$("#sheetname").textContent="2026 DRIVERS";setNav("drivers");document.title="2026 Drivers · Track Almanac";if(h.startsWith("driver-"))openDriver(h.slice(7));}
   else if(h==="teams"||h.startsWith("team-")){$("#app").innerHTML=viewTeams();$("#sheetname").textContent="2026 TEAMS";setNav("teams");document.title="2026 Teams · Track Almanac";if(h.startsWith("team-")){const k=teamByKey(h.slice(5));if(k)openTeam(k);}}
   else if(h==="championship"){$("#app").innerHTML=viewChampionship();drawCharts();$("#sheetname").textContent="2026 CHAMPIONSHIP · POINTS";setNav("championship");}

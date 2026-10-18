@@ -47,6 +47,16 @@
   "/archive/2012/",
   "/archive/2011/",
   "/archive/2010/",
+  "/archive/2009/",
+  "/archive/2008/",
+  "/archive/2007/",
+  "/archive/2006/",
+  "/archive/2005/",
+  "/archive/2004/",
+  "/archive/2003/",
+  "/archive/2002/",
+  "/archive/2001/",
+  "/archive/2000/",
   "/about/",
   "/contact/",
   "/privacy/",
@@ -168,8 +178,8 @@
    "lastmod": "2026-10-11"
   },
   "/archive/": {
-   "hash": "e2e628ff722e52ccd6f9398b1376632b6db0bd8f",
-   "lastmod": "2026-10-11"
+   "hash": "a645477851fb91b7a2f2cb73a74a172547af27cd",
+   "lastmod": "2026-10-18"
   },
   "/archive/2027/": {
    "hash": "5dd39add7f4871ab7766f5f0c5ea7b3b7368022b",
@@ -243,6 +253,46 @@
    "hash": "152ff595aa8b0ec1f1f0e14450ba10c918d96989",
    "lastmod": "2026-10-11"
   },
+  "/archive/2009/": {
+   "hash": "3a4d2945ff71d0a300e83ce7609b231f46c55e64",
+   "lastmod": "2026-10-18"
+  },
+  "/archive/2008/": {
+   "hash": "51f10ce7700187fa367a5075aa43f6a48050908d",
+   "lastmod": "2026-10-18"
+  },
+  "/archive/2007/": {
+   "hash": "dac7529f3f47d6d0518a7335ab239904c386f29d",
+   "lastmod": "2026-10-18"
+  },
+  "/archive/2006/": {
+   "hash": "f6ceb4fab6b095169434f21b1eb448ccf5334167",
+   "lastmod": "2026-10-18"
+  },
+  "/archive/2005/": {
+   "hash": "5eae5919897e9dac69e6d1f52c2734b536eec8f2",
+   "lastmod": "2026-10-18"
+  },
+  "/archive/2004/": {
+   "hash": "80198646dd1473ff2056f5d92ca4d4e497e8a666",
+   "lastmod": "2026-10-18"
+  },
+  "/archive/2003/": {
+   "hash": "4644ff426412ea2b234283fca396f2b53f1c11a7",
+   "lastmod": "2026-10-18"
+  },
+  "/archive/2002/": {
+   "hash": "1a18171cf027e84ac17c8386e7674f02042bf50f",
+   "lastmod": "2026-10-18"
+  },
+  "/archive/2001/": {
+   "hash": "e6b2add4d3db8a320c573281b76038317e0aba7d",
+   "lastmod": "2026-10-18"
+  },
+  "/archive/2000/": {
+   "hash": "86c2e3dfd12302f513ce805b214afbb8f20c463a",
+   "lastmod": "2026-10-18"
+  },
   "/about/": {
    "hash": "ccce9b5f4bb6066f39a4fbdc9bcd06639455bf35",
    "lastmod": "2026-10-12"
@@ -260,12 +310,12 @@
    "lastmod": "2026-10-11"
   },
   "/disclaimer/": {
-   "hash": "dd400158417cd47345782fab0aa59d99082cf4a1",
-   "lastmod": "2026-10-12"
+   "hash": "5d55e9053f2379d2bea52637f7890888ffd2d160",
+   "lastmod": "2026-10-18"
   },
   "/site-map/": {
-   "hash": "680d271a632fc8d934f7c9684d6ec88994aee4c8",
-   "lastmod": "2026-10-11"
+   "hash": "74b9133282c6525019f17d4fda88c5c925ec333a",
+   "lastmod": "2026-10-18"
   }
  }
 }

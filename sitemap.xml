@@ -28,7 +28,7 @@
   <url><loc>https://trackalmanac.com/races/2026/las-vegas/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
   <url><loc>https://trackalmanac.com/races/2026/qatar/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
   <url><loc>https://trackalmanac.com/races/2026/abu-dhabi/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
-  <url><loc>https://trackalmanac.com/archive/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/archive/2027/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/archive/2026/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/archive/2025/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
@@ -47,10 +47,20 @@
   <url><loc>https://trackalmanac.com/archive/2012/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/archive/2011/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/archive/2010/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2009/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2008/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2007/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2006/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2005/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2004/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2003/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2002/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2001/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2000/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/about/</loc><lastmod>2026-10-12</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/contact/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/privacy/</loc><lastmod>2026-10-12</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/terms/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/disclaimer/</loc><lastmod>2026-10-12</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/site-map/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/disclaimer/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/site-map/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
 </urlset>
