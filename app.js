@@ -342,7 +342,7 @@ function viewLive(n){
   const jumps=[["weekend","Weekend"],["practice","Practice"],...(r.sprint?[["sq","Sprint quali"],["sprint","Sprint"]]:[]),["quali","Qualifying"],["grid","Grid"],["race","Race"],["after","Standings"]];
   const tbl=(k,f)=>sesRows(n,k)?f(sesRows(n,k)):soonBox(n,k);
   return `
-  <div class="dnav" style="margin-top:18px">${pv}<button class="navbtn" data-go="season">2026 Season</button>${nb}</div>
+  <div class="dnav pin">${pv}<button class="navbtn" data-go="season">2026 Season</button>${nb}</div>
   <section class="dhero">
     <div class="info">
       <span class="lbl">Round ${r.r} of ${RACES.length} · ${esc(r.days)} 2026${r===nextRace?" · race weekend":""}</span>
@@ -529,9 +529,10 @@ function viewDetail(n){
   const fps=["fp1","fp2","fp3"].filter(k=>S[k]);
   const ds=standingsAfter(n), dsPrev=i>0?standingsAfter(done[i-1].r):[];
   const ts=teamStandingsAfter(n), tsPrev=i>0?teamStandingsAfter(done[i-1].r):[];
+  const gain=(prev,z)=>{const p=prev.find(y=>y[0]===z[0]);const g=z[1]-(p?p[1]:0);return g>0?`<span class="gain">+${g}</span>`:'<span style="color:var(--ink-3)">–</span>';};
   const mv=(list,prev,name,k)=>{if(!prev.length)return"–";const j=prev.findIndex(z=>z[0]===name);if(j<0)return"–";const d=j-k;return d>0?`<span class="up">▲${d}</span>`:d<0?`<span class="dn">▼${-d}</span>`:"–";};
   return `
-  <div class="dnav" style="margin-top:18px">${pv}<button class="navbtn" data-go="season">2026 Season</button>${nx}</div>
+  <div class="dnav pin">${pv}<button class="navbtn" data-go="season">2026 Season</button>${nx}</div>
   <section class="dhero">
     <div class="info">
       <span class="lbl">Round ${r.r} of ${RACES.length} · ${fmt(r.date,{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</span>
@@ -587,10 +588,11 @@ function viewDetail(n){
   </section>
 
   <section class="dsec" id="s-after">
-    <div class="sec"><h2>Standings after round ${n}</h2><span class="lbl">Change vs previous round</span></div>
-    <div class="two">
-      <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th class="n">±</th><th>Driver</th><th class="n">Pts</th></tr></thead><tbody>${ds.slice(0,10).map((z,k)=>`<tr><td class="n">${k+1}</td><td class="n">${mv(ds,dsPrev,z[0],k)}</td><td><span class="sw" style="background:${tcol(teamOf(z[0])||teamAt(z[0],n))}"></span>${esc(z[0])}</td><td class="n">${z[1]}</td></tr>`).join("")}</tbody></table></div>
-      <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th class="n">±</th><th>Constructor</th><th class="n">Pts</th></tr></thead><tbody>${ts.map((z,k)=>`<tr><td class="n">${k+1}</td><td class="n">${mv(ts,tsPrev,z[0],k)}</td><td><span class="sw" style="background:${tcol(z[0])}"></span>${esc(z[0])}</td><td class="n">${z[1]}</td></tr>`).join("")}</tbody></table></div>
+    <div class="sec"><h2>Standings after round ${n}</h2><span class="lbl">Places and points gained vs round ${i>0?done[i-1].r:"–"}</span></div>
+    <div class="two stand">
+      <div><div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th class="n">±</th><th>Driver</th><th class="n">Pts</th><th class="n" title="Points scored this round">+Pts</th></tr></thead><tbody>${ds.map((z,k)=>`<tr${k>=10?' class="xr"':""}><td class="n">${k+1}</td><td class="n">${mv(ds,dsPrev,z[0],k)}</td><td><span class="sw" style="background:${tcol(teamOf(z[0])||teamAt(z[0],n))}"></span>${esc(z[0])}</td><td class="n">${z[1]}</td><td class="n">${gain(dsPrev,z)}</td></tr>`).join("")}</tbody></table></div>
+        ${ds.length>10?`<button class="navbtn standall" data-standall aria-expanded="false">Show all ${ds.length} drivers</button>`:""}</div>
+      <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th class="n">±</th><th>Constructor</th><th class="n">Pts</th><th class="n" title="Points scored this round">+Pts</th></tr></thead><tbody>${ts.map((z,k)=>`<tr><td class="n">${k+1}</td><td class="n">${mv(ts,tsPrev,z[0],k)}</td><td><span class="sw" style="background:${tcol(z[0])}"></span>${esc(z[0])}</td><td class="n">${z[1]}</td><td class="n">${gain(tsPrev,z)}</td></tr>`).join("")}</tbody></table></div>
     </div>
   </section>
 
@@ -1132,8 +1134,10 @@ document.addEventListener("click",e=>{
   const tm=e.target.closest("[data-team]");if(tm){openTeam(tm.dataset.team);return;}
   const ds=e.target.closest("[data-dsort]");if(ds){driverSort=ds.dataset.dsort;try{localStorage.setItem("ta-dsort",driverSort)}catch(err){}const y=window.scrollY;$("#app").innerHTML=viewDrivers();window.scrollTo(0,y);return;}
   if(e.target.closest("[data-close]")){setKey("season");closeDrawer();return;}
-  const b=e.target.closest("[data-quick],[data-detail],[data-go],[data-year],[data-fp],[data-chip],[data-jump],[data-order],[data-lap],[data-fs],[data-spd],[data-clock],[data-unit],[data-theme-set],[data-consent],[data-cookies],[data-copy],[data-chipset],#t-d,#t-c");if(!b)return;
+  const b=e.target.closest("[data-quick],[data-detail],[data-go],[data-year],[data-fp],[data-chip],[data-jump],[data-order],[data-lap],[data-fs],[data-spd],[data-clock],[data-unit],[data-theme-set],[data-standall],[data-consent],[data-cookies],[data-copy],[data-chipset],#t-d,#t-c");if(!b)return;
   if(b.dataset.fs){toggleFS(b.dataset.fs);return;}
+  if(b.hasAttribute("data-standall")){const st=b.closest(".stand"),on=!st.classList.contains("all");st.classList.toggle("all",on);b.setAttribute("aria-expanded",String(on));
+    b.textContent=on?"Show top 10":`Show all ${st.querySelectorAll("tbody")[0].rows.length} drivers`;return;}
   if(b.dataset.themeSet){setTheme(b.dataset.themeSet);const y=window.scrollY;route();window.scrollTo(0,y);return;}
   if(b.dataset.unit){UNIT=b.dataset.unit==="mi"?"mi":"km";try{localStorage.setItem("ta-unit",UNIT)}catch(err){}const y=window.scrollY;route();window.scrollTo(0,y);return;}
   if(b.dataset.clock){CLOCK=b.dataset.clock;try{localStorage.setItem("ta-clock",CLOCK)}catch(err){}const y=window.scrollY,open=$(".drawer")?location.hash:null;route();window.scrollTo(0,y);return;}
