@@ -13426,15 +13426,15 @@
  ],
  "ENTRIES2027": [
   ["McLaren", ["Lando Norris", "Oscar Piastri"]],
-  ["Mercedes", ["Kimi Antonelli", "George Russell"]],
+  ["Mercedes", [null, null]],
   ["Ferrari", ["Charles Leclerc", "Lewis Hamilton"]],
-  ["Red Bull Racing", ["Max Verstappen", null]],
+  ["Red Bull Racing", ["Max Verstappen", "Isack Hadjar"]],
   ["Williams", ["Alexander Albon", "Carlos Sainz"]],
   ["Alpine", ["Pierre Gasly", "Franco Colapinto"]],
   ["Audi", ["Gabriel Bortoleto", "Nico Hülkenberg"]],
   ["Cadillac", ["Sergio Pérez", "Valtteri Bottas"]],
-  ["Aston Martin", [null, null]],
-  ["Haas F1 Team", [null, null]],
+  ["Aston Martin", ["Fernando Alonso", "Lance Stroll"]],
+  ["Haas F1 Team", ["Rafael Câmara", null]],
   ["Racing Bulls", [null, null]]
  ],
  "ARCHTXT": {
