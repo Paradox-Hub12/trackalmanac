@@ -107,6 +107,7 @@
   "/archive/1952/",
   "/archive/1951/",
   "/archive/1950/",
+  "/archive/1946-1949/",
   "/about/",
   "/contact/",
   "/privacy/",
@@ -228,7 +229,7 @@
    "lastmod": "2026-10-11"
   },
   "/archive/": {
-   "hash": "84866ab387190605a8ea4655b3d49e753a450d68",
+   "hash": "0fba4e458b3c36f0b0c34261d1239919724a390e",
    "lastmod": "2026-10-19"
   },
   "/archive/2027/": {
@@ -543,6 +544,10 @@
    "hash": "b3d1fce1b7635db7b7620f0fa981b406011c0916",
    "lastmod": "2026-10-19"
   },
+  "/archive/1946-1949/": {
+   "hash": "f339a163154e0535ee7435680fa1541fa699d6b5",
+   "lastmod": "2026-10-19"
+  },
   "/about/": {
    "hash": "ccce9b5f4bb6066f39a4fbdc9bcd06639455bf35",
    "lastmod": "2026-10-12"
@@ -560,11 +565,11 @@
    "lastmod": "2026-10-11"
   },
   "/disclaimer/": {
-   "hash": "071e827db493804a48b022e969076d4c12809b2f",
+   "hash": "c67f435d9aefcaa9b13013f572655042e3835113",
    "lastmod": "2026-10-19"
   },
   "/site-map/": {
-   "hash": "f71300ba0b09dfe10265db12018575ed7a55907d",
+   "hash": "4c3e8e2e8c6213b190e9112a1f8460ec2f6969d4",
    "lastmod": "2026-10-19"
   }
  }

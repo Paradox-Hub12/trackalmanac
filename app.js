@@ -14,6 +14,7 @@ function keyToPath(k){let m;if(!k||k==="season")return "/";
   if(m=k.match(/^driver-(\w+)$/))return "/drivers/?driver="+m[1];
   if(m=k.match(/^team-([\w-]+)$/))return "/teams/?team="+m[1];
   if(m=k.match(/^archive-(\d{4})$/))return `/archive/${m[1]}/`;
+  if(k==="archive-1946-1949")return "/archive/1946-1949/";
   if(k==="sitemap")return "/site-map/";
   return "/"+k+"/";}
 const H=k=>PATHMODE?keyToPath(k):"#"+k;
@@ -22,6 +23,7 @@ function pathToKey(){const p=location.pathname.replace(/index\.html$/,""),q=new 
   if(p==="/"){if(isLegacy(h))return {legacy:h};return q.get("race")?"race-"+q.get("race"):"season";}
   if(m=p.match(/^\/races\/2026\/([a-z0-9-]+)\/?$/)){const r=RACES.find(x=>SLUG(x)===m[1]);return r?"detail-"+r.r+(h&&/^\w+$/.test(h)?"-"+h:""):"notfound";}
   if(m=p.match(/^\/archive\/(\d{4})\/?$/))return ARCHIVE[+m[1]]?"archive-"+m[1]:"notfound";
+  if(/^\/archive\/1946-1949\/?$/.test(p))return "archive-1946-1949";
   if(/^\/drivers\/?$/.test(p))return q.get("driver")?"driver-"+q.get("driver"):"drivers";
   if(/^\/teams\/?$/.test(p))return q.get("team")?"team-"+q.get("team"):"teams";
   if(/^\/site-map\/?$/.test(p))return "sitemap";
@@ -33,14 +35,16 @@ function go(k,replace){NAVD=true;if(PATHMODE){history[replace?"replaceState":"pu
 function pageTitle(k){const T=" | Track Almanac";let m;
   if(!k||k==="season"||k.startsWith("race-"))return "Track Almanac · Races. Drivers. Teams. Numbers.";
   if(m=k.match(/^detail-(\d+)/)){const r=RACES.find(x=>x.r===+m[1]);if(!r)return "Track Almanac";const n=r.gp.replace(" (Sepang)","");return r.res?`${n} 2026: Results, Grid & Lap Chart${T}`:`${n} 2026: Schedule, Session Times & Results${T}`;}
+  if(k==="archive-1946-1949")return `Grand Prix Racing 1946–1949: Before the F1 World Championship${T}`;
   if(m=k.match(/^archive-(\d{4})$/)){const y=+m[1],a=ARCHIVE[y]||{};return a.next?`2027 F1 Calendar: All ${CAL2027.length} Races & Sprint Dates${T}`:a.live?`2026 Formula 1 Season${T}`:`${y} Formula 1 Season: Results, Standings & Champion${T}`;}
   if(k.startsWith("driver-")){const b=BIO[k.slice(7)];return b?`${b.name}: Profile, 2026 Season & Career Stats${T}`:`2026 F1 Drivers${T}`;}
   if(k.startsWith("team-")){const n=teamByKey(k.slice(5));return n?`${(TEAMBIO[n]||{}).name||n}: 2026 Line-up, Car & Record${T}`:`2026 F1 Teams${T}`;}
-  return ({championship:"2026 F1 Championship Standings & Points Breakdown",drivers:"2026 F1 Drivers: Profiles, Stats & Standings",teams:"2026 F1 Teams: Line-ups, Cars & Standings",calendar:"2026 F1 Calendar: Dates, Circuits & Results",archive:"F1 Season Archive 1950–2025: Results & Champions",sitemap:"Site Map",notfound:"Page not found"}[k]||((PAGES[k]||{}).t)||"Track Almanac")+T;}
+  return ({championship:"2026 F1 Championship Standings & Points Breakdown",drivers:"2026 F1 Drivers: Profiles, Stats & Standings",teams:"2026 F1 Teams: Line-ups, Cars & Standings",calendar:"2026 F1 Calendar: Dates, Circuits & Results",archive:"F1 Season Archive 1946–2025: Results & Champions",sitemap:"Site Map",notfound:"Page not found"}[k]||((PAGES[k]||{}).t)||"Track Almanac")+T;}
 function h1Text(k){let m;
   if(!k||k==="season"||k.startsWith("race-"))return "2026 Formula 1 season";
   if(m=k.match(/^detail-(\d+)/)){const r=RACES.find(x=>x.r===+m[1]);return r?r.gp.replace(" (Sepang)","")+" 2026":"";}
   if(k==="archive")return "Formula 1 season archive";
+  if(k==="archive-1946-1949")return "Grand Prix racing 1946–1949";
   if(m=k.match(/^archive-(\d{4})$/)){const a=ARCHIVE[+m[1]];return !a?"Formula 1 season archive":a.next?"2027 F1 calendar":m[1]+" Formula 1 season";}
   if(k.startsWith("driver"))return "2026 F1 drivers";
   if(k.startsWith("team"))return "2026 F1 teams";
@@ -727,7 +731,7 @@ function drawCharts(){
 }
 
 /* ---------- SEASON ARCHIVE: full championship pages 1950–2025 ---------- */
-const HCOL={"red-bull":"#3671c6","mercedes":"#00a19c","ferrari":"#dc0000","mclaren":"#ff8000","williams":"#1868db","renault":"#ffd800","lotus-f1":"#c9a227","force-india":"#f596c8","racing-point":"#f596c8","aston-martin":"#229971","alpine":"#ff5fa2","sauber":"#9b9fa6","alfa-romeo":"#a6192e","kick-sauber":"#52e252","toro-rosso":"#469bff","alphatauri":"#7d9bb8","rb":"#6c98ff","racing-bulls":"#6c98ff","haas":"#b6babd","caterham":"#1f9e57","lotus-racing":"#1f9e57","virgin":"#d62d3a","marussia":"#e2231a","manor":"#e8434b","hrt":"#b5a26a","benetton":"#5fb0e8","jordan":"#c6d300","arrows":"#ff8c1a","bar":"#f0f0f0","jaguar":"#1a8a55","prost":"#2f49c4","minardi":"#b07cc6","toyota":"#ff6f61","honda":"#4caf50","bmw-sauber":"#bcd4f6","super-aguri":"#d94f8b","midland":"#b23a48","spyker":"#ff7f00","brawn":"#c8f000","alfa-romeo-1":"#a6192e","maserati":"#2f5fd0","vanwall":"#1f7a5c","cooper":"#3aa0a0","lotus":"#2f9e5f","brm":"#5b6b2e","brabham":"#2e9bd6","march":"#ff9f40","matra":"#4a7bd8","tyrrell":"#2d5fc0","ligier":"#4f9be8","shadow":"#5a5f6a","surtees":"#c94040","hesketh":"#d9d9d9","wolf":"#c8a048","lola":"#e06666","porsche":"#bfbfbf","gordini":"#3d6fb5","simca-gordini":"#3d6fb5","talbot-lago":"#4766b3","connaught":"#3c8f3c","era":"#6b8e23","alta":"#8a9a5b","hwm":"#4f7f4f","kurtis-kraft":"#c79a3a","toleman":"#5a8fd6","leyton-house":"#3fb7b0","footwork":"#d9d9d9","dallara":"#e05050","larrousse":"#e66aa8","stewart":"#f2f2f2","prost":"#2f49c4","eagle":"#3f62c8","honda":"#4caf50"};
+const HCOL={"red-bull":"#3671c6","mercedes":"#00a19c","ferrari":"#dc0000","mclaren":"#ff8000","williams":"#1868db","renault":"#ffd800","lotus-f1":"#c9a227","force-india":"#f596c8","racing-point":"#f596c8","aston-martin":"#229971","alpine":"#ff5fa2","sauber":"#9b9fa6","alfa-romeo":"#a6192e","kick-sauber":"#52e252","toro-rosso":"#469bff","alphatauri":"#7d9bb8","rb":"#6c98ff","racing-bulls":"#6c98ff","haas":"#b6babd","caterham":"#1f9e57","lotus-racing":"#1f9e57","virgin":"#d62d3a","marussia":"#e2231a","manor":"#e8434b","hrt":"#b5a26a","benetton":"#5fb0e8","jordan":"#c6d300","arrows":"#ff8c1a","bar":"#f0f0f0","jaguar":"#1a8a55","prost":"#2f49c4","minardi":"#b07cc6","toyota":"#ff6f61","honda":"#4caf50","bmw-sauber":"#bcd4f6","super-aguri":"#d94f8b","midland":"#b23a48","spyker":"#ff7f00","brawn":"#c8f000","alfa-romeo-1":"#a6192e","maserati":"#2f5fd0","vanwall":"#1f7a5c","cooper":"#3aa0a0","lotus":"#2f9e5f","brm":"#5b6b2e","brabham":"#2e9bd6","march":"#ff9f40","matra":"#4a7bd8","tyrrell":"#2d5fc0","ligier":"#4f9be8","shadow":"#5a5f6a","surtees":"#c94040","hesketh":"#d9d9d9","wolf":"#c8a048","lola":"#e06666","porsche":"#bfbfbf","gordini":"#3d6fb5","simca-gordini":"#3d6fb5","talbot-lago":"#4766b3","connaught":"#3c8f3c","era":"#6b8e23","alta":"#8a9a5b","hwm":"#4f7f4f","kurtis-kraft":"#c79a3a","toleman":"#5a8fd6","leyton-house":"#3fb7b0","footwork":"#d9d9d9","dallara":"#e05050","larrousse":"#e66aa8","stewart":"#f2f2f2","prost":"#2f49c4","eagle":"#3f62c8","honda":"#4caf50","bugatti":"#2f6fd6","delage":"#3a7fc1","delahaye":"#4c6fa8","cisitalia":"#c9503c"};
 const hcol=(id,y)=>id&&id.includes("@")?hcol(id.split("@")[0],y):id==="mclaren"&&y<2017?"#a8b0b8":id==="force-india"&&y<2017?"#ff8f1f":id==="williams"&&y<2014?"#5b8ad6":HCOL[id]||"var(--ink-3)";
 const gpShort=n=>n.replace(/ Grand Prix$/,"").replace(/^Grand Prix of /,"");
 const RACECC={albert:"AU",shanghai:"CN",suzuka:"JP",miami:"US",montreal:"CA",monaco:"MC",catalunya:"ES",rbring:"AT",silverstone:"GB",spa:"BE",hungaro:"HU",zandvoort:"NL",monza:"IT",madring:"ES",baku:"AZ",sepang:"MY",marina:"SG",cota:"US",mexico:"MX",interlagos:"BR",vegas:"US",lusail:"QA",yas:"AE"};
@@ -805,7 +809,9 @@ function view2027(){const C=CAL2027;
 
 /* ---------- ARCHIVE ---------- */
 /* year rail: keep the selected year in the middle; slides from where the rail was before the page re-rendered */
-function centreYrail(prevX){const rail=$(".yrail"),on=rail&&rail.querySelector('[aria-pressed="true"]');if(!on)return;
+function centreDecs(){const d=$(".decs"),b=d&&d.querySelector('[aria-pressed="true"]');if(!b||d.scrollWidth<=d.clientWidth)return;
+  d.scrollLeft=Math.max(0,d.scrollLeft+b.getBoundingClientRect().left-d.getBoundingClientRect().left-(d.clientWidth-b.offsetWidth)/2);}
+function centreYrail(prevX){centreDecs();const rail=$(".yrail"),on=rail&&rail.querySelector('[aria-pressed="true"]');if(!on)return;
   const rb=rail.getBoundingClientRect(),ob=on.getBoundingClientRect();
   const x=Math.max(0,Math.min(rail.scrollWidth-rail.clientWidth,rail.scrollLeft+(ob.left-rb.left)-(rail.clientWidth-ob.width)/2-rail.clientLeft));
   const calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -813,9 +819,53 @@ function centreYrail(prevX){const rail=$(".yrail"),on=rail&&rail.querySelector('
 /* archive seasons are separate files (/data/archive/<year>.json), loaded when a season page opens */
 const SEASONLOAD={};
 function loadSeason(y){if(ARCHDATA[y])return Promise.resolve();if(!SEASONLOAD[y])SEASONLOAD[y]=fetch(`/data/archive/${y}.json?v=${ARCHV[y]}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>{ARCHDATA[y]=j;}).catch(e=>{delete SEASONLOAD[y];const n=$(".arch .note2");if(n)n.textContent="The results could not be loaded. Check your connection and reload the page.";});return SEASONLOAD[y];}
+/* year rail with decade shortcuts above it; the decade buttons only scroll the rail */
+const DECADES=(()=>{const top=Math.max(...Object.keys(ARCHIVE).map(Number)),d=[[top,2020]];for(let y=2019;y>=1950;y-=10)d.push([y,y-9]);d.push(["1946-1949","1949–1946"]);return d;})();
+const decOf=y=>y==="1946-1949"?"1946-1949":String(y>=2020?DECADES[0][0]:y-y%10+9);
+function yearRail(sel){const ys=Object.keys(ARCHIVE).map(Number).sort((a,b)=>b-a),on=decOf(sel);
+  return `<div class="decs" role="group" aria-label="Jump to decade">${DECADES.map(([a,b])=>`<button type="button" data-dec="${a}" aria-pressed="${String(a)===on}">${typeof b==="string"?b:a+"–"+b}</button>`).join("")}</div>`+
+  `<div class="yrail" role="group" aria-label="Season">${ys.map(y=>`<a href="${H("archive-"+y)}" data-year="${y}" aria-pressed="${y===sel}">${y}${y===2027?'<small>Calendar</small>':""}</a>`).join("")}<a href="${H("archive-1946-1949")}" data-year="1946-1949" class="pw" aria-pressed="${sel==="1946-1949"}">1946–49<small>Pre-1950</small></a></div>`;}
+function scrollDecade(a){const rail=$(".yrail"),t=rail&&rail.querySelector(`[data-year="${a}"]`);if(!t)return;
+  const x=Math.max(0,Math.min(rail.scrollWidth-rail.clientWidth,rail.scrollLeft+t.getBoundingClientRect().left-rail.getBoundingClientRect().left-rail.clientLeft));
+  const calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;rail.scrollTo({left:x,behavior:calm?"auto":"smooth"});
+  document.querySelectorAll(".decs [data-dec]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.dec===String(a))));centreDecs();}
+
+/* 1946-1949: Grand Prix racing before the World Championship (no points, no champion) */
+const MAKECOL={"Alfa Romeo":"alfa-romeo-1","Maserati":"maserati","Ferrari":"ferrari","Talbot-Lago":"talbot-lago","ERA":"era","Simca-Gordini":"simca-gordini","Bugatti":"bugatti","Delage":"delage","Delahaye":"delahaye","Cisitalia":"cisitalia"};
+const makeCol=m=>hcol(MAKECOL[m]||"",1949);
+function viewPrewar(){const P=PREWAR,yrs=Object.keys(P.years).sort();
+  const all=yrs.flatMap(y=>P.years[y].races.map(r=>({y,d:r[0],gp:r[1],cc:r[2],circ:r[3],who:r[4].split(" / "),wcc:r[5],car:r[6],ge:!!r[7]})));
+  const nat={};all.forEach(r=>r.who.forEach(w=>nat[w]=r.wcc));
+  const tally=(key,list)=>{const t={};list.forEach(r=>key(r).forEach(k=>{t[k]=t[k]||{n:0,ge:0,y:{}};t[k].n++;if(r.ge)t[k].ge++;t[k].y[r.y]=(t[k].y[r.y]||0)+1;}));return Object.entries(t).sort((a,b)=>b[1].n-a[1].n||b[1].ge-a[1].ge||a[0].localeCompare(b[0]));};
+  const drv=tally(r=>r.who,all),mk=tally(r=>[r.car],all),ges=all.filter(r=>r.ge);
+  const dt=d=>new Date(d+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"});
+  const who=r=>r.who.map(w=>`${flagOf(r.wcc)} ${esc(w)}`).join(" / ");
+  const car=m=>`<span class="sw" style="background:${makeCol(m)}"></span>${esc(m)}`;
+  const getag='<span class="tag" style="margin:0 0 0 6px;padding:1px 5px;font-size:9.5px">Grande Épreuve</span>';
+  const row=(p,i)=>`<div class="row"><span class="pp">${i+1}</span><span class="c" style="background:${p[2]}"></span><span><strong>${p[0]}</strong></span><span class="mono">${p[1]}</span></div>`;
+  const tbl=(rs,yr)=>`<div class="tw"><table class="t gpt"><thead><tr>${yr?"<th>Year</th>":""}<th>Date</th><th>Race</th><th>Circuit</th><th>Winner</th><th>Car</th></tr></thead><tbody>${rs.map(r=>`<tr>${yr?`<td class="n">${r.y}</td>`:""}<td class="m">${dt(r.d)}</td><td>${flagOf(r.cc)} ${r.ge?`<b>${esc(r.gp)}</b>${getag}`:esc(r.gp)}</td><td>${esc(r.circ)}</td><td>${r.ge?`<b>${who(r)}</b>`:who(r)}</td><td>${car(r.car)}</td></tr>`).join("")}</tbody></table></div>`;
+  const yt=(t,name)=>`<div class="tw"><table class="t"><thead><tr><th class="n">#</th><th>${name}</th>${yrs.map(y=>`<th class="n">${y}</th>`).join("")}<th class="n">Grandes Épreuves</th><th class="n">Wins</th></tr></thead><tbody>${t.map(([k,v],i)=>`<tr><td class="n">${i+1}</td><td>${name==="Driver"?`${flagOf(nat[k])} <b>${esc(k)}</b>`:car(k)}</td>${yrs.map(y=>`<td class="n">${v.y[y]||'<span style="color:var(--ink-3)">–</span>'}</td>`).join("")}<td class="n">${v.ge||'<span style="color:var(--ink-3)">–</span>'}</td><td class="n"><b>${v.n}</b></td></tr>`).join("")}</tbody></table></div>`;
+  const yearSec=y=>{const Y=P.years[y],rs=all.filter(r=>r.y===y),g=rs.filter(r=>r.ge).length,top=tally(r=>r.who,rs)[0],tm=tally(r=>[r.car],rs)[0];
+    return `<section class="dsec" id="pw-${y}"><div class="sec"><h2>${y}</h2><span class="lbl">${rs.length} races · ${g?g+" Grande"+(g>1?"s":"")+" Épreuve"+(g>1?"s":""):"no Grandes Épreuves"}</span></div>
+      <p class="pwsum">${esc(Y.sum)}</p><ul class="pwkeys">${(Y.keys||[]).map(k=>`<li>${esc(k)}</li>`).join("")}</ul>
+      <p class="note2" style="margin:0 0 10px">Most wins: <b>${esc(top[0])}</b> (${top[1].n}) · Most successful car: <b>${esc(tm[0])}</b> (${tm[1].n})</p>${tbl(rs,false)}</section>`;};
+  return yearRail("1946-1949")+`<div class="arch">
+    <div class="txt"><span class="lbl">Before the World Championship</span><h2 class="h1">1946–49</h2><p>${esc(P.sum)}</p><ul>${P.keys.map(k=>`<li>${esc(k)}</li>`).join("")}</ul></div>
+    <div class="side">
+      <div class="box"><div class="bh lbl">Most race wins · 1946–1949</div>${drv.slice(0,3).map(([k,v])=>[`${flagOf(nat[k])} ${esc(k)}`,v.n,"var(--ink-3)"]).map(row).join("")}</div>
+      <div class="box"><div class="bh lbl">Most wins by car</div>${mk.slice(0,3).map(([k,v])=>[esc(k),v.n,makeCol(k)]).map(row).join("")}</div>
+      <div class="box"><div class="bh lbl">Four seasons</div><div class="row" style="grid-template-columns:1fr auto"><span>Races listed</span><span class="mono">${all.length}</span></div><div class="row" style="grid-template-columns:1fr auto"><span>Grandes Épreuves</span><span class="mono">${ges.length}</span></div><div class="row" style="grid-template-columns:1fr auto"><span>Different winners</span><span class="mono">${drv.length}</span></div><div class="row" style="grid-template-columns:1fr auto"><span>Championship</span><span class="mono">None</span></div></div>
+    </div></div>
+  <div class="pwjump" role="group" aria-label="Jump to section">${yrs.map(y=>`<button type="button" data-pwj="pw-${y}">${y}</button>`).join("")}<button type="button" data-pwj="pw-ge">Grandes Épreuves</button><button type="button" data-pwj="pw-drv">Most wins</button></div>
+  <section class="dsec" id="pw-ge"><div class="sec"><h2>Grandes Épreuves</h2><span class="lbl">The ${ges.length} most prestigious races, 1947–1949</span></div><p class="note2" style="margin:0 0 10px">There were none in 1946. These races came closest to a championship, and most became World Championship rounds from 1950.</p>${tbl(ges,true)}</section>
+  ${yrs.map(yearSec).join("")}
+  <section class="dsec" id="pw-drv"><div class="sec"><h2>Most wins</h2><span class="lbl">Drivers with two or more wins, 1946–1949</span></div>${yt(drv.filter(([k,v])=>v.n>1),"Driver")}</section>
+  <section class="dsec"><div class="sec"><h2>Wins by car</h2><span class="lbl">1946–1949</span></div>${yt(mk,"Car")}</section>
+  <p class="note2">There were no points and no champion before 1950, so there are no standings for these years. Race lists: the 1946–1949 Grand Prix season pages on Wikipedia (CC BY-SA 4.0); smaller national and voiturette races are not included. A shared drive (Sommer and Louveau, Lille 1946) counts as a win for both drivers.</p>`;}
+
 function viewArchive(yr){
   const ys=Object.keys(ARCHIVE).map(Number).sort((a,b)=>b-a); yr=yr||2025; const a=ARCHIVE[yr];
-  const rail=`<div class="yrail" role="group" aria-label="Season">${ys.map(y=>`<a href="${H("archive-"+y)}" data-year="${y}" aria-pressed="${y===yr}">${y}${y===2027?'<small>Calendar</small>':""}</a>`).join("")}</div>`;
+  const rail=yearRail(yr);
   if(a.next) return rail+view2027();
   if(a.live) return rail+`<div class="arch"><div class="txt"><h2 class="h1">${yr}</h2><p>In progress: ${done.length} of ${RACES.length} rounds run. ${esc(DRIVERS[0][0])} leads for Mercedes in the first year of the new power unit and active-aero rules.</p><button class="tag sig" data-go="championship" style="cursor:pointer">Open the 2026 championship →</button></div></div>`;
   if(ARCHV[yr]&&!ARCHDATA[yr])return rail+`<div class="arch"><div class="txt"><span class="lbl">Season report</span><h2 class="h1">${yr}</h2><p>${esc(a.sum||"")}</p><p class="note2">Loading the ${yr} results…</p></div></div>`;
@@ -1059,7 +1109,7 @@ disclaimer:{t:"Disclaimer & Copyright",b:`
 <h3>Data sources and credits</h3>
 <ul><li>Race classifications, qualifying, practice, starting grids and session times: compiled from official published results and timing.</li>
 <li>Results, qualifying, sprint results, championship standings and the race schedule: Jolpica F1 API (successor to the Ergast API).</li> <li>Lap-by-lap positions: <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> timing data (Apache-2.0), and <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> for new races.</li> <li>Practice and sprint qualifying classifications, lap timing, safety car, virtual safety car and red flag periods, and session times: <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> (openf1.org).</li> <li>Tyre strategy: <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a>, from the official F1 timing feed (Apache-2.0).</li>
-<li>Circuit maps: drawn from <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> car telemetry (Apache-2.0).</li> <li>Past seasons (archive, 1950–2025): <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a>, CC BY 4.0.</li> <li>Country flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, MIT licence.</li>
+<li>Circuit maps: drawn from <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> car telemetry (Apache-2.0).</li> <li>Past seasons (archive, 1950–2025): <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a>, CC BY 4.0.</li> <li>Grand Prix racing 1946–1949: the 1946–1949 Grand Prix season pages on <a href="https://en.wikipedia.org/wiki/1949_Grand_Prix_season" target="_blank" rel="noopener">Wikipedia</a>, CC BY-SA 4.0.</li> <li>Country flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, MIT licence.</li>
 <li>Tyre compound selections and weekend forecasts: published team and supplier race previews.</li>
 <li>Fonts: Big Shoulders Display, IBM Plex Sans Condensed and IBM Plex Mono via Google Fonts (SIL Open Font Licence).</li></ul>
 <h3>Copyright</h3>
@@ -1104,6 +1154,7 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
   else if(h==="notfound"){$("#app").innerHTML=viewNotFound();$("#sheetname").textContent="NOT FOUND";setNav("");}
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}
+  else if(h==="archive-1946-1949"){$("#app").innerHTML=viewPrewar();centreYrail(yrX);$("#sheetname").textContent="SEASON ARCHIVE";setNav("archive");}
   else if(h.startsWith("archive")){const y=+h.split("-")[1];const ay=ARCHIVE[y]?y:2025;$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ay);centreYrail(yrX);
     if(ARCHV[ay]&&!ARCHDATA[ay])loadSeason(ay).then(()=>{if(curKey()===h){const r=$(".yrail"),x=r?r.scrollLeft:null;$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ay);const r2=$(".yrail");if(r2&&x!=null)r2.scrollLeft=x;}});$("#sheetname").textContent="SEASON ARCHIVE";setNav("archive");}
   else if(h==="drivers"||h.startsWith("driver-")){$("#app").innerHTML=viewDrivers();$("#sheetname").textContent="2026 DRIVERS";setNav("drivers");document.title="2026 Drivers · Track Almanac";if(h.startsWith("driver-"))openDriver(h.slice(7));}
@@ -1139,6 +1190,8 @@ document.addEventListener("click",e=>{
   if(e.target.closest("[data-more]")){const open=mm.hidden;mm.hidden=!open;$(".morebtn").setAttribute("aria-expanded",String(open));return;}
   if(e.target.closest(".moremenu")){mm.hidden=true;$(".morebtn").setAttribute("aria-expanded","false");}
   const sv=e.target.closest("[data-sess]");if(sv&&!e.target.closest("[data-detail],[data-quick]")){const [sn,sk]=sv.dataset.sess.split(":");const tgt="detail-"+sn+"-"+sk;if(curKey()===tgt)route();else go(tgt);return;}
+  const dc=e.target.closest("[data-dec]");if(dc){scrollDecade(dc.dataset.dec);return;}
+  const pj=e.target.closest("[data-pwj]");if(pj){const t=document.getElementById(pj.dataset.pwj);if(t)t.scrollIntoView({behavior:"smooth",block:"start"});return;}
   const sc2=e.target.closest("[data-scroll]");if(sc2){scrollHome(sc2.dataset.scroll);return;}
   if(e.target.closest("[data-lapcharts]")){go("detail-"+done[done.length-1].r+"-chart");return;}
   const mc=e.target.closest("[data-mclose]");if(mc){closeModal(mc.dataset.mclose);return;}

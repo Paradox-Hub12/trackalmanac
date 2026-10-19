@@ -665,6 +665,19 @@ a.s27{text-decoration:none}
 .plate .acts a{display:flex;align-items:center;justify-content:center;padding:9px 6px;font-family:var(--f-data);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--signal);text-decoration:none;border-left:1px solid var(--rule)}
 .plate .acts a:hover{background:var(--panel-2);color:var(--ink)}
 a.dcard,a.tcard{text-decoration:none;color:inherit}
+.decs{display:flex;gap:6px;margin-top:20px;overflow-x:auto;scrollbar-width:none}
+.decs::-webkit-scrollbar{display:none}
+.decs button{flex:1 0 auto;background:var(--panel);border:1px solid var(--rule-2);color:var(--ink-2);font-family:var(--f-data);font-size:11.5px;letter-spacing:.06em;padding:7px 10px;cursor:pointer;white-space:nowrap}
+.decs button:hover{border-color:var(--ink-3);color:var(--ink)}
+.decs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
+.decs+.yrail{margin-top:8px}
+.yrail a.pw{flex-basis:150px;white-space:nowrap;font-size:26px}
+@media (max-width:600px){.yrail a.pw{flex-basis:120px;font-size:21px}}
+.pwjump{display:flex;flex-wrap:wrap;gap:6px;margin:24px 0 0}
+.pwjump button{background:none;border:1px solid var(--rule-2);color:var(--ink-2);font-family:var(--f-data);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:6px 10px;cursor:pointer}
+.pwjump button:hover{color:var(--ink);border-color:var(--ink-3)}
+.pwsum{font-size:16px;max-width:75ch;margin:0 0 6px}
+.pwkeys{padding-left:18px;color:var(--ink-2);margin:0 0 10px}
 .yrail a{flex:1 0 90px;border-right:1px solid var(--rule);padding:12px 8px;cursor:pointer;font-family:var(--f-display);font-weight:900;font-size:30px;color:var(--ink-2);text-decoration:none;text-align:center}
 .yrail a:last-child{border-right:0}
 .yrail a[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}

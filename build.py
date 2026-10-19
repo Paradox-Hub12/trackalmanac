@@ -195,6 +195,7 @@ class Site:
         for y, t in (g("ARCHTXT") or {}).items(): self.ARCHIVE[y] = t
         if g("CAL2027"): self.ARCHIVE.setdefault("2027", {"next": True})
         self.CAL2027, self.ENT2027 = g("CAL2027") or [], g("ENTRIES2027") or []
+        self.PREWAR = g("PREWAR")
         self.BIO, self.TEAMBIO, self.GRIDNOTES = g("BIO") or {}, g("TEAMBIO") or {}, g("GRIDNOTES") or {}
         self.SITEINFO = const(app_js, "SITE") or {"name": "Track Almanac", "email": "", "domain": "trackalmanac.com", "updated": ""}
         self.full = {}
@@ -410,6 +411,21 @@ def archive_year_page(S, y):
     return "".join(out)
 
 
+def prewar_page(S):
+    P = S.PREWAR
+    out = [pagehead("Grand Prix racing 1946–1949", esc(P["sum"]), "Before the World Championship"),
+           "<ul>%s</ul>" % "".join("<li>%s</li>" % esc(k) for k in P["keys"])]
+    head = ["Date", "Race", "Circuit", "Winner", "Car"]
+    ge = [[y, fmt_date(r[0], False), "<b>%s</b>" % esc(r[1]), esc(r[3]), esc(r[4]), esc(r[6])] for y in sorted(P["years"]) for r in P["years"][y]["races"] if r[7]]
+    out.append(sec("Grandes Épreuves", table(["Year"] + head, ge, "t gpt"), "The most prestigious races, 1947–1949"))
+    for y in sorted(P["years"]):
+        Y = P["years"][y]
+        rows = [[fmt_date(r[0], False), ("<b>%s</b> (Grande Épreuve)" % esc(r[1])) if r[7] else esc(r[1]), esc(r[3]), esc(r[4]), esc(r[6])] for r in Y["races"]]
+        out.append(sec(y, "<p>%s</p><ul>%s</ul>" % (esc(Y["sum"]), "".join("<li>%s</li>" % esc(k) for k in Y.get("keys", []))) + table(head, rows, "t gpt"), "%d races" % len(rows)))
+    out.append("<p>There were no points and no champion before 1950. Race lists: the 1946–1949 Grand Prix season pages on Wikipedia (CC BY-SA 4.0).</p>")
+    return "".join(out)
+
+
 def archive_index_page(S):
     rows = []
     for y in sorted((int(k) for k in S.ARCHIVE), reverse=True):
@@ -417,7 +433,9 @@ def archive_index_page(S):
         champ = A["D"][0][0] if A else (a.get("champ") or ["—"])[0] if not a.get("live") and not a.get("next") else ("In progress" if a.get("live") else "Calendar")
         cons = (A["C"][0][1] if A["C"] else "—") if A else (a.get("cons") or ["—"])[0] if not a.get("live") and not a.get("next") else "—"
         rows.append([S.a("archive-%d" % y, str(y)), esc(champ), esc(cons), len(A["R"]) if A else ""])
-    return pagehead("Formula 1 season archive", "Every Formula 1 World Championship season since the first in 1950, with full results, standings and charts.", "Season archive") + \
+    if S.PREWAR:
+        rows.append([S.a("archive-1946-1949", "1946–1949"), "No championship", "—", sum(len(Y["races"]) for Y in S.PREWAR["years"].values())])
+    return pagehead("Formula 1 season archive", "Every Formula 1 World Championship season since the first in 1950, with full results, standings and charts, plus the Grand Prix seasons of 1946–1949 before the championship began.", "Season archive") + \
         table(["Season", "Drivers' champion", "Constructors' champion", "Races"], rows)
 
 
@@ -611,8 +629,8 @@ def build(out, data_path=DATA):
             desc = "%s %d (%s, %s): session times, tyre compounds, circuit map and results from every session of the weekend." % (name, YEAR, r.get("days", fmt_date(r["date"])), r["circuit"])
         add("detail-%d" % r["r"], title, desc, "%s %d" % (name, YEAR), race_page(S, r), "R%d · %s" % (r["r"], name.upper()),
             home + [("2026 Season", "/calendar/"), (name, S.path("detail-%d" % r["r"]))], [sports_event(S, r)])
-    add("archive", "F1 Season Archive 1950–2025: Results & Champions | Track Almanac",
-        "Every Formula 1 World Championship season since 1950: champions, Grand Prix winners, poles, fastest laps, sprint results and full standings.",
+    add("archive", "F1 Season Archive 1946–2025: Results & Champions | Track Almanac",
+        "Every Formula 1 World Championship season since 1950: champions, Grand Prix winners, poles, fastest laps, sprint results and full standings, plus Grand Prix racing from 1946 to 1949.",
         "Formula 1 season archive", archive_index_page(S), "SEASON ARCHIVE", home + [("Archive", "/archive/")])
     for y in sorted((int(k) for k in S.ARCHIVE), reverse=True):
         a = S.ARCHIVE[str(y)]; A = S.ARCHDATA.get(str(y))
@@ -627,6 +645,11 @@ def build(out, data_path=DATA):
             desc = "%d F1 season: %s won the title with %s points. Every Grand Prix winner, pole, fastest lap and full standings." % (y, ch[0], ch[3] if A else ch[2])
             h1 = "%d Formula 1 season" % y
         add("archive-%d" % y, title, desc, h1, archive_year_page(S, y), "SEASON ARCHIVE", home + [("Archive", "/archive/"), (str(y), "/archive/%d/" % y)])
+    if S.PREWAR:
+        n = sum(len(Y["races"]) for Y in S.PREWAR["years"].values())
+        add("archive-1946-1949", "Grand Prix Racing 1946–1949: Before the F1 World Championship | Track Almanac",
+            "Grand Prix racing from 1946 to 1949, before the Formula 1 World Championship: %d races with winners and cars, the Grandes Épreuves, and the most successful drivers and makes." % n,
+            "Grand Prix racing 1946–1949", prewar_page(S), "SEASON ARCHIVE", home + [("Archive", "/archive/"), ("1946–1949", "/archive/1946-1949/")])
     for key in ("about", "contact", "privacy", "terms", "disclaimer"):
         t, main = static_page(S, key)
         add(key, "%s | Track Almanac" % t, "%s for Track Almanac, an unofficial Formula 1 results and statistics site." % t, t, main, t.upper(), home + [(t, S.path(key))])

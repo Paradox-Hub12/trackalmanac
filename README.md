@@ -12,7 +12,7 @@ This repository is the master copy of the site. Start any change from the files 
 
 | File | What it is | Who changes it |
 |---|---|---|
-| `src/data.json` | All race data: `SCHED` (session times), `SEASON` (session tables), `RACES` (calendar and results), `LAPS` (lap charts), `DRIVERS`, `CONSTRUCTORS`, `ARCHIVE`, `GRIDNOTES`, bios, archive data … | the update workflow, and hand corrections |
+| `src/data.json` | All race data: `SCHED` (session times), `SEASON` (session tables), `RACES` (calendar and results), `LAPS` (lap charts), `DRIVERS`, `CONSTRUCTORS`, `ARCHIVE`, `GRIDNOTES`, bios, archive data, `PREWAR` (the 1946–1949 races, before the championship) … | the update workflow, and hand corrections |
 | `src/app.html` | Design and app: CSS, page markup and the app script | design work only, never data |
 | `src/media.json` | Driver portraits and flags | design work |
 | `build.py` | Builds the site from `src/` | — |
