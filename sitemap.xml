@@ -28,7 +28,7 @@
   <url><loc>https://trackalmanac.com/races/2026/las-vegas/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
   <url><loc>https://trackalmanac.com/races/2026/qatar/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
   <url><loc>https://trackalmanac.com/races/2026/abu-dhabi/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
-  <url><loc>https://trackalmanac.com/archive/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/archive/2027/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/archive/2026/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/archive/2025/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
@@ -36,31 +36,81 @@
   <url><loc>https://trackalmanac.com/archive/2023/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/archive/2022/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/archive/2021/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2020/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2019/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2018/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2017/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2016/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2015/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2014/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2013/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2012/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2011/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2010/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2009/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2008/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2007/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2006/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2005/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2004/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2003/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2002/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2001/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/archive/2000/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2020/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2019/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2018/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2017/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2016/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2015/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2014/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2013/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2012/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2011/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2010/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2009/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2008/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2007/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2006/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2005/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2004/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2003/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2002/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2001/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/2000/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1999/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1998/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1997/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1996/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1995/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1994/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1993/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1992/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1991/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1990/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1989/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1988/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1987/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1986/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1985/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1984/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1983/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1982/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1981/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1980/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1979/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1978/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1977/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1976/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1975/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1974/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1973/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1972/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1971/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1970/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1969/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1968/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1967/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1966/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1965/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1964/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1963/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1962/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1961/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1960/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1959/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1958/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1957/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1956/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1955/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1954/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1953/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1952/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1951/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/archive/1950/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/about/</loc><lastmod>2026-10-12</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/contact/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/privacy/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
   <url><loc>https://trackalmanac.com/terms/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/disclaimer/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://trackalmanac.com/site-map/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/disclaimer/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
+  <url><loc>https://trackalmanac.com/site-map/</loc><lastmod>2026-10-19</lastmod><priority>0.6</priority></url>
 </urlset>

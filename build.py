@@ -147,7 +147,8 @@ def read_master(data_path=DATA):
     pre, app = script.split("/*APP*/", 1)
     assert pre.strip() == "/*DATA*/", "src/app.html: the script must start with /*DATA*/ then /*APP*/"
     D = load_data(data_path)
-    data = data_js(D, load_data(MEDIA))
+    # season archive data is not in data.js: each season is its own file, loaded when its page opens
+    data = data_js({k: v for k, v in D.items() if k != "ARCHDATA"}, load_data(MEDIA))
     return css, fonts, body, data, app, D
 
 
@@ -395,12 +396,14 @@ def archive_year_page(S, y):
     out = [pagehead("%s Formula 1 season" % y, esc(a.get("sum", "")), "Season archive")]
     if a.get("keys"): out.append("<ul>%s</ul>" % "".join("<li>%s</li>" % esc(k) for k in a["keys"]))
     if A:
-        D, C = A["D"], A["C"]; cname = {c[0]: c[1] for c in C}
+        D, C = A["D"], A["C"]; cname = {k: v[0] for k, v in (A.get("cn") or {}).items()}; cname.update({c[0]: c[1] for c in C})
         nm = lambda i: esc(D[i][0]) if i is not None and i >= 0 else "—"
-        rows = [[r[0], esc(r[1]), fmt_date(r[3], False), nm(r[5]), nm(r[6]), "<b>%s</b>" % nm(r[7]), esc(cname.get(r[8], r[8])), nm(r[9]) if r[9] is not None else "—"] for r in A["R"]]
-        out.append(sec("Grands Prix", table(["Rd", "Grand Prix", "Date", "Pole position", "Fastest lap", "Winning driver", "Winning constructor", "Sprint winner"], rows, "t gpt"), "%d rounds" % len(rows)))
+        has_sprint = any(r[9] is not None for r in A["R"])
+        rows = [[r[0], esc(r[1]), fmt_date(r[3], False), nm(r[5]), nm(r[6]), "<b>%s</b>" % nm(r[7]), esc(cname.get(r[8], r[8] or "—"))] + ([nm(r[9]) if r[9] is not None else "—"] if has_sprint else []) for r in A["R"]]
+        out.append(sec("Grands Prix", table(["Rd", "Grand Prix", "Date", "Pole position", "Fastest lap", "Winning driver", "Winning constructor"] + (["Sprint winner"] if has_sprint else []), rows, "t gpt"), "%d rounds" % len(rows)))
         out.append(sec("Drivers' championship", table(["Pos", "Driver", "Team", "Pts"], [[d[4], esc(d[0]), esc(cname.get(d[2], d[2])), d[3]] for d in D])))
-        out.append(sec("Constructors' championship", table(["Pos", "Constructor", "Pts"], [[c[3], esc(c[1]), c[2]] for c in C])))
+        if C: out.append(sec("Constructors' championship", table(["Pos", "Constructor", "Pts"], [[c[3], esc(c[1]), c[2]] for c in C])))
+        else: out.append("<p>There was no constructors' championship until 1958.</p>")
     else:
         for k, lab in (("champ", "Champion"), ("p2", "Runner-up"), ("p3", "Third")):
             if a.get(k): out.append("<p>%s: %s (%s), %s points.</p>" % (lab, esc(a[k][0]), esc(a[k][1]), a[k][2]))
@@ -412,9 +415,9 @@ def archive_index_page(S):
     for y in sorted((int(k) for k in S.ARCHIVE), reverse=True):
         A = S.ARCHDATA.get(str(y)); a = S.ARCHIVE[str(y)]
         champ = A["D"][0][0] if A else (a.get("champ") or ["—"])[0] if not a.get("live") and not a.get("next") else ("In progress" if a.get("live") else "Calendar")
-        cons = A["C"][0][1] if A else (a.get("cons") or ["—"])[0] if not a.get("live") and not a.get("next") else "—"
+        cons = (A["C"][0][1] if A["C"] else "—") if A else (a.get("cons") or ["—"])[0] if not a.get("live") and not a.get("next") else "—"
         rows.append([S.a("archive-%d" % y, str(y)), esc(champ), esc(cons), len(A["R"]) if A else ""])
-    return pagehead("Formula 1 season archive", "Every Formula 1 season from 2000 with full results, standings and charts.", "Season archive") + \
+    return pagehead("Formula 1 season archive", "Every Formula 1 World Championship season since the first in 1950, with full results, standings and charts.", "Season archive") + \
         table(["Season", "Drivers' champion", "Constructors' champion", "Races"], rows)
 
 
@@ -555,6 +558,16 @@ def build(out, data_path=DATA):
     written = set(); imgdir = os.path.join(out, "img")
     if os.path.isdir(imgdir): shutil.rmtree(imgdir)
     body = extract_images(body, imgdir, written)
+    # one file per archive season: /data/archive/<year>.json, versioned in ARCHV
+    adir = os.path.join(out, "data", "archive")
+    if os.path.isdir(adir): shutil.rmtree(adir)
+    os.makedirs(adir)
+    archv = {}
+    for y, season in D.get("ARCHDATA", {}).items():
+        txt = json.dumps(season, ensure_ascii=False, separators=(",", ":"))
+        open(os.path.join(adir, "%s.json" % y), "w", encoding="utf-8").write(txt)
+        archv[y] = vhash(txt)
+    data += "const ARCHDATA={};const ARCHV=%s;\n" % json.dumps(archv, separators=(",", ":"))
     data_x = extract_images(data, imgdir, written)
     app_x = extract_images(app, imgdir, written)
     css_x = extract_images(css, imgdir, written)
@@ -598,8 +611,8 @@ def build(out, data_path=DATA):
             desc = "%s %d (%s, %s): session times, tyre compounds, circuit map and results from every session of the weekend." % (name, YEAR, r.get("days", fmt_date(r["date"])), r["circuit"])
         add("detail-%d" % r["r"], title, desc, "%s %d" % (name, YEAR), race_page(S, r), "R%d · %s" % (r["r"], name.upper()),
             home + [("2026 Season", "/calendar/"), (name, S.path("detail-%d" % r["r"]))], [sports_event(S, r)])
-    add("archive", "F1 Season Archive 2000–2025: Results & Champions | Track Almanac",
-        "Every Formula 1 season since 2000: champions, Grand Prix winners, poles, fastest laps, sprint results and full standings.",
+    add("archive", "F1 Season Archive 1950–2025: Results & Champions | Track Almanac",
+        "Every Formula 1 World Championship season since 1950: champions, Grand Prix winners, poles, fastest laps, sprint results and full standings.",
         "Formula 1 season archive", archive_index_page(S), "SEASON ARCHIVE", home + [("Archive", "/archive/")])
     for y in sorted((int(k) for k in S.ARCHIVE), reverse=True):
         a = S.ARCHIVE[str(y)]; A = S.ARCHDATA.get(str(y))

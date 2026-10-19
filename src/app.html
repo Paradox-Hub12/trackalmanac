@@ -732,7 +732,7 @@ function pageTitle(k){const T=" | Track Almanac";let m;
   if(m=k.match(/^archive-(\d{4})$/)){const y=+m[1],a=ARCHIVE[y]||{};return a.next?`2027 F1 Calendar: All ${CAL2027.length} Races & Sprint Dates${T}`:a.live?`2026 Formula 1 Season${T}`:`${y} Formula 1 Season: Results, Standings & Champion${T}`;}
   if(k.startsWith("driver-")){const b=BIO[k.slice(7)];return b?`${b.name}: Profile, 2026 Season & Career Stats${T}`:`2026 F1 Drivers${T}`;}
   if(k.startsWith("team-")){const n=teamByKey(k.slice(5));return n?`${(TEAMBIO[n]||{}).name||n}: 2026 Line-up, Car & Record${T}`:`2026 F1 Teams${T}`;}
-  return ({championship:"2026 F1 Championship Standings & Points Breakdown",drivers:"2026 F1 Drivers: Profiles, Stats & Standings",teams:"2026 F1 Teams: Line-ups, Cars & Standings",calendar:"2026 F1 Calendar: Dates, Circuits & Results",archive:"F1 Season Archive 2000–2025: Results & Champions",sitemap:"Site Map",notfound:"Page not found"}[k]||((PAGES[k]||{}).t)||"Track Almanac")+T;}
+  return ({championship:"2026 F1 Championship Standings & Points Breakdown",drivers:"2026 F1 Drivers: Profiles, Stats & Standings",teams:"2026 F1 Teams: Line-ups, Cars & Standings",calendar:"2026 F1 Calendar: Dates, Circuits & Results",archive:"F1 Season Archive 1950–2025: Results & Champions",sitemap:"Site Map",notfound:"Page not found"}[k]||((PAGES[k]||{}).t)||"Track Almanac")+T;}
 function h1Text(k){let m;
   if(!k||k==="season"||k.startsWith("race-"))return "2026 Formula 1 season";
   if(m=k.match(/^detail-(\d+)/)){const r=RACES.find(x=>x.r===+m[1]);return r?r.gp.replace(" (Sepang)","")+" 2026":"";}
@@ -1422,17 +1422,18 @@ function drawCharts(){
   lineChart($("#tchart"),tser,{h:300});
 }
 
-/* ---------- SEASON ARCHIVE: full championship pages 2000–2025 ---------- */
-const HCOL={"red-bull":"#3671c6","mercedes":"#00a19c","ferrari":"#dc0000","mclaren":"#ff8000","williams":"#1868db","renault":"#ffd800","lotus-f1":"#c9a227","force-india":"#f596c8","racing-point":"#f596c8","aston-martin":"#229971","alpine":"#ff5fa2","sauber":"#9b9fa6","alfa-romeo":"#a6192e","kick-sauber":"#52e252","toro-rosso":"#469bff","alphatauri":"#7d9bb8","rb":"#6c98ff","racing-bulls":"#6c98ff","haas":"#b6babd","caterham":"#1f9e57","lotus-racing":"#1f9e57","virgin":"#d62d3a","marussia":"#e2231a","manor":"#e8434b","hrt":"#b5a26a","benetton":"#5fb0e8","jordan":"#c6d300","arrows":"#ff8c1a","bar":"#f0f0f0","jaguar":"#1a8a55","prost":"#2f49c4","minardi":"#b07cc6","toyota":"#ff6f61","honda":"#4caf50","bmw-sauber":"#bcd4f6","super-aguri":"#d94f8b","midland":"#b23a48","spyker":"#ff7f00","brawn":"#c8f000"};
-const hcol=(id,y)=>id==="mclaren"&&y<2017?"#a8b0b8":id==="force-india"&&y<2017?"#ff8f1f":id==="williams"&&y<2014?"#5b8ad6":HCOL[id]||"var(--ink-3)";
+/* ---------- SEASON ARCHIVE: full championship pages 1950–2025 ---------- */
+const HCOL={"red-bull":"#3671c6","mercedes":"#00a19c","ferrari":"#dc0000","mclaren":"#ff8000","williams":"#1868db","renault":"#ffd800","lotus-f1":"#c9a227","force-india":"#f596c8","racing-point":"#f596c8","aston-martin":"#229971","alpine":"#ff5fa2","sauber":"#9b9fa6","alfa-romeo":"#a6192e","kick-sauber":"#52e252","toro-rosso":"#469bff","alphatauri":"#7d9bb8","rb":"#6c98ff","racing-bulls":"#6c98ff","haas":"#b6babd","caterham":"#1f9e57","lotus-racing":"#1f9e57","virgin":"#d62d3a","marussia":"#e2231a","manor":"#e8434b","hrt":"#b5a26a","benetton":"#5fb0e8","jordan":"#c6d300","arrows":"#ff8c1a","bar":"#f0f0f0","jaguar":"#1a8a55","prost":"#2f49c4","minardi":"#b07cc6","toyota":"#ff6f61","honda":"#4caf50","bmw-sauber":"#bcd4f6","super-aguri":"#d94f8b","midland":"#b23a48","spyker":"#ff7f00","brawn":"#c8f000","alfa-romeo-1":"#a6192e","maserati":"#2f5fd0","vanwall":"#1f7a5c","cooper":"#3aa0a0","lotus":"#2f9e5f","brm":"#5b6b2e","brabham":"#2e9bd6","march":"#ff9f40","matra":"#4a7bd8","tyrrell":"#2d5fc0","ligier":"#4f9be8","shadow":"#5a5f6a","surtees":"#c94040","hesketh":"#d9d9d9","wolf":"#c8a048","lola":"#e06666","porsche":"#bfbfbf","gordini":"#3d6fb5","simca-gordini":"#3d6fb5","talbot-lago":"#4766b3","connaught":"#3c8f3c","era":"#6b8e23","alta":"#8a9a5b","hwm":"#4f7f4f","kurtis-kraft":"#c79a3a","toleman":"#5a8fd6","leyton-house":"#3fb7b0","footwork":"#d9d9d9","dallara":"#e05050","larrousse":"#e66aa8","stewart":"#f2f2f2","prost":"#2f49c4","eagle":"#3f62c8","honda":"#4caf50"};
+const hcol=(id,y)=>id&&id.includes("@")?hcol(id.split("@")[0],y):id==="mclaren"&&y<2017?"#a8b0b8":id==="force-india"&&y<2017?"#ff8f1f":id==="williams"&&y<2014?"#5b8ad6":HCOL[id]||"var(--ink-3)";
 const gpShort=n=>n.replace(/ Grand Prix$/,"").replace(/^Grand Prix of /,"");
 const RACECC={albert:"AU",shanghai:"CN",suzuka:"JP",miami:"US",montreal:"CA",monaco:"MC",catalunya:"ES",rbring:"AT",silverstone:"GB",spa:"BE",hungaro:"HU",zandvoort:"NL",monza:"IT",madring:"ES",baku:"AZ",sepang:"MY",marina:"SG",cota:"US",mexico:"MX",interlagos:"BR",vegas:"US",lusail:"QA",yas:"AE"};
 function seasonModel(y){const A=ARCHDATA[y];if(!A)return null;
   const split=a=>a?a.map(s=>s.split("|")):null;const res=split(A.res),sp=split(A.sp),tm=split(A.tm);
   return {y,n:A.R.length,R:A.R.map(r=>({r:r[0],gp:r[1],cc:r[2],date:r[3],circuit:r[4],pole:r[5],fl:r[6],win:r[7],wc:r[8],sw:r[9]})),
     D:A.D.map((d,i)=>({name:d[0],abbr:d[1],team:d[2],pts:d[3],pos:d[4],cc:d[5],i})),C:A.C.map(c=>({id:c[0],name:c[1],pts:c[2],pos:c[3],cc:c[4]})),
-    res,sp,team:(i,k)=>(tm[i][k]||A.D[i][2]),cum:A.cum,ccum:A.ccum};}
-const ptsCut=y=>y<2003?6:y<2010?8:10, spCut=y=>y===2021?3:8;   /* points went to the top 6 until 2002, top 8 2003-2009 */
+    res,sp,team:(i,k)=>(tm[i][k]||A.D[i][2]),cum:A.cum,ccum:A.ccum,
+    tname:id=>((A.C.find(c=>c[0]===id)||[])[1])||((A.cn||{})[id]||[])[0]||id,tcc:id=>((A.C.find(c=>c[0]===id)||[])[4])||((A.cn||{})[id]||[])[1]};}
+const ptsCut=y=>y<1960?5:y<2003?6:y<2010?8:10, spCut=y=>y===2021?3:8;   /* points went to the top 5 until 1959, top 6 1960-2002, top 8 2003-2009 */
 function aCell(t,y){if(!t)return {cls:"c-none",txt:""};if(/^\d+$/.test(t)){const p=+t;return {txt:t,cls:p===1?"c-p1":p===2?"c-p2":p===3?"c-p3":p<=ptsCut(y)?"c-pts":"c-fin"};}
   if(t==="Ret"||t==="NC")return {txt:t,cls:"c-ret"};return {txt:t,cls:"c-dns"};}
 const spTag=(t,y)=>t?`<small class="spx${/^\d+$/.test(t)&&+t<=spCut(y)?" pts":""}">S${t.replace("Ret","R")}</small>`:"";
@@ -1444,7 +1445,7 @@ function gpTableHTML(rows,hasSprint){
   </tbody></table></div>`;}
 function archGpRows(S){const D=S.D,cn={};S.C.forEach(c=>cn[c.id]=c);
   const p=i=>i!=null&&i>=0?{n:D[i].name,cc:D[i].cc}:null;
-  return S.R.map(r=>({r:r.r,gp:r.gp,cc:r.cc,date:r.date,pole:p(r.pole),fl:p(r.fl),win:p(r.win),wc:r.wc?{n:(cn[r.wc]||{}).name||r.wc,cc:(cn[r.wc]||{}).cc,col:hcol(r.wc,S.y)}:null,sprint:r.sw!=null,sw:p(r.sw)}));}
+  return S.R.map(r=>({r:r.r,gp:r.gp,cc:r.cc,date:r.date,pole:p(r.pole),fl:p(r.fl),win:p(r.win),wc:r.wc?{n:S.tname(r.wc),cc:S.tcc(r.wc),col:hcol(r.wc,S.y)}:null,sprint:r.sw!=null,sw:p(r.sw)}));}
 function gpRows2026(){return RACES.map(r=>{const S=SEASON[r.r]||{};const nat=n=>{const b=n&&bioOf(n);return b?b.iso2:null;};
   const pq=S.quali&&S.quali[0]?fullName(S.quali[0][2]):null;
   const sw=S.sprint&&S.sprint[0]?fullName(S.sprint[0][2]):(typeof r.sprint==="string"?r.sprint:null);
@@ -1452,11 +1453,12 @@ function gpRows2026(){return RACES.map(r=>{const S=SEASON[r.r]||{};const nat=n=>
   return {r:r.r,gp:r.gp.replace(" (Sepang)",""),cc:RACECC[r.track],date:r.date,go:r.res?`detail-${r.r}`:(S.quali||S.sprint||S.fp1?`detail-${r.r}`:null),
     pole:pq?{n:pq,cc:nat(pq)}:null,fl:r.res?{n:r.res.fl[0],cc:nat(r.res.fl[0])}:null,win:win?{n:win,cc:nat(win)}:null,
     wc:team?{n:team,cc:(TEAMNAT[team]||[])[0],col:tcol(team)}:null,sprint:!!r.sprint,sw:sw?{n:sw,cc:nat(sw)}:null};});}
-function archDriverMatrix(S){const fl=S.R.map(r=>r.fl),po=S.R.map(r=>r.pole);
+const startedAny=(S,d)=>S.R.some((r,k)=>{const t=S.res[d.i][k];return t&&!/^(DNQ|DNPQ|DNS|DNP)$/.test(t);});
+function archDriverMatrix(S){const fl=S.R.map(r=>r.fl),po=S.R.map(r=>r.pole);const shown=S.D.filter(d=>startedAny(S,d)),hidden=S.D.length-shown.length;
   const head=S.R.map(r=>`<th title="${esc(r.gp)}">${pflag(r.cc)}<br>${r.r}</th>`).join("");
-  const rows=S.D.map(d=>`<tr><td class="ps">${esc(d.pos)}</td><td class="nm"><span class="sw" style="background:${hcol(d.team,S.y)}"></span><span class="fn">${esc(d.name)}</span><span class="c3">${esc(d.abbr)}</span></td>${S.R.map((r,k)=>{const c=aCell(S.res[d.i][k],S.y);const s=S.sp?S.sp[d.i][k]:"";
+  const rows=shown.map(d=>`<tr><td class="ps">${esc(d.pos)}</td><td class="nm"><span class="sw" style="background:${hcol(d.team,S.y)}"></span><span class="fn">${esc(d.name)}</span><span class="c3">${esc(d.abbr)}</span></td>${S.R.map((r,k)=>{const c=aCell(S.res[d.i][k],S.y);const s=S.sp?S.sp[d.i][k]:"";
     return `<td class="cell ${c.cls}${po[k]===d.i?" pole":""}${fl[k]===d.i?" flap":""}" title="${esc(gpShort(r.gp))}: ${esc(S.res[d.i][k]||"—")}${s?" · Sprint "+esc(s):""}">${c.txt}${spTag(s,S.y)}</td>`;}).join("")}<td class="tot">${d.pts}</td></tr>`).join("");
-  return `<div class="mx"><table class="mxt"><thead><tr><th class="ps">Pos</th><th class="nm" style="text-align:left;padding-left:10px">Driver</th>${head}<th>Pts</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
+  return `<div class="mx"><table class="mxt"><thead><tr><th class="ps">Pos</th><th class="nm" style="text-align:left;padding-left:10px">Driver</th>${head}<th>Pts</th></tr></thead><tbody>${rows}</tbody></table></div>${hidden?`<p class="note2">${hidden} entrant${hidden===1?"":"s"} who did not start a race ${hidden===1?"is":"are"} not shown.</p>`:""}`;}
 function archConsMatrix(S){const head=S.R.map(r=>`<th title="${esc(r.gp)}">${pflag(r.cc)}<br>${r.r}</th>`).join("");
   const rows=S.C.map(c=>{const ds=S.D.filter(d=>S.R.some((r,k)=>S.res[d.i][k]&&S.team(d.i,k)===c.id));
     return ds.map((d,j)=>`<tr>${j===0?`<td class="ps" rowspan="${ds.length}">${esc(c.pos)}</td><td class="nm" rowspan="${ds.length}"><span class="sw" style="background:${hcol(c.id,S.y)}"></span>${esc(c.name)}</td>`:""}<td class="nm" style="position:static;min-width:110px;color:var(--ink-2)">${esc(d.name.split(" ").slice(-1)[0])}</td>
@@ -1467,7 +1469,7 @@ function archStats(S){const st=S.D.map(d=>{let w=0,pod=0,pol=0,fl=0,sw=0,dnf=0,b
     if(r.pole===d.i)pol++;if(r.fl===d.i)fl++;if(r.sw===d.i)sw++;});return [d,w,pod,pol,fl,sw,dnf,best===99?"–":best];}).filter(z=>z[0].pts>0||z[1]||z[3]);
   const hasS=S.R.some(r=>r.sw!=null);
   return `<div class="tw"><table class="t"><thead><tr><th class="n stk0">Pos</th><th class="stk1">Driver</th><th>Team</th><th class="n">Pts</th><th class="n">Wins</th><th class="n">Podiums</th><th class="n">Poles</th><th class="n">Fastest laps</th>${hasS?'<th class="n">Sprint wins</th>':""}<th class="n">Retirements</th><th class="n">Best finish</th></tr></thead><tbody>
-  ${st.map(z=>`<tr><td class="n stk0">${esc(z[0].pos)}</td><td class="stk1"><span class="sw" style="background:${hcol(z[0].team,S.y)}"></span><span class="fn">${esc(z[0].name)}</span><span class="c3">${esc(z[0].abbr)}</span></td><td style="color:var(--ink-2)">${esc((S.C.find(c=>c.id===z[0].team)||{}).name||"")}</td><td class="n">${z[0].pts}</td>${[z[1],z[2],z[3],z[4]].concat(hasS?[z[5]]:[]).concat([z[6],z[7]]).map(v=>`<td class="n">${v||"–"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;}
+  ${st.map(z=>`<tr><td class="n stk0">${esc(z[0].pos)}</td><td class="stk1"><span class="sw" style="background:${hcol(z[0].team,S.y)}"></span><span class="fn">${esc(z[0].name)}</span><span class="c3">${esc(z[0].abbr)}</span></td><td style="color:var(--ink-2)">${esc(S.tname(z[0].team)||"")}</td><td class="n">${z[0].pts}</td>${[z[1],z[2],z[3],z[4]].concat(hasS?[z[5]]:[]).concat([z[6],z[7]]).map(v=>`<td class="n">${v||"–"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;}
 const MATKEY=`<div class="keyrow"><span><i class="c-p1"></i>Winner</span><span><i class="c-p2"></i>2nd</span><span><i class="c-p3"></i>3rd</span><span><i class="c-pts"></i>Points</span><span><i class="c-fin"></i>Finished, no points</span><span><i class="c-ret"></i>Retired / not classified</span><span><i class="c-dns" style="border:1px solid var(--rule-2)"></i>Did not start / disqualified</span><span><b style="text-decoration:underline">Underline</b> pole</span><span><i style="box-shadow:inset 0 -3px 0 var(--purple);background:var(--panel-2)"></i>Fastest lap</span><span><small class="spx pts" style="position:static">S3</small> Sprint result (purple = scored points)</span></div>`;
 function archSections(S){const hasS=S.R.some(r=>r.sw!=null);
   return `<div class="sec"><h2>Grands Prix</h2><span class="lbl">${S.n} rounds${hasS?` · ${S.R.filter(r=>r.sw!=null).length} sprints`:""}</span></div>
@@ -1476,17 +1478,17 @@ function archSections(S){const hasS=S.R.some(r=>r.sw!=null);
   ${fsbox("fs-aprog",`${S.y} points progression`,`<div class="chart" id="achart"></div>`)}
   <div class="sec"><h2>Drivers' championship</h2><span class="lbl">Finishing position by round${hasS?" · with sprint":""}</span></div>
   ${fsbox("fs-admx",`${S.y} drivers' championship`,archDriverMatrix(S))}${MATKEY}
-  <div class="sec"><h2>Constructors' championship</h2><span class="lbl">Each driver's result for the team</span></div>
+  ${S.C.length?`<div class="sec"><h2>Constructors' championship</h2><span class="lbl">Each driver's result for the team</span></div>
   ${fsbox("fs-acmx",`${S.y} constructors' championship`,archConsMatrix(S))}
   <div class="sec"><h2>Team progression</h2><span class="lbl">Cumulative constructors' points</span></div>
-  ${fsbox("fs-ateam",`${S.y} team progression`,`<div class="chart" id="atchart"></div>`)}
+  ${fsbox("fs-ateam",`${S.y} team progression`,`<div class="chart" id="atchart"></div>`)}`:`<p class="note2">There was no constructors' championship until 1958.</p>`}
   <div class="sec"><h2>Season statistics</h2><span class="lbl">Drivers who scored or won</span></div>${archStats(S)}
   <p class="note2">Results data: F1DB (CC BY 4.0). Pole is the driver who started first on merit; in 2021 sprint weekends that was the sprint winner.</p>`;}
 function drawArchCharts(y){const S=seasonModel(y);if(!S)return;const rn=S.R.map(r=>r.r),names=S.R.map(r=>gpShort(r.gp));const seen={};
   const ser=S.D.slice(0,10).map(d=>{const dash=seen[d.team];seen[d.team]=1;return {name:d.name.split(" ").slice(-1)[0],lab:d.abbr,col:hcol(d.team,y),dash,vals:[0,...S.cum[d.i]]};});
   const el=$("#achart");if(el)lineChart(el,ser,{h:420,rn,names});
   const tser=S.C.slice(0,6).map((c,i)=>({name:c.name,lab:c.name.split(" ")[0],col:hcol(c.id,y),vals:[0,...S.ccum[i]]}));
-  const te=$("#atchart");if(te)lineChart(te,tser,{h:300,rn,names});}
+  const te=$("#atchart");if(te&&tser.length)lineChart(te,tser,{h:300,rn,names});}
 function view2027(){const C=CAL2027;
   return `<div class="arch" style="grid-template-columns:minmax(0,1fr)"><div class="txt"><span class="lbl">Season 2027</span><h2 class="h1" style="font-size:clamp(56px,10vw,120px)">2027</h2>
     <p style="font-size:19px;color:var(--ink)"><b>Calendar.</b> The 2027 calendar is confirmed: ${C.length} Grands Prix, ${C.filter(c=>c[6]).length} with a sprint, starting in Bahrain on 14 March and ending in Abu Dhabi on 12 December. Portugal and Türkiye return to the calendar. Pre-season testing runs in Bahrain from 24 to 27 February.</p></div></div>
@@ -1504,21 +1506,25 @@ function centreYrail(prevX){const rail=$(".yrail"),on=rail&&rail.querySelector('
   const x=Math.max(0,Math.min(rail.scrollWidth-rail.clientWidth,rail.scrollLeft+(ob.left-rb.left)-(rail.clientWidth-ob.width)/2-rail.clientLeft));
   const calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   if(prevX==null||calm){rail.scrollLeft=x;return;}rail.scrollLeft=prevX;requestAnimationFrame(()=>rail.scrollTo({left:x,behavior:"smooth"}));}
+/* archive seasons are separate files (/data/archive/<year>.json), loaded when a season page opens */
+const SEASONLOAD={};
+function loadSeason(y){if(ARCHDATA[y])return Promise.resolve();if(!SEASONLOAD[y])SEASONLOAD[y]=fetch(`/data/archive/${y}.json?v=${ARCHV[y]}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>{ARCHDATA[y]=j;}).catch(e=>{delete SEASONLOAD[y];const n=$(".arch .note2");if(n)n.textContent="The results could not be loaded. Check your connection and reload the page.";});return SEASONLOAD[y];}
 function viewArchive(yr){
   const ys=Object.keys(ARCHIVE).map(Number).sort((a,b)=>b-a); yr=yr||2025; const a=ARCHIVE[yr];
   const rail=`<div class="yrail" role="group" aria-label="Season">${ys.map(y=>`<a href="${H("archive-"+y)}" data-year="${y}" aria-pressed="${y===yr}">${y}${y===2027?'<small>Calendar</small>':""}</a>`).join("")}</div>`;
   if(a.next) return rail+view2027();
   if(a.live) return rail+`<div class="arch"><div class="txt"><h2 class="h1">${yr}</h2><p>In progress: ${done.length} of ${RACES.length} rounds run. ${esc(DRIVERS[0][0])} leads for Mercedes in the first year of the new power unit and active-aero rules.</p><button class="tag sig" data-go="championship" style="cursor:pointer">Open the 2026 championship →</button></div></div>`;
-  const S=seasonModel(yr), tn=id=>S?((S.C.find(c=>c.id===id)||{}).name||id):id;
+  if(ARCHV[yr]&&!ARCHDATA[yr])return rail+`<div class="arch"><div class="txt"><span class="lbl">Season report</span><h2 class="h1">${yr}</h2><p>${esc(a.sum||"")}</p><p class="note2">Loading the ${yr} results…</p></div></div>`;
+  const S=seasonModel(yr), tn=id=>S?S.tname(id):id;
   const top=S?S.D.slice(0,3).map(d=>[d.name,tn(d.team),d.pts,hcol(d.team,yr)]):[a.champ,a.p2,a.p3].map(p=>[p[0],p[1],p[2],tcol(p[1])]);
-  const cons=S?[S.C[0].name,S.C[0].pts,hcol(S.C[0].id,yr)]:[a.cons[0],a.cons[1],tcol(a.cons[0])];
+  const cons=S?(S.C.length?[S.C[0].name,S.C[0].pts,hcol(S.C[0].id,yr)]:null):[a.cons[0],a.cons[1],tcol(a.cons[0])];
   const races=S?S.n:a.races, wins=S?S.R.filter(r=>r.win===0).length:+(a.wins||"").split(" ")[0];
   const row=(p,i)=>`<div class="row"><span class="pp">${i+1}</span><span class="c" style="background:${p[3]}"></span><span><strong>${esc(p[0])}</strong><small style="display:block;color:var(--ink-3);font-size:12px">${esc(p[1])}</small></span><span class="mono">${p[2]}</span></div>`;
   return rail+`<div class="arch">
     <div class="txt"><span class="lbl">Season report</span><h2 class="h1">${yr}</h2><p>${esc(a.sum)}</p><ul>${(a.keys||[]).map(k=>`<li>${esc(k)}</li>`).join("")}</ul></div>
     <div class="side">
       <div class="box"><div class="bh lbl">Drivers' championship · top 3</div>${top.map(row).join("")}</div>
-      <div class="box"><div class="bh lbl">Constructors' champion</div><div class="row"><span class="pp">1</span><span class="c" style="background:${cons[2]}"></span><strong>${esc(cons[0])}</strong><span class="mono">${cons[1]}</span></div></div>
+      <div class="box"><div class="bh lbl">Constructors' champion</div>${cons?`<div class="row"><span class="pp">1</span><span class="c" style="background:${cons[2]}"></span><strong>${esc(cons[0])}</strong><span class="mono">${cons[1]}</span></div>`:`<div class="row" style="grid-template-columns:1fr"><span style="color:var(--ink-2)">No constructors' championship until 1958</span></div>`}</div>
       <div class="box"><div class="bh lbl">Season data</div><div class="row" style="grid-template-columns:1fr auto"><span>Races</span><span class="mono">${races}</span></div><div class="row" style="grid-template-columns:1fr auto"><span>Champion's wins</span><span class="mono">${wins}</span></div>${S&&S.R.some(r=>r.sw!=null)?`<div class="row" style="grid-template-columns:1fr auto"><span>Sprints</span><span class="mono">${S.R.filter(r=>r.sw!=null).length}</span></div>`:""}</div>
     </div></div>${S?archSections(S):""}`;
 }
@@ -1749,7 +1755,7 @@ disclaimer:{t:"Disclaimer & Copyright",b:`
 <h3>Data sources and credits</h3>
 <ul><li>Race classifications, qualifying, practice, starting grids and session times: compiled from official published results and timing.</li>
 <li>Results, qualifying, sprint results, championship standings and the race schedule: Jolpica F1 API (successor to the Ergast API).</li> <li>Lap-by-lap positions: <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> timing data (Apache-2.0), and <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> for new races.</li> <li>Practice and sprint qualifying classifications, lap timing, safety car, virtual safety car and red flag periods, and session times: <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> (openf1.org).</li> <li>Tyre strategy: <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a>, from the official F1 timing feed (Apache-2.0).</li>
-<li>Circuit maps: drawn from <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> car telemetry (Apache-2.0).</li> <li>Past seasons (archive, 2000–2025): <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a>, CC BY 4.0.</li> <li>Country flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, MIT licence.</li>
+<li>Circuit maps: drawn from <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> car telemetry (Apache-2.0).</li> <li>Past seasons (archive, 1950–2025): <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a>, CC BY 4.0.</li> <li>Country flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, MIT licence.</li>
 <li>Tyre compound selections and weekend forecasts: published team and supplier race previews.</li>
 <li>Fonts: Big Shoulders Display, IBM Plex Sans Condensed and IBM Plex Mono via Google Fonts (SIL Open Font Licence).</li></ul>
 <h3>Copyright</h3>
@@ -1794,7 +1800,8 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
   else if(h==="notfound"){$("#app").innerHTML=viewNotFound();$("#sheetname").textContent="NOT FOUND";setNav("");}
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}
-  else if(h.startsWith("archive")){const y=+h.split("-")[1];$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ARCHIVE[y]?y:2025);centreYrail(yrX);$("#sheetname").textContent="SEASON ARCHIVE";setNav("archive");}
+  else if(h.startsWith("archive")){const y=+h.split("-")[1];const ay=ARCHIVE[y]?y:2025;$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ay);centreYrail(yrX);
+    if(ARCHV[ay]&&!ARCHDATA[ay])loadSeason(ay).then(()=>{if(curKey()===h){const r=$(".yrail"),x=r?r.scrollLeft:null;$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ay);const r2=$(".yrail");if(r2&&x!=null)r2.scrollLeft=x;}});$("#sheetname").textContent="SEASON ARCHIVE";setNav("archive");}
   else if(h==="drivers"||h.startsWith("driver-")){$("#app").innerHTML=viewDrivers();$("#sheetname").textContent="2026 DRIVERS";setNav("drivers");document.title="2026 Drivers · Track Almanac";if(h.startsWith("driver-"))openDriver(h.slice(7));}
   else if(h==="teams"||h.startsWith("team-")){$("#app").innerHTML=viewTeams();$("#sheetname").textContent="2026 TEAMS";setNav("teams");document.title="2026 Teams · Track Almanac";if(h.startsWith("team-")){const k=teamByKey(h.slice(5));if(k)openTeam(k);}}
   else if(h==="championship"){$("#app").innerHTML=viewChampionship();drawCharts();$("#sheetname").textContent="2026 CHAMPIONSHIP · POINTS";setNav("championship");}
