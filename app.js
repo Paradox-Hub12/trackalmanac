@@ -797,12 +797,89 @@ function drawArchCharts(y){const S=seasonModel(y);if(!S)return;const rn=S.R.map(
   const el=$("#achart");if(el)lineChart(el,ser,{h:420,rn,names});
   const tser=S.C.slice(0,6).map((c,i)=>({name:c.name,lab:c.name.split(" ")[0],col:hcol(c.id,y),vals:[0,...S.ccum[i]]}));
   const te=$("#atchart");if(te&&tser.length)lineChart(te,tser,{h:300,rn,names});}
+/* ---------- 2027 SEASON ROUTE: world map with every Grand Prix, animated like a flight route ---------- */
+/* Natural Earth projection, same scale and centre as the map in /data/world.json (scale 190, centre 500,280) */
+const NE1=(lat,lon)=>{const l=lon*Math.PI/180,p=lat*Math.PI/180,p2=p*p,p4=p2*p2;
+  return [500+190*l*(0.8707-0.131979*p2+p4*(-0.013791+p4*(0.003971*p2-0.001529*p4))),280-190*p*(1.007226+p2*(0.015085+p4*(-0.044475+0.028874*p2-0.005916*p4)))];};
+const hav=(a,b)=>{const r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r,q=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2;return 12742*Math.asin(Math.sqrt(q));};
+const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function raceDay(c,y=2027){const m=c[5].split("–").pop().trim().match(/^(\d+)\s*([A-Za-z]{3})?/),mo=MONS.indexOf(m[2]||c[5].trim().slice(-3));
+  const d=new Date(Date.UTC(y,mo,+m[1]));return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getUTCDay()]} ${d.getUTCDate()} ${MONS[mo]}`;}
+/* 2026 race start at the same circuit, local time, as a guide until F1 publishes the 2027 times */
+function ref26(g){return g&&g[4]?tfmt(g[4],g[2],{hour:"2-digit",minute:"2-digit"}):null;}
+const RFULL=[-20,10,1040,465],RAR=RFULL[2]/RFULL[3];
+const RREG={world:RFULL,europe:[[35,-12],[57,32]],americas:[[-38,-125],[56,-35]],asia:[[-40,34],[46,150]]};
+let WORLD=null,RT=null;
+function loadWorld(){if(WORLD)return Promise.resolve(WORLD);return fetch(`/data/world.json?v=${WORLDV}`).then(r=>r.json()).then(j=>WORLD=j);}
+function rPts(){return CALGEO2027.map(g=>NE1(g[0],g[1]));}
+/* each leg is a quadratic curve bowed to the north, like a flight path on a flat map */
+function rLeg(a,b){const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1;let nx=-dy/L,ny=dx/L;if(ny>0){nx=-nx;ny=-ny;}const k=Math.min(.22*L,90);return [a,[mx+nx*k,my+ny*k],b,L];}
+function routeMapHTML(){const C=CAL2027,G=CALGEO2027,P=rPts();let km=0;for(let i=1;i<G.length;i++)km+=hav(G[i-1],G[i]);
+  const legs=P.slice(1).map((b,i)=>rLeg(P[i],b));
+  return `<div class="sec"><h2>Season route</h2><span class="lbl">${C.length} races · about ${dist(km,0).replace(/\B(?=(\d{3})+(?!\d))/g,",")} of travel</span></div>
+  <div class="rmap" id="rmap">
+    <div class="rbar"><div class="rbtns"><button type="button" class="rplay" data-rplay aria-pressed="false">▶ Play route</button><button type="button" data-rreset>Restart</button></div>
+      <div class="rzoom" role="group" aria-label="Map area">${[["world","World"],["europe","Europe"],["americas","Americas"],["asia","Asia & Middle East"]].map(([k,n])=>`<button type="button" data-rzoom="${k}" aria-pressed="${k==="world"}">${n}</button>`).join("")}</div></div>
+    <div class="rwrap"><svg id="rsvg" viewBox="${RFULL.join(" ")}" role="img" aria-label="World map of the ${C.length} Grands Prix of 2027 in calendar order">
+      <g id="rland"></g>
+      <g>${legs.map(l=>`<path class="rleg" d="M${l[0]}Q${l[1]} ${l[2]}"/>`).join("")}</g>
+      <g id="rtrail">${legs.map(()=>`<path class="rtr" d=""/>`).join("")}</g>
+      <g id="rpins">${P.map((p,i)=>`<g class="rpin" data-rpin="${i}" transform="translate(${p[0].toFixed(1)} ${p[1].toFixed(1)})"><title>R${C[i][0]} ${esc(C[i][1])} · ${esc(C[i][5])}</title><circle r="7"/><text>${C[i][0]}</text></g>`).join("")}</g>
+      <g id="rplane" style="display:none"><path d="M9 0 1-1.6-2.5-7.5H-4.6L-2.6-1.6H-6.4L-8.4-4.3H-9.6L-8.6 0-9.6 4.3H-8.4L-6.4 1.6H-2.6L-4.6 7.5H-2.5L1 1.6Z"/></g>
+    </svg><div class="rcard" id="rcard" aria-live="polite"></div></div>
+    <div class="rstops" id="rstops">${C.map((c,i)=>`<button type="button" data-rstop="${i}" aria-pressed="false"><b>${c[0]}</b>${flagOf(c[2])}<span>${esc(c[4])}</span><small>${esc(raceDay(c).replace(/^\w+ /,""))}</small></button>`).join("")}</div>
+  </div>
+  <p class="note2">Race start times for 2027 haven't been published yet. Where the circuit also raced in 2026, the card shows that year's start time as a guide. Distances are straight-line distances between circuits.</p>`;}
+function rCard(i,next){const C=CAL2027,G=CALGEO2027,c=C[i],ref=ref26(G[i]);
+  return `<span class="lbl">${next?"Next stop · ":""}Round ${c[0]}${c[6]?" · Sprint weekend":""}</span><b class="rgp">${flagOf(c[2])} ${esc(c[1])}</b><span class="rci">${esc(c[3])}, ${esc(c[4])}</span>
+  <dl><dt>Weekend</dt><dd>${esc(c[5])} 2027</dd><dt>Race day</dt><dd>${raceDay(c)} 2027</dd><dt>Race start</dt><dd>TBC${ref?` <small>· 2026: ${ref} local</small>`:G[i][3]?"":` <small>· no 2026 race here</small>`}</dd>${i?`<dt>From ${esc(C[i-1][4])}</dt><dd>${dist(hav(G[i-1],G[i]),0).replace(/\B(?=(\d{3})+(?!\d))/g,",")}</dd>`:`<dt>Season</dt><dd>Opening round</dd>`}</dl>`;}
+function rBox(pts,pad=70,minw=300){const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);let x0=Math.min(...xs)-pad,x1=Math.max(...xs)+pad,y0=Math.min(...ys)-pad,y1=Math.max(...ys)+pad;
+  let w=Math.max(x1-x0,minw),h=Math.max(y1-y0,w/RAR);w=Math.max(w,h*RAR);const cx=(x0+x1)/2,cy=(y0+y1)/2;w=Math.min(w,RFULL[2]);h=w/RAR;
+  const x=Math.max(RFULL[0],Math.min(RFULL[0]+RFULL[2]-w,cx-w/2)),y=Math.max(RFULL[1],Math.min(RFULL[1]+RFULL[3]-h,cy-h/2));return [x,y,w,h];}
+function initRoute(){const svg=$("#rsvg");if(!svg)return;const P=rPts(),N=P.length,legs=P.slice(1).map((b,i)=>rLeg(P[i],b));
+  const calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(RT&&RT.raf)cancelAnimationFrame(RT.raf);
+  const R=RT={svg,P,N,legs,i:0,leg:-1,t:0,phase:"idle",playing:false,vb:RFULL.slice(),tg:RFULL.slice(),raf:0,last:0,wait:0,calm};
+  loadWorld().then(w=>{if(svg.isConnected)$("#rland").innerHTML=`<path class="rland" d="${w.land}"/><path class="rbord" d="${w.borders}"/>`;}).catch(()=>{});
+  const trs=[...svg.querySelectorAll(".rtr")],pins=[...svg.querySelectorAll(".rpin")],plane=$("#rplane"),card=$("#rcard"),stops=[...document.querySelectorAll("#rstops button")];
+  const ez=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,lerp=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+  R.select=(i,next)=>{R.i=i;card.innerHTML=rCard(i,next);pins.forEach((p,k)=>{p.classList.toggle("on",k===i);});stops.forEach((b,k)=>b.setAttribute("aria-pressed",String(k===i)));
+    const rs=$("#rstops"),b=stops[i];if(rs&&b)rs.scrollLeft=Math.max(0,b.offsetLeft-rs.offsetLeft-(rs.clientWidth-b.offsetWidth)/2);svg.appendChild($("#rpins"));svg.appendChild(plane);};
+  R.trails=()=>{trs.forEach((el,k)=>{const l=legs[k];if(k<R.leg||(R.phase!=="fly"&&k<R.i)){el.setAttribute("d",`M${l[0]}Q${l[1]} ${l[2]}`);}else if(k===R.leg&&R.phase==="fly"){const t=ez(R.t),a=lerp(l[0],l[1],t),b=lerp(l[1],l[2],t),c=lerp(a,b,t);el.setAttribute("d",`M${l[0]}Q${a} ${c}`);}else el.setAttribute("d","");});
+    pins.forEach((p,k)=>p.classList.toggle("seen",R.phase!=="idle"&&k<R.i));};
+  R.setBtn=()=>{const b=$("[data-rplay]");if(b){b.textContent=R.playing?"❚❚ Pause":R.phase==="done"?"▶ Replay":R.phase==="idle"?"▶ Play route":"▶ Resume";b.setAttribute("aria-pressed",String(R.playing));}};
+  R.zoom=k=>{const z=RREG[k];R.tg=k==="world"?RFULL.slice():rBox([NE1(z[0][0],z[0][1]),NE1(z[1][0],z[1][1])],10,150);document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rzoom===k)));R.kick();};
+  const startLeg=i=>{R.leg=i;R.t=0;R.phase="fly";R.dur=R.calm?1:Math.max(900,Math.min(2600,700+legs[i][3]*3.2));R.tg=rBox([P[i],P[i+1]]);card.innerHTML=rCard(i+1,true);plane.style.display="";};
+  const arrive=j=>{R.phase="dwell";R.wait=R.calm?700:900;R.select(j);if(j<N-1)R.tg=rBox([P[j],P[j+1]]);};
+  R.play=()=>{if(R.phase==="done"||R.phase==="idle"){R.leg=-1;R.phase="dwell";R.wait=700;R.select(0);R.tg=rBox([P[0],P[1]]);document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed","false"));}R.playing=true;R.setBtn();R.kick();};
+  /* bring a stop into view (keeps the zoom level) */
+  R.show=i=>{const p=P[i],v=R.tg;if(p[0]>v[0]+v[2]*.08&&p[0]<v[0]+v[2]*.92&&p[1]>v[1]+v[3]*.08&&p[1]<v[1]+v[3]*.92)return;const w=v[2],h=v[3];
+    R.tg=[Math.max(RFULL[0],Math.min(RFULL[0]+RFULL[2]-w,p[0]-w/2)),Math.max(RFULL[1],Math.min(RFULL[1]+RFULL[3]-h,p[1]-h/2)),w,h];document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed","false"));R.kick();};
+  R.pause=()=>{R.playing=false;R.setBtn();};
+  R.reset=()=>{R.playing=false;R.phase="idle";R.leg=-1;plane.style.display="none";R.select(0);R.tg=RFULL.slice();R.trails();R.setBtn();R.zoom("world");};
+  R.kick=()=>{if(!R.raf){R.last=performance.now();R.raf=requestAnimationFrame(tick);}};
+  const tick=ts=>{R.raf=0;if(!svg.isConnected)return;const dt=Math.min(64,ts-R.last);R.last=ts;
+    if(R.playing){if(R.phase==="fly"){R.t+=dt/R.dur;if(R.t>=1){R.t=1;R.leg=-1;arrive(R.i+1);plane.style.display="none";}}
+      else if(R.phase==="dwell"){R.wait-=dt;if(R.wait<=0){if(R.i>=N-1){R.playing=false;R.phase="done";R.tg=RFULL.slice();R.setBtn();document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rzoom==="world")));}else startLeg(R.i);}}}
+    if(R.phase==="fly"){const l=legs[R.leg],t=ez(R.t),a=lerp(l[0],l[1],t),b=lerp(l[1],l[2],t),c=lerp(a,b,t),ang=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;
+      plane.setAttribute("transform",`translate(${c[0].toFixed(2)} ${c[1].toFixed(2)}) rotate(${ang.toFixed(1)}) scale(${(R.vb[2]/Math.max(300,svg.getBoundingClientRect().width)*1.25).toFixed(3)})`);}
+    R.trails();
+    const f=R.calm?1:1-Math.exp(-dt/320);let moving=false;R.vb=R.vb.map((v,k)=>{const d=R.tg[k]-v;if(Math.abs(d)>.3)moving=true;return Math.abs(d)>.3?v+d*f:R.tg[k];});
+    svg.setAttribute("viewBox",R.vb.map(v=>v.toFixed(2)).join(" "));
+    const px=svg.getBoundingClientRect().width||1000,u=R.vb[2]/px,rr=(px<600?7:8.5)*u;
+    pins.forEach(p=>{const c=p.firstElementChild.nextElementSibling,t=c.nextElementSibling;c.setAttribute("r",rr.toFixed(2));t.setAttribute("font-size",(rr*1.15).toFixed(2));});
+    if(R.playing||moving)R.raf=requestAnimationFrame(tick);};
+  R.select(0);R.setBtn();R.kick();
+  /* plays once by itself when the map first comes into view */
+  if(!calm&&"IntersectionObserver" in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();if(R.phase==="idle"&&svg.isConnected)R.play();}},{threshold:.5});io.observe(svg);}
+  window.addEventListener("resize",()=>R.kick(),{passive:true});}
 function view2027(){const C=CAL2027;
   return `<div class="arch" style="grid-template-columns:minmax(0,1fr)"><div class="txt"><span class="lbl">Season 2027</span><h2 class="h1" style="font-size:clamp(56px,10vw,120px)">2027</h2>
     <p style="font-size:19px;color:var(--ink)"><b>Calendar.</b> The 2027 calendar is confirmed: ${C.length} Grands Prix, ${C.filter(c=>c[6]).length} with a sprint, starting in Bahrain on 14 March and ending in Abu Dhabi on 12 December. Portugal and Türkiye return to the calendar. Pre-season testing runs in Bahrain from 24 to 27 February.</p></div></div>
+  ${routeMapHTML()}
   <div class="sec"><h2>2027 calendar</h2><span class="lbl">Provisional · subject to change</span></div>
-  <div class="tw"><table class="t gpt"><thead><tr><th class="n">Rd</th><th>Grand Prix</th><th>Circuit</th><th>Location</th><th>Weekend</th><th>Format</th></tr></thead><tbody>
-  ${C.map(c=>`<tr><td class="n">${c[0]}</td><td>${flagOf(c[2])} <b>${esc(c[1])}</b></td><td>${esc(c[3])}</td><td style="color:var(--ink-2)">${esc(c[4])}</td><td class="m">${esc(c[5])}</td><td>${c[6]?'<span class="tag sig" style="margin:0">Sprint</span>':'<span style="color:var(--ink-3)">Standard</span>'}</td></tr>`).join("")}</tbody></table></div>
+  <div class="tw"><table class="t gpt"><thead><tr><th class="n">Rd</th><th>Grand Prix</th><th>Circuit</th><th>Location</th><th>Weekend</th><th>Race day</th><th>Format</th></tr></thead><tbody>
+  ${C.map(c=>`<tr><td class="n">${c[0]}</td><td>${flagOf(c[2])} <b>${esc(c[1])}</b></td><td>${esc(c[3])}</td><td style="color:var(--ink-2)">${esc(c[4])}</td><td class="m">${esc(c[5])}</td><td class="m">${raceDay(c)}</td><td>${c[6]?'<span class="tag sig" style="margin:0">Sprint</span>':'<span style="color:var(--ink-3)">Standard</span>'}</td></tr>`).join("")}</tbody></table></div>
   <div class="sec"><h2>Confirmed line-ups</h2><span class="lbl">As announced so far</span></div>
   <div class="tw"><table class="t" style="min-width:0"><thead><tr><th>Team</th><th>Drivers</th></tr></thead><tbody>${ENTRIES2027.map(e=>`<tr><td><span class="sw" style="background:${tcol(e[0])}"></span>${esc(e[0])}</td><td>${e[1].map(x=>x?esc(x):'<span style="color:var(--ink-3)">TBC</span>').join(" · ")}</td></tr>`).join("")}</tbody></table></div>
   <p class="note2">Sources: Formula 1 calendar announcement (16 September 2026), RaceFans and Wikipedia. Full race weekends, results and standings will appear here once the season starts.</p>`;}
@@ -1155,7 +1232,7 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   else if(h==="notfound"){$("#app").innerHTML=viewNotFound();$("#sheetname").textContent="NOT FOUND";setNav("");}
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}
   else if(h==="archive-1946-1949"){$("#app").innerHTML=viewPrewar();centreYrail(yrX);$("#sheetname").textContent="SEASON ARCHIVE";setNav("archive");}
-  else if(h.startsWith("archive")){const y=+h.split("-")[1];const ay=ARCHIVE[y]?y:2025;$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ay);centreYrail(yrX);
+  else if(h.startsWith("archive")){const y=+h.split("-")[1];const ay=ARCHIVE[y]?y:2025;$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ay);centreYrail(yrX);if((ARCHIVE[ay]||{}).next)initRoute();
     if(ARCHV[ay]&&!ARCHDATA[ay])loadSeason(ay).then(()=>{if(curKey()===h){const r=$(".yrail"),x=r?r.scrollLeft:null;$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ay);const r2=$(".yrail");if(r2&&x!=null)r2.scrollLeft=x;}});$("#sheetname").textContent="SEASON ARCHIVE";setNav("archive");}
   else if(h==="drivers"||h.startsWith("driver-")){$("#app").innerHTML=viewDrivers();$("#sheetname").textContent="2026 DRIVERS";setNav("drivers");document.title="2026 Drivers · Track Almanac";if(h.startsWith("driver-"))openDriver(h.slice(7));}
   else if(h==="teams"||h.startsWith("team-")){$("#app").innerHTML=viewTeams();$("#sheetname").textContent="2026 TEAMS";setNav("teams");document.title="2026 Teams · Track Almanac";if(h.startsWith("team-")){const k=teamByKey(h.slice(5));if(k)openTeam(k);}}
@@ -1190,6 +1267,10 @@ document.addEventListener("click",e=>{
   if(e.target.closest("[data-more]")){const open=mm.hidden;mm.hidden=!open;$(".morebtn").setAttribute("aria-expanded",String(open));return;}
   if(e.target.closest(".moremenu")){mm.hidden=true;$(".morebtn").setAttribute("aria-expanded","false");}
   const sv=e.target.closest("[data-sess]");if(sv&&!e.target.closest("[data-detail],[data-quick]")){const [sn,sk]=sv.dataset.sess.split(":");const tgt="detail-"+sn+"-"+sk;if(curKey()===tgt)route();else go(tgt);return;}
+  if(RT){const rp=e.target.closest("[data-rplay]");if(rp){RT.playing?RT.pause():RT.play();return;}
+    if(e.target.closest("[data-rreset]")){RT.reset();return;}
+    const rz=e.target.closest("[data-rzoom]");if(rz){RT.pause();RT.zoom(rz.dataset.rzoom);return;}
+    const rs=e.target.closest("[data-rstop],[data-rpin]");if(rs){const i=+(rs.dataset.rstop??rs.dataset.rpin);RT.pause();if(RT.phase==="fly"||RT.phase==="idle")RT.phase="dwell";RT.leg=-1;$("#rplane").style.display="none";RT.select(i);RT.trails();RT.setBtn();RT.show(i);return;}}
   const dc=e.target.closest("[data-dec]");if(dc){scrollDecade(dc.dataset.dec);return;}
   const pj=e.target.closest("[data-pwj]");if(pj){const t=document.getElementById(pj.dataset.pwj);if(t)t.scrollIntoView({behavior:"smooth",block:"start"});return;}
   const sc2=e.target.closest("[data-scroll]");if(sc2){scrollHome(sc2.dataset.scroll);return;}

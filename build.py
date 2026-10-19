@@ -35,6 +35,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, "src", "app.html")
 DATA = os.path.join(ROOT, "src", "data.json")
 MEDIA = os.path.join(ROOT, "src", "media.json")
+WORLD = os.path.join(ROOT, "src", "world.json")
 SITE = "https://trackalmanac.com"
 STATE = os.path.join(ROOT, ".automation", "build-state.json")
 YEAR = 2026
@@ -379,13 +380,22 @@ def calendar_page(S):
         table(["Rd", "Grand Prix", "Circuit", "Weekend", "Format", "Winner"], rows, "t gpt")
 
 
+def race_day_2027(days):
+    """'12–14 Mar' or '30 Apr–2 May' -> 'Sun 14 Mar' (the last day of the weekend is race day)."""
+    import datetime
+    last = days.split("–")[-1].strip().split()
+    mon = last[1] if len(last) > 1 else days.strip()[-3:]
+    d = datetime.date(2027, ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].index(mon) + 1, int(last[0]))
+    return "%s %d %s" % (d.strftime("%a"), d.day, mon)
+
+
 def archive_year_page(S, y):
     a = S.ARCHIVE.get(str(y), {}); A = S.ARCHDATA.get(str(y))
     if a.get("next"):
-        rows = [[c[0], esc(c[1]), esc(c[3]), esc(c[4]), esc(c[5]), "Sprint" if c[6] else "Standard"] for c in S.CAL2027]
+        rows = [[c[0], esc(c[1]), esc(c[3]), esc(c[4]), esc(c[5]), race_day_2027(c[5]), "Sprint" if c[6] else "Standard"] for c in S.CAL2027]
         ent = [[esc(e[0]), esc(" · ".join(x or "TBC" for x in e[1]))] for e in S.ENT2027]
         return pagehead("2027 F1 calendar", "The confirmed 2027 Formula 1 calendar: %d Grands Prix, %d sprint weekends." % (len(rows), sum(1 for c in S.CAL2027 if c[6])), "Season 2027") + \
-            sec("2027 calendar", table(["Rd", "Grand Prix", "Circuit", "Location", "Weekend", "Format"], rows, "t gpt"), "Provisional") + \
+            sec("2027 calendar", table(["Rd", "Grand Prix", "Circuit", "Location", "Weekend", "Race day", "Format"], rows, "t gpt"), "Provisional") + \
             sec("Confirmed line-ups", table(["Team", "Drivers"], ent))
     if a.get("live"):
         lead = S.DRIVERS[0] if S.DRIVERS else None
@@ -586,6 +596,10 @@ def build(out, data_path=DATA):
         open(os.path.join(adir, "%s.json" % y), "w", encoding="utf-8").write(txt)
         archv[y] = vhash(txt)
     data += "const ARCHDATA={};const ARCHV=%s;\n" % json.dumps(archv, separators=(",", ":"))
+    # world map for the 2027 calendar page, loaded only on that page
+    wtxt = json.dumps(load_data(WORLD), separators=(",", ":"))
+    open(os.path.join(out, "data", "world.json"), "w", encoding="utf-8").write(wtxt)
+    data += "const WORLDV=%s;\n" % json.dumps(vhash(wtxt))
     data_x = extract_images(data, imgdir, written)
     app_x = extract_images(app, imgdir, written)
     css_x = extract_images(css, imgdir, written)
