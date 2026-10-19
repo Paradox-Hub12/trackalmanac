@@ -337,8 +337,8 @@ function jumpTo(k){if(!k)return;if(/^fp\d$/.test(k)){const b=document.querySelec
 function viewLive(n){
   const r=RACES.find(x=>x.r===n);if(!r)return viewSeason();
   const S=SEASON[n]||{},sc=SCHED[n],tz=sc?sc[0]:null,i=RACES.indexOf(r),p=RACES[i-1],nx=RACES[i+1];
-  const pv=`<button class="navbtn" ${p?`data-detail="${p.r}"`:"disabled"}>← ${p?`R${p.r} ${shortName(p)}`:"Season start"}</button>`;
-  const nb=`<button class="navbtn" ${nx?`data-detail="${nx.r}"`:"disabled"}>${nx?`R${nx.r} ${shortName(nx)}`:"Season end"} →</button>`;
+  const pv=`<button class="navbtn" ${p?`data-detail="${p.r}"`:"disabled"}>← ${p?`R${p.r}<span class="nl"> ${shortName(p)}</span>`:"Season start"}</button>`;
+  const nb=`<button class="navbtn" ${nx?`data-detail="${nx.r}"`:"disabled"}>${nx?`R${nx.r}<span class="nl"> ${shortName(nx)}</span>`:"Season end"} →</button>`;
   const sessions=sc?sc[1]:[];const keys=sessions.map(x=>SESKEY[x[0]]);
   const doneN=keys.filter(k=>sesRows(n,k)).length;
   const fps=keys.filter(k=>/^fp/.test(k));
@@ -997,7 +997,7 @@ let driverSort="team";try{driverSort=localStorage.getItem("ta-dsort")||"team";}c
 function driverCard(d){const b=bioOf(d[0]),i=DRIVERS.indexOf(d),[fn,ln]=nameParts(d[0]);
   return `<a class="dcard" href="${H("driver-"+b.code)}" data-driver="${b.code}" style="--tc:${tcol(d[2])}" aria-label="${esc(d[0])}, ${esc(d[2])}">
     <div class="ph">${pimg(b.code,d[0])}</div><span class="num">${b.num}</span><span class="pos">P${i+1}</span>
-    <div class="bd"><span class="toprow"><span class="fn">${esc(fn)}</span><span class="ctry">${esc(b.country)}${flagOf(b.iso2,"big")}</span></span><span class="ln">${esc(ln)}</span>
+    <div class="bd"><span class="toprow"><span class="fn">${esc(fn)}</span><span class="ctry" title="${esc(b.country)}"><span class="cn">${esc(b.country)}</span>${flagOf(b.iso2,"big")}</span></span><span class="ln">${esc(ln)}</span>
     <span class="tmn"><span>${esc(d[2].replace(" F1 Team",""))}</span><b>${d[3]} pts</b></span></div></a>`;}
 function viewDrivers(){
   let list=[...grid26];
@@ -1220,6 +1220,13 @@ function consentBanner(force){let c=null;try{c=localStorage.getItem("ta-consent"
 let t=null;
 function setNav(k){["season","championship","drivers","teams","archive"].forEach(x=>{const b=$("#n-"+x);if(x===k)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
 /* the race bar and section tabs stay pinned: the tabs sit just under the bar */
+/* big display titles: if a word is wider than its box (e.g. the narrow display font didn't load), shrink it until it fits */
+const FITSEL="#app :is(h1,.h1),.dhero :is(h1,.h1),.arch .h1,.dcard .ln,.drawer :is(h1,h2,.h1),.sec h2";
+function fitTitles(){document.querySelectorAll(FITSEL).forEach(el=>{el.style.fontSize="";if(!el.clientWidth||el.scrollWidth<=el.clientWidth+1)return;
+  let f=parseFloat(getComputedStyle(el).fontSize),n=0;while(el.scrollWidth>el.clientWidth+1&&f>14&&n++<40){f*=.94;el.style.fontSize=f.toFixed(1)+"px";}});}
+{let q=0;const run=()=>{if(!q){q=requestAnimationFrame(()=>{q=0;fitTitles();});}};
+  new MutationObserver(run).observe(document.body,{childList:true,subtree:true});addEventListener("resize",run,{passive:true});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(run);if(document.fonts)document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",run);}
 function pinSizes(){const p=$(".dnav.pin"),j=$(".jump"),R=document.documentElement.style;R.setProperty("--pinh",(p?p.offsetHeight:0)+"px");R.setProperty("--jumph",(j?j.offsetHeight:0)+"px");}
 window.addEventListener("resize",()=>pinSizes());
 function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body.classList.remove("fs-lock");document.title="Track Almanac · Races. Drivers. Teams. Numbers.";

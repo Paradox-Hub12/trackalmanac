@@ -211,6 +211,9 @@ h1,h2,h3{font-family:var(--f-display);text-transform:uppercase;margin:0;line-hei
 .gain{color:var(--pts);font-weight:600}
 :root[data-theme="light"] .gain{color:#1f7a45}
 .dnav .navbtn:first-child{justify-self:start}.dnav .navbtn:last-child{justify-self:end}
+.dnav>*{min-width:0;max-width:100%}
+.dnav .navbtn{overflow:hidden;text-overflow:ellipsis}
+@media (max-width:520px){.dnav .nl{display:none}.dnav{gap:6px}.dnav .navbtn{padding:7px 8px}}
 
 /* detail page */
 .dhero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;margin-top:16px}
@@ -221,7 +224,7 @@ h1,h2,h3{font-family:var(--f-display);text-transform:uppercase;margin:0;line-hei
 .dhero .map svg{width:100%;height:auto;display:block}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--f-data);font-size:11px;color:var(--ink-2);margin-top:6px}
 .legend i{display:inline-block;width:14px;height:4px;margin-right:6px;vertical-align:middle}
-.jump{position:sticky;top:var(--pinh,50px);z-index:29;background:var(--sheet);border-bottom:1.5px solid var(--rule-2);margin-top:20px;padding:8px 0;display:flex;gap:4px;overflow-x:auto}
+.jump{position:sticky;top:var(--pinh,50px);z-index:29;background:var(--sheet);border-bottom:1.5px solid var(--rule-2);margin-top:20px;padding:8px 0;display:flex;gap:4px;overflow-x:auto;max-width:100%;min-width:0;overscroll-behavior-x:contain;scrollbar-width:thin}
 .jump a{flex:none;font-family:var(--f-data);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);text-decoration:none;padding:6px 10px;border:1px solid var(--rule-2);background:var(--panel)}
 .jump a:hover{color:var(--ink);border-color:var(--ink-3)}
 .dsec{margin-top:30px;}
@@ -594,7 +597,11 @@ body.fs-lock{overflow:hidden}
 .flg{display:inline-block;width:20px;height:15px;object-fit:cover;vertical-align:-2px;box-shadow:0 0 0 1px rgba(255,255,255,.18);margin-right:2px}
 .flg.big{width:26px;height:19.5px}
 .dcard .toprow{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.ctry{display:inline-flex;align-items:center;gap:7px;font-family:var(--f-data);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);text-align:right;white-space:nowrap}
+.ctry{display:inline-flex;align-items:center;gap:7px;font-family:var(--f-data);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);text-align:right;line-height:1.25;min-width:0}
+.ctry .flg{flex:none}
+.dcard{container-type:inline-size}
+.dcard .toprow{min-width:0}.dcard .toprow .fn{min-width:0}
+@container (max-width:210px){.dcard .ctry .cn{display:none}}
 .ctry .flg{margin:0}
 .tcard .ent{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .ctry2{display:inline-flex;align-items:center;gap:6px}
@@ -1081,8 +1088,8 @@ function jumpTo(k){if(!k)return;if(/^fp\d$/.test(k)){const b=document.querySelec
 function viewLive(n){
   const r=RACES.find(x=>x.r===n);if(!r)return viewSeason();
   const S=SEASON[n]||{},sc=SCHED[n],tz=sc?sc[0]:null,i=RACES.indexOf(r),p=RACES[i-1],nx=RACES[i+1];
-  const pv=`<button class="navbtn" ${p?`data-detail="${p.r}"`:"disabled"}>← ${p?`R${p.r} ${shortName(p)}`:"Season start"}</button>`;
-  const nb=`<button class="navbtn" ${nx?`data-detail="${nx.r}"`:"disabled"}>${nx?`R${nx.r} ${shortName(nx)}`:"Season end"} →</button>`;
+  const pv=`<button class="navbtn" ${p?`data-detail="${p.r}"`:"disabled"}>← ${p?`R${p.r}<span class="nl"> ${shortName(p)}</span>`:"Season start"}</button>`;
+  const nb=`<button class="navbtn" ${nx?`data-detail="${nx.r}"`:"disabled"}>${nx?`R${nx.r}<span class="nl"> ${shortName(nx)}</span>`:"Season end"} →</button>`;
   const sessions=sc?sc[1]:[];const keys=sessions.map(x=>SESKEY[x[0]]);
   const doneN=keys.filter(k=>sesRows(n,k)).length;
   const fps=keys.filter(k=>/^fp/.test(k));
@@ -1741,7 +1748,7 @@ let driverSort="team";try{driverSort=localStorage.getItem("ta-dsort")||"team";}c
 function driverCard(d){const b=bioOf(d[0]),i=DRIVERS.indexOf(d),[fn,ln]=nameParts(d[0]);
   return `<a class="dcard" href="${H("driver-"+b.code)}" data-driver="${b.code}" style="--tc:${tcol(d[2])}" aria-label="${esc(d[0])}, ${esc(d[2])}">
     <div class="ph">${pimg(b.code,d[0])}</div><span class="num">${b.num}</span><span class="pos">P${i+1}</span>
-    <div class="bd"><span class="toprow"><span class="fn">${esc(fn)}</span><span class="ctry">${esc(b.country)}${flagOf(b.iso2,"big")}</span></span><span class="ln">${esc(ln)}</span>
+    <div class="bd"><span class="toprow"><span class="fn">${esc(fn)}</span><span class="ctry" title="${esc(b.country)}"><span class="cn">${esc(b.country)}</span>${flagOf(b.iso2,"big")}</span></span><span class="ln">${esc(ln)}</span>
     <span class="tmn"><span>${esc(d[2].replace(" F1 Team",""))}</span><b>${d[3]} pts</b></span></div></a>`;}
 function viewDrivers(){
   let list=[...grid26];
@@ -1964,6 +1971,13 @@ function consentBanner(force){let c=null;try{c=localStorage.getItem("ta-consent"
 let t=null;
 function setNav(k){["season","championship","drivers","teams","archive"].forEach(x=>{const b=$("#n-"+x);if(x===k)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
 /* the race bar and section tabs stay pinned: the tabs sit just under the bar */
+/* big display titles: if a word is wider than its box (e.g. the narrow display font didn't load), shrink it until it fits */
+const FITSEL="#app :is(h1,.h1),.dhero :is(h1,.h1),.arch .h1,.dcard .ln,.drawer :is(h1,h2,.h1),.sec h2";
+function fitTitles(){document.querySelectorAll(FITSEL).forEach(el=>{el.style.fontSize="";if(!el.clientWidth||el.scrollWidth<=el.clientWidth+1)return;
+  let f=parseFloat(getComputedStyle(el).fontSize),n=0;while(el.scrollWidth>el.clientWidth+1&&f>14&&n++<40){f*=.94;el.style.fontSize=f.toFixed(1)+"px";}});}
+{let q=0;const run=()=>{if(!q){q=requestAnimationFrame(()=>{q=0;fitTitles();});}};
+  new MutationObserver(run).observe(document.body,{childList:true,subtree:true});addEventListener("resize",run,{passive:true});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(run);if(document.fonts)document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",run);}
 function pinSizes(){const p=$(".dnav.pin"),j=$(".jump"),R=document.documentElement.style;R.setProperty("--pinh",(p?p.offsetHeight:0)+"px");R.setProperty("--jumph",(j?j.offsetHeight:0)+"px");}
 window.addEventListener("resize",()=>pinSizes());
 function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body.classList.remove("fs-lock");document.title="Track Almanac · Races. Drivers. Teams. Numbers.";
