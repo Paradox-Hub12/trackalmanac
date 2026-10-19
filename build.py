@@ -427,7 +427,10 @@ def prewar_page(S):
            "<ul>%s</ul>" % "".join("<li>%s</li>" % esc(k) for k in P["keys"])]
     head = ["Date", "Race", "Circuit", "Winner", "Car"]
     ge = [[y, fmt_date(r[0], False), "<b>%s</b>" % esc(r[1]), esc(r[3]), esc(r[4]), esc(r[6])] for y in sorted(P["years"]) for r in P["years"][y]["races"] if r[7]]
-    out.append(sec("Grandes Épreuves", table(["Year"] + head, ge, "t gpt"), "The most prestigious races, 1947–1949"))
+    ge_note = ("<p>In motorsport history, <i>Grandes Épreuves</i> (French for &ldquo;great trials&rdquo; or &ldquo;major events&rdquo;) "
+               "was a term used from 1906 to 1949 to designate the most prestigious and important international motor racing events. "
+               "There were none in 1946.</p>")
+    out.append(sec("Grandes Épreuves", ge_note + table(["Year"] + head, ge, "t gpt"), "The most prestigious races, 1947–1949"))
     for y in sorted(P["years"]):
         Y = P["years"][y]
         rows = [[fmt_date(r[0], False), ("<b>%s</b> (Grande Épreuve)" % esc(r[1])) if r[7] else esc(r[1]), esc(r[3]), esc(r[4]), esc(r[6])] for r in Y["races"]]
