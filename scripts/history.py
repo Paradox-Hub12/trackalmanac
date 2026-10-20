@@ -79,7 +79,8 @@ def main(src):
             # [driver, finishing position (0 = not classified), status code, points, grid, laps, pole, constructor]
             rows.append([dix[x["driverId"]], x["positionNumber"] or 0, code, x["points"] or 0, g or 0,
                          x["laps"] or 0, 1 if x.get("polePosition") else 0, ci(x["constructorId"]),
-                         ei(x["engineManufacturerId"]), ti(x["tyreManufacturerId"]) if x.get("tyreManufacturerId") else -1])
+                         ei(x["engineManufacturerId"]), ti(x["tyreManufacturerId"]) if x.get("tyreManufacturerId") else -1,
+                         int(x["driverNumber"]) if str(x.get("driverNumber") or "").isdigit() else 0])
         # [driver, position (0 = not classified), points, started (0 = did not start)]
         sp = [[dix[x["driverId"]], x["positionNumber"] or 0, x["points"] or 0, 0 if x["positionText"] in NONSTART else 1] for x in spr.get(r["id"], [])]
         g = gps[r["grandPrixId"]]

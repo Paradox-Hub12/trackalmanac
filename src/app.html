@@ -739,6 +739,17 @@ a.dcard,a.tcard{text-decoration:none;color:inherit}
 .htabs a:hover:not([aria-selected="true"]){color:var(--ink)}
 .hdl .sw,.hcons .sw{display:inline-block;width:4px;height:14px;vertical-align:-2px;margin-right:7px}
 .hch[style*="--tc"] .t{color:var(--tc)}
+.hcc td,.hcc th{white-space:nowrap}
+.hcc td.hdrvs{white-space:nowrap;font-size:12.5px;line-height:1.35}
+.hcc .hdv .no{font-family:var(--f-data);color:var(--ink-3);display:inline-block;min-width:30px;text-align:right}
+.hcc .hmore{padding:2px 0 0 34px;font-size:12px}
+.hcc .hdv.sub{color:var(--ink-3)}
+.hcc .hdv .hdl{font-weight:500}
+.hcc .star{color:var(--signal);font-weight:700;margin-left:2px}
+.hcc td.c,.hcc th.c{text-align:center}
+.hcc .yr{position:sticky;left:0;z-index:1;background:var(--panel)}
+.hcc tr.live .yr{background:color-mix(in srgb,var(--signal) 6%,var(--panel))}
+.tyb{display:inline-block;min-width:20px;padding:1px 4px;font-family:var(--f-data);font-size:11px;font-weight:700;border:1px solid var(--rule-2);color:var(--ink)}
 .hdbl{font-family:var(--f-data);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--signal);color:var(--signal);padding:0 4px;vertical-align:1px;margin-left:4px}
 .hchips{display:flex;flex-wrap:wrap;gap:6px}
 .hchip{background:var(--panel);border:1px solid var(--rule-2);color:var(--ink);font:inherit;font-size:13px;padding:5px 9px;cursor:pointer}
@@ -2240,15 +2251,25 @@ function viewCons(){histIndexTeams();
   <section class="dsec" id="c-eng"><div class="sec"><h2>Engine makers</h2><span class="lbl">${HIST.engines.length} manufacturers · select a column to sort</span></div><div id="c-elist">${engList()}</div></section>
   <section class="dsec" id="c-cty"><div class="sec"><h2>By country</h2><span class="lbl">Where the teams are based · select one to list its teams</span></div>${consCountries()}</section>
   <p class="note2">Data: <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a> (CC BY 4.0) up to ${HIST.upto[0]} round ${HIST.upto[1]}, with later ${HIST.now} rounds added from this site's results. A team counts once per race however many cars it ran; podiums count cars. Points are official constructors' championship points, so teams have none before 1958. Teams that changed name are listed under each name; a team's card shows its history. In the 1950s and 60s the title went to a chassis-engine pairing (e.g. Cooper-Climax); it is counted for the chassis maker here, and for the engine in the engine records.</p></div>`;}
+/* tyre supplier badge: P = Pirelli, B = Bridgestone, G = Goodyear, MI = Michelin, D = Dunlop, F = Firestone … */
+const TYAB={Pirelli:"P",Bridgestone:"B",Goodyear:"G",Michelin:"MI",Dunlop:"D",Firestone:"F",Continental:"C",Englebert:"E",Avon:"A"};
+const tyb=n=>`<span class="tyb" title="${esc(n)}">${TYAB[n]||esc(n.slice(0,2))}</span>`;
 function consChamps(){
-  const rows=[...HIST.cchamps].reverse().map(c=>{const [a,b,t]=c.top;
-    const won=c.done?(c.dec?`${flagOf(c.dec[3])} ${gpS(c.dec[0])} <small>R${c.dec[1]} of ${c.rounds}${c.left?` · ${c.left} race${c.left>1?"s":""} to spare`:" · final round"}</small>`:"—"):`<span class="tag sig" style="margin:0">In progress</span> <small>${c.rounds} rounds run</small>`;
-    const sub=x=>x[1]!==(HIST.tby[x[0]]||{}).n?`<small class="tm">${esc(x[1])}</small>`:"";
-    const dbl=c.dch&&HIST.tby[a[0]]&&c.dch[1]===HIST.tby[a[0]].n;
-    return `<tr${c.done?"":` class="live"`}><td class="n"><b>${c.y}</b></td><td>${tcl(a[0])}${sub(a)}</td><td class="n">${hn(a[2])}</td><td class="n">${a[3]}</td>
-      <td>${b?tcl(b[0]):""}<small class="tm">${b?hn(b[2])+" pts":""}</small></td><td>${t?tcl(t[0]):""}<small class="tm">${t?hn(t[2])+" pts":""}</small></td><td>${won}</td><td class="n">${c.margin!=null?hn(c.margin):"—"}</td>
-      <td>${c.dch?`${hdl(c.dch[0])}${c.done?(dbl?` <span class="hdbl" title="Won both titles">Double</span>`:`<small class="tm">${esc(c.dch[1])}</small>`):`<small class="tm">leading</small>`}`:"—"}</td></tr>`;}).join("");
-  return `<div class="tw"><table class="t htab"><thead><tr><th class="n">Year</th><th>${HIST.done?"Champion":"Champion · leader"}</th><th class="n">Pts</th><th class="n">Wins</th><th>Runner-up</th><th>Third</th><th>Title won at</th><th class="n">Margin</th><th>Drivers' champion</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
+  const pc=v=>v==null?"—":v.toFixed(2);
+  const rows=[...HIST.cchamps].reverse().map(c=>{const [a,b,t]=c.top,d=c.d||{drv:[],tyre:[]},T=HIST.tby[a[0]]||{};
+    const won=c.done?(c.dec?`<span class="nw">Race ${c.dec[1]} of ${c.rounds}</span><small class="tm">${flagOf(c.dec[3])} ${gpS(c.dec[0])}</small>`:"—"):`<span class="tag sig" style="margin:0">In progress</span><small class="tm">${c.rounds} rounds run</small>`;
+    const one=([i,no,n,sub])=>{const x=HIST.by[i];if(!x)return "";const star=c.dch&&c.dch[0]===i&&c.done;
+      return `<div class="hdv${sub?" sub":""}"><span class="no">${no!=null?(sub?`(${no})`:no):""}</span> <button class="hdl" data-hd="${i}">${esc(x.n)}</button>${star?`<span class="star" title="Drivers' champion">*</span>`:""}</div>`;};
+    /* 1950s-60s customer cars: many privateers raced the champion's chassis; show the regulars and the first stand-ins */
+    const reg=d.drv.filter(x=>!x[3]),sub=d.drv.filter(x=>x[3]),show=[...reg,...sub.slice(0,2)],rest=sub.slice(2);
+    const drv=show.map(one).join("")+(rest.length?`<div class="hdvx" hidden>${rest.map(one).join("")}</div><button class="hmore" data-ccx>+${rest.length} more</button>`:"");
+    return `<tr${c.done?"":` class="live"`}><td class="n yr"><b>${c.y}</b></td>
+      <td class="nw">${flagOf(c.cc)} ${tcl(a[0])}</td><td class="nw">${c.eng?`${flagOf(c.eng[1])} ${esc(c.eng[0])}`:"—"}</td><td class="c">${d.tyre.map(tyb).join(" ")}</td>
+      <td class="hdrvs">${drv}</td><td class="n">${d.poles}</td><td class="n">${d.wins}</td><td class="n">${d.pod}</td><td class="n">${d.fl}</td>
+      <td class="n"><b>${hn(a[2])}</b></td><td class="n">${pc(d.pct)}</td><td>${won}</td><td class="n">${c.margin!=null?hn(c.margin):"—"}</td><td class="n">${pc(c.mpct)}</td>
+      <td class="nw">${b?tcl(b[0]):""}<small class="tm">${b?hn(b[2])+" pts":""}</small></td><td class="nw">${t?tcl(t[0]):""}<small class="tm">${t?hn(t[2])+" pts":""}</small></td></tr>`;}).join("");
+  return `<div class="tw hwide"><table class="t htab hcc"><thead><tr><th class="n yr">Season</th><th>Chassis</th><th>Engine</th><th class="c">Tyre</th><th>Drivers</th><th class="n">Poles</th><th class="n">Wins</th><th class="n">Podiums</th><th class="n">Fastest laps</th><th class="n">Points</th><th class="n" title="Share of the points the team could have scored">% points</th><th>Clinched</th><th class="n">Margin</th><th class="n">Margin %</th><th>Runner-up</th><th>Third</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="note2">* Drivers' champion. A number in brackets is a stand-in who raced a third of the season or less. Tyres: P Pirelli, B Bridgestone, MI Michelin, G Goodyear, F Firestone, D Dunlop. % points is the share of the points the team could have scored: 1958–1978 only a team's best-placed car scored and only its best results counted, so it is out of those; from 1979 it is out of first and second in every race, plus sprints and the fastest-lap point (2019–2024), with half-points and double-points races allowed for. Margin % is the margin as a share of the champion's points.</p>`;}
 function consAllChamps(){const ch=HIST.teams.filter(t=>t.t).sort((a,b)=>b.t-a.t||a.ty[0]-b.ty[0]);
   return `<div class="hchamps">${ch.map(t=>`<button class="hch" data-ht="${t.i}" style="--tc:${hcol(t.id,t.ty[t.ty.length-1])}"><span class="t">${t.t}<small>title${t.t>1?"s":""}</small></span><span class="nm">${flagOf(t.cc)} <b>${esc(t.n2||t.n)}</b><small>${t.ty.join(" · ")}</small></span></button>`).join("")}</div>`;}
 function consRecords(){const R=HIST.crec,c=R[CS.rcat]||R[0];
@@ -2405,6 +2426,7 @@ document.addEventListener("click",e=>{
     const hd=e.target.closest("[data-hd]");if(hd&&HIST){e.preventDefault();openHDriver(+hd.dataset.hd);return;}
     const ht=e.target.closest("[data-ht]");if(ht&&HIST){e.preventDefault();openHTeam(+ht.dataset.ht);return;}
     const he=e.target.closest("[data-he]");if(he&&HIST){e.preventDefault();openHEngine(+he.dataset.he);return;}
+    const ccx=e.target.closest("[data-ccx]");if(ccx){const x=ccx.previousElementSibling;x.hidden=!x.hidden;ccx.textContent=x.hidden?`+${x.children.length} more`:"Show fewer";return;}
     const crc=e.target.closest("[data-crcat]");if(crc){CS.rcat=+crc.dataset.crcat;$("#c-recs").innerHTML=consRecords();return;}
     const crm=e.target.closest("[data-crmore]");if(crm){CS.rmore[crm.dataset.crmore]=!CS.rmore[crm.dataset.crmore];$("#c-recs").innerHTML=consRecords();return;}
     const cs_=e.target.closest("[data-csort]");if(cs_){const k=cs_.dataset.csort;if(CS.sort===k)CS.dir=-CS.dir;else{CS.sort=k;CS.dir=(k==="n"||k==="cc"||k==="y")?1:-1;}consRefresh();return;}

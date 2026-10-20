@@ -734,6 +734,17 @@ a.dcard,a.tcard{text-decoration:none;color:inherit}
 .htabs a:hover:not([aria-selected="true"]){color:var(--ink)}
 .hdl .sw,.hcons .sw{display:inline-block;width:4px;height:14px;vertical-align:-2px;margin-right:7px}
 .hch[style*="--tc"] .t{color:var(--tc)}
+.hcc td,.hcc th{white-space:nowrap}
+.hcc td.hdrvs{white-space:nowrap;font-size:12.5px;line-height:1.35}
+.hcc .hdv .no{font-family:var(--f-data);color:var(--ink-3);display:inline-block;min-width:30px;text-align:right}
+.hcc .hmore{padding:2px 0 0 34px;font-size:12px}
+.hcc .hdv.sub{color:var(--ink-3)}
+.hcc .hdv .hdl{font-weight:500}
+.hcc .star{color:var(--signal);font-weight:700;margin-left:2px}
+.hcc td.c,.hcc th.c{text-align:center}
+.hcc .yr{position:sticky;left:0;z-index:1;background:var(--panel)}
+.hcc tr.live .yr{background:color-mix(in srgb,var(--signal) 6%,var(--panel))}
+.tyb{display:inline-block;min-width:20px;padding:1px 4px;font-family:var(--f-data);font-size:11px;font-weight:700;border:1px solid var(--rule-2);color:var(--ink)}
 .hdbl{font-family:var(--f-data);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--signal);color:var(--signal);padding:0 4px;vertical-align:1px;margin-left:4px}
 .hchips{display:flex;flex-wrap:wrap;gap:6px}
 .hchip{background:var(--panel);border:1px solid var(--rule-2);color:var(--ink);font:inherit;font-size:13px;padding:5px 9px;cursor:pointer}

@@ -40,6 +40,11 @@ RANKED = {"Most world titles": "world titles", "Most race wins": "race wins", "M
           "Most podiums": "podiums", "Most fastest laps": "fastest laps", "Most race starts": "race starts", "Most points": "points"}
 
 
+# 1958-1978: how many of a constructor's results counted towards its championship total
+COUNTED = {1958: 6, 1959: 5, 1960: 6, 1961: 5, 1962: 5, 1963: 6, 1964: 6, 1965: 6, 1966: 5, 1967: 9, 1968: 10, 1969: 9, 1970: 11,
+           1971: 9, 1972: 10, 1973: 13, 1974: 13, 1975: 12, 1976: 14, 1977: 15, 1978: 14}
+
+
 def norm(s): return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().lower()
 def day(s): return datetime.date.fromisoformat(s)
 def age(dob, on):
@@ -102,7 +107,7 @@ def add_site_rounds(base, D):
                     if t not in base["cons"]: base["cons"].append(t)
                     team[i] = base["cons"].index(t)
             e_, t_ = kit.get(team[i], (-1, -1))
-            rows.append([i, pos, code, num(x[5]) or 0, num(x[6]), num(x[3]), 0, team[i], e_, t_])
+            rows.append([i, pos, code, num(x[5]) or 0, num(x[6]), num(x[3]), 0, team[i], e_, t_, num(x[1])])
         pole = S.get("quali", [[None, None, None]])[0][2] if S.get("quali") else None
         pi = who(r["res"].get("pole") or pole or "")
         for row in rows:
@@ -515,6 +520,66 @@ def team_history(base, D, races, champs, year_now, season_done, rec_rank_fact):
                         "left": (len(ks) - races[dec]["r"]) if (done and dec is not None) else None,
                         "margin": round(top[0][3] - top[1][3], 1) if len(top) > 1 else None,
                         "dch": [dc["top"][0][0], dc["top"][0][1]] if dc else None})
+    # ---- the champion team's season in detail (as in Wikipedia's table of constructors' champions)
+    TY = base.get("tyres", [])
+    def season_detail(ci, y, pts):
+        ks = by_year.get(y, [])
+        drivers, nums, tyres = {}, {}, {}
+        poles = wins = pod = fl = 0
+        for k in ks:
+            R = races[k]; mine = [r for r in R["rows"] if r[7] == ci]
+            if not mine: continue
+            if any(r[6] for r in mine): poles += 1
+            if any(r[1] == 1 for r in mine): wins += 1
+            pod += len({r[1] for r in mine if 1 <= r[1] <= 3})
+            fl += sum(1 for x in R.get("flc", []) if x[0] == ci) if R.get("flc") else sum(1 for f in R["fl"] for r in mine if r[0] == f and r[2] not in NONSTART)
+            for r in mine:
+                if r[2] in NONSTART: continue
+                drivers[r[0]] = drivers.get(r[0], 0) + 1
+                if len(r) > 10 and r[10]: nums.setdefault(r[0], {}); nums[r[0]][r[10]] = nums[r[0]].get(r[10], 0) + 1
+                if len(r) > 9 and r[9] is not None and r[9] >= 0: tyres[r[9]] = tyres.get(r[9], 0) + 1
+        n = len(ks)
+        dl = []
+        for i, c in sorted(drivers.items(), key=lambda kv: (-kv[1], min(nums.get(kv[0], {0: 0})) if nums.get(kv[0]) else 999)):
+            no = max(nums[i], key=nums[i].get) if nums.get(i) else None
+            dl.append([i, no, c, 1 if c * 3 <= n else 0])   # last: a stand-in (a third of the races or fewer)
+        dl.sort(key=lambda d: (d[3], d[1] if d[1] is not None else 999))
+        # share of the points available: 1958-78 only a team's best car scored and only its best results counted;
+        # from 1979 every car scores, so the most a team can get is 1st + 2nd in every race (+ sprints, + the fastest-lap point 2019-24)
+        pct = gross = None
+        if y >= 1958:
+            if y <= 1978:
+                win = 8 if y <= 1960 else 9
+                table = {1958: [8, 6, 4, 3, 2], 1959: [8, 6, 4, 3, 2], 1960: [8, 6, 4, 3, 2, 1]}.get(y, [9, 6, 4, 3, 2, 1])
+                gp = [k for k in ks if "Indianapolis" not in races[k]["gp"]]
+                g = 0
+                for k in gp:
+                    best = min((r[1] for r in races[k]["rows"] if r[7] == ci and r[1]), default=0)
+                    if best and best <= len(table): g += table[best - 1]
+                cnt = COUNTED.get(y, len(gp))
+                pct = round(100 * pts / (cnt * win), 2); gross = round(100 * g / (len(gp) * win), 2)
+            else:
+                per = 15 if y <= 1990 else 16 if y <= 2002 else 18 if y <= 2009 else 43
+                win = 9 if y <= 1990 else 10 if y <= 2009 else 25
+                mx = 0
+                for k in ks:
+                    # a shortened race gave half points (Monaco 1984, Adelaide 1991, Sepang 2009, Spa 2021); Abu Dhabi 2014 gave double
+                    p1 = max((r[3] for r in races[k]["rows"] if r[1] == 1), default=win)
+                    fl1 = 1 if (2019 <= y <= 2024 and any(r[1] == 1 and r[0] in races[k]["fl"] for r in races[k]["rows"]) and p1 > win * .75) else 0
+                    f = round((p1 - fl1) / win * 2) / 2 if p1 else 1
+                    f = f if f in (0.5, 2) else 1
+                    mx += per * f + (1 if 2019 <= y <= 2024 and f >= 1 else 0)
+                spr = sum(1 for k in ks if races[k]["sp"])
+                mx += spr * (5 if y == 2021 else 15)
+                pct = round(100 * pts / mx, 2)
+        return {"drv": dl, "tyre": [TY[t]["n"] for t in sorted(tyres, key=lambda t: -tyres[t])] if TY else [],
+                "poles": poles, "wins": wins, "pod": pod, "fl": fl, "pct": pct, "gross": gross}
+    for c in cchamps:
+        ci = c["top"][0][0]; e = next((r[2] for r in cst[c["y"]] if r[1] == ci), -1)
+        c["d"] = season_detail(ci, c["y"], c["top"][0][2])
+        c["eng"] = [EN[e]["n"], EN[e]["cc"]] if e >= 0 else None
+        c["cc"] = CI[ci]["cc"]
+        c["mpct"] = round(100 * c["margin"] / c["top"][0][2], 2) if c["margin"] is not None and c["top"][0][2] else None
     # drivers' titles by team and engine: the champion's car that season
     for c in champs:
         if not c["done"]: continue
