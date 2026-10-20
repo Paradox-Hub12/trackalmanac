@@ -698,18 +698,18 @@ def build(out, data_path=DATA):
     wtxt = json.dumps(load_data(WORLD), separators=(",", ":"))
     open(os.path.join(out, "data", "world.json"), "w", encoding="utf-8").write(wtxt)
     data += "const WORLDV=%s;\n" % json.dumps(vhash(wtxt))
-    # detailed track diagrams: src/tracks/<circuit id>.webp, copied under a content hash so browsers can cache them for good
+    # track diagrams: src/tracks/<circuit id>.svg (drawn in the site's style, classes styled by style.css),
+    # copied under a content hash and fetched by the circuit card when it opens
     ti = {}
     tdir = os.path.join(os.path.dirname(MEDIA), "tracks")
     if os.path.isdir(tdir):
-        from PIL import Image
         os.makedirs(imgdir, exist_ok=True)
+        tnotes = json.load(open(os.path.join(tdir, "notes.json"), encoding="utf-8")) if os.path.exists(os.path.join(tdir, "notes.json")) else {}
         for f in sorted(os.listdir(tdir)):
-            if not f.endswith(".webp"): continue
-            raw = open(os.path.join(tdir, f), "rb").read(); name = "t-" + hashlib.sha1(raw).hexdigest()[:12] + ".webp"
+            if not f.endswith(".svg"): continue
+            raw = open(os.path.join(tdir, f), "rb").read(); name = "t-" + hashlib.sha1(raw).hexdigest()[:12] + ".svg"
             open(os.path.join(imgdir, name), "wb").write(raw); written.add(name)
-            w, h = Image.open(os.path.join(tdir, f)).size
-            ti[f[:-5]] = ["/img/" + name, w, h]
+            ti[f[:-4]] = ["/img/" + name] + ([tnotes[f[:-4]]] if f[:-4] in tnotes else [])
     data += "const TRACKIMG=%s;\n" % json.dumps(ti, separators=(",", ":"))
     data_x = extract_images(data, imgdir, written)
     app_x = extract_images(app, imgdir, written)

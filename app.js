@@ -1531,26 +1531,31 @@ function viewCirc(){histIndexTeams();histIndexCirc();
   <section class="dsec" id="r-flow"><div class="sec"><h2>Fast and flowing, or tight and technical</h2><span class="lbl">${now} and ${now+1} circuits · lap record speed against corners per km</span></div>${circFlow()}</section>
   <section class="dsec" id="r-lists"><div class="sec"><h2>Firsts and one-offs</h2></div>${circLists()}</section>
   <section class="dsec" id="r-rec"><div class="sec"><h2>Records</h2><span class="lbl">World Championship races</span></div><div id="r-recs">${circRecords()}</div></section>
-  <p class="note2">Data: <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a> (CC BY 4.0) up to ${HIST.upto[0]} round ${HIST.upto[1]}, with later ${now} rounds from this site's results. Track outlines: F1DB circuit outlines by Jules Roy (CC BY 4.0). Detailed track maps on the cards: Wikimedia Commons contributors (CC BY-SA). Altitude: SRTM 90 m elevation model via Open Topo Data, taken at one point on each circuit, so it is approximate. Length and corners are for the latest layout used; the lap record is the fastest race lap on that layout. Pole laps come from qualifying. Future circuits: sources linked on each.</p></div>`;}
+  <p class="note2">Data: <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a> (CC BY 4.0) up to ${HIST.upto[0]} round ${HIST.upto[1]}, with later ${now} rounds from this site's results. Track outlines: F1DB circuit outlines by Jules Roy (CC BY 4.0). Detailed track maps on the cards: redrawn for this site from F1DB outlines and Wikimedia Commons circuit diagrams (CC BY-SA), with turn numbers and corner names from those diagrams. Altitude: SRTM 90 m elevation model via Open Topo Data, taken at one point on each circuit, so it is approximate. Length and corners are for the latest layout used; the lap record is the fastest race lap on that layout. Pole laps come from qualifying. Future circuits: sources linked on each.</p></div>`;}
 function circHero(){const h=HIST.chero,still=h.first.filter(x=>x[1]).length;
   const box=(n,t,s)=>`<div class="chb"><b>${n}</b><span>${t}</span>${s?`<small>${s}</small>`:""}</div>`;
   return `<div class="chero2">${box(h.n,"circuits","since 1950")}${box(h.countries,"countries",`on ${h.continents.length} continents`)}${box(h.cw,"run clockwise",`${h.acw} anticlockwise`)}${box(h.one,"hosted one race","and never again")}${box(`${still} of ${h.first.length}`,"1950 circuits","still on the calendar")}</div>
   <p class="note2">A Grand Prix covers the fewest whole laps that add up to more than 305 km, so the lap count changes from track to track. Monaco is the exception, at about 260 km.</p>`;}
 function circChanges(){const ch=HIST.calchanges||{},yrs=Object.keys(ch).sort((a,b)=>b-a);
-  const chip=(i,tag)=>{const c=HIST.cby[i];if(!c)return "";return `<button class="cchip" data-hc="${c.i}">${cmapSvg(c.lay,"xs")}<span><b>${flagOf(c.cc)} ${esc(c.n)}</b><small>${esc(c.place)}${tag?` · ${tag}`:""}</small></span></button>`;};
+  const chip=(i,tag,io)=>{const c=HIST.cby[i];if(!c)return "";return `<button class="cchip ${io}" data-hc="${c.i}">${cmapSvg(c.lay,"xs")}<span><b>${flagOf(c.cc)} ${esc(c.n)}</b><small>${esc(c.place)}${tag?` · ${tag}`:""}</small></span></button>`;};
   const fut=(typeof FUTURECIRC!=="undefined"?FUTURECIRC:[]);
   const decs=[];for(let d=Math.floor(+yrs[0]/10)*10;d>=1950;d-=10)decs.push([Math.min(d+9,+yrs[0]),d]);
   const boxes=yrs.map(y=>{const v=ch[y];
-    const ins=v.add.map(([i,back,gp])=>chip(i,[back==="new"?(+y===1950?"":"first time"):`back after ${back}`,gp?`as the ${esc(gp)}`:""].filter(Boolean).join(" · "))).join("");
-    const outs=v.drop.map(i=>chip(i,"")).join("");
+    const ins=v.add.map(([i,back,gp])=>chip(i,[back==="new"?(+y===1950?"":"first time"):`back after ${back}`,gp?`as the ${esc(gp)}`:""].filter(Boolean).join(" · "),"in")).join("");
+    const outs=v.drop.map(i=>chip(i,"","out")).join("");
     return `<div class="cyear" data-cy="${y}"><h3>${y} season<small>${v.n} circuits</small></h3>
       <div class="cio"><span class="lbl in">In</span>${ins||`<span class="none">${+y===1950?"":"No new circuits"}</span>`}</div>
       <div class="cio"><span class="lbl out">Out</span>${outs||'<span class="none">None dropped</span>'}</div></div>`;}).join("");
   return `<div class="decs" role="group" aria-label="Jump to decade">${decs.map(([a,b],k)=>`<button type="button" data-cdec="${a}" aria-pressed="${k===0}">${a}–${b}</button>`).join("")}</div>
-    <div class="cchg" id="cchg" tabindex="0" aria-label="Calendar changes by season, newest first">${boxes}</div>
+    <div class="cchgw"><button type="button" class="cnav l" data-cnav="-1" aria-label="Newer seasons" disabled>‹</button><div class="cchg" id="cchg" tabindex="0" aria-label="Calendar changes by season, newest first">${boxes}</div><button type="button" class="cnav r" data-cnav="1" aria-label="Older seasons">›</button></div>
     ${fut.length?`<div class="cyear cfut"><h3>Planned and future circuits</h3>${fut.map(f=>`<div class="cplan"><div class="ph"><b>${flagOf(f.cc)} ${esc(f.n)}</b><span class="tag${f.status==="Confirmed"?" sig":""}" style="margin:0">${esc(f.status)}</span></div><small>${esc(f.place)} · ${esc(f.when)}</small><p>${esc(f.note)}</p><a href="${esc(f.src[1])}" target="_blank" rel="noopener">${esc(f.src[0])} ↗</a></div>`).join("")}</div>`:""}`;}
 function circDec(y){const box=$("#cchg"),t=box&&box.querySelector(`[data-cy="${y}"]`);if(!t)return;box.scrollTo({left:t.offsetLeft-box.offsetLeft-box.clientLeft,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});}
-function circDecSync(){const box=$("#cchg");if(!box)return;const x=box.scrollLeft+8;let cur=null;
+const TMC={};
+function loadTrackMap(){const el=$(".modal .ctrack[data-tmap]");if(!el)return;const u=el.dataset.tmap;
+  (TMC[u]||(TMC[u]=fetch(u).then(r=>{if(!r.ok)throw 0;return r.text();}))).then(t=>{if(el.isConnected&&el.dataset.tmap===u)el.innerHTML=t;}).catch(()=>{delete TMC[u];el.innerHTML='<p class="note2">The track map could not be loaded.</p>';});}
+function circMore(){document.querySelectorAll("#cchg .cyear").forEach(b=>{b.classList.toggle("more",b.scrollHeight-b.clientHeight-b.scrollTop>6);});}
+function circNav(d){const box=$("#cchg");if(!box)return;const w=(box.querySelector(".cyear")||{}).offsetWidth||300;const n=Math.max(1,Math.floor(box.clientWidth/(w+12)));box.scrollBy({left:d*n*(w+12),behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});}
+function circDecSync(){const box=$("#cchg");if(!box)return;const l=$(".cnav.l"),r=$(".cnav.r");if(l)l.disabled=box.scrollLeft<4;if(r)r.disabled=box.scrollLeft+box.clientWidth>=box.scrollWidth-4;const x=box.scrollLeft+8;let cur=null;
   box.querySelectorAll("[data-cy]").forEach(b=>{if(b.offsetLeft-box.offsetLeft<=x)cur=+b.dataset.cy;});if(cur==null)return;
   document.querySelectorAll("[data-cdec]").forEach(b=>{const a=+b.dataset.cdec;b.setAttribute("aria-pressed",String(cur<=a&&cur>=Math.floor(a/10)*10));});}
 const gmap=c=>`https://www.google.com/maps/search/?api=1&query=${c.lat.toFixed(5)},${c.lon.toFixed(5)}`;
@@ -1657,7 +1662,7 @@ function openHCirc(i){histIndexCirc();histIndexTeams();const c=HIST.cby[i];if(!c
     <div>${esc(c.full)}</div><a class="gmap gco" href="${gmap(c)}" target="_blank" rel="noopener" title="Open in Google Maps"><span aria-hidden="true">⌖</span> ${gcoord(c)}</a><div style="margin-top:6px">${c.cal.includes(HIST.now)?`<span class="tag sig" style="margin:0 6px 0 0">${HIST.now} calendar</span>`:""}${c.cal.includes(HIST.now+1)?`<span class="tag" style="margin:0">${HIST.now+1} calendar</span>`:""}</div></div></div>
   <div class="mb">
    <div><div class="mh"><h3>Circuit</h3><span class="lbl">World Championship races</span></div><div class="facts hstats">${S.map(([l,v,s])=>`<div><span class="lbl">${l}</span><b>${typeof v==="number"?hn(v):esc(v)}</b>${s?`<small>${esc(s)}</small>`:""}</div>`).join("")}</div></div>
-   ${(typeof TRACKIMG!=="undefined"&&TRACKIMG[c.id])?`<div><div class="mh"><h3>Track map</h3><span class="lbl">Turns, corner names and direction · select to enlarge</span></div><a class="ctrack" href="${TRACKIMG[c.id][0]}" target="_blank" rel="noopener"><img src="${TRACKIMG[c.id][0]}" width="${TRACKIMG[c.id][1]}" height="${TRACKIMG[c.id][2]}" alt="Track map of ${esc(c.full)} with turn numbers and corner names" loading="lazy" decoding="async"></a></div>`:""}
+   ${(typeof TRACKIMG!=="undefined"&&TRACKIMG[c.id])?`<div><div class="mh"><h3>Track map</h3><span class="lbl">${TRACKIMG[c.id][1]?esc(TRACKIMG[c.id][1])+" · ":""}Turns, corner names, start line and direction</span></div><div class="ctrack" data-tmap="${TRACKIMG[c.id][0]}" role="img" aria-label="Track map of ${esc(c.full)} with turn numbers and corner names"></div></div>`:""}
    ${c.rec?`<div><div class="mh"><h3>Lap record</h3><span class="lbl">Fastest race lap, current layout</span></div><div class="crec"><b class="t">${c.rec[1]}</b><span>${hdl(c.rec[2])} ${c.rec[3]!=null?`· ${tcl(c.rec[3])}`:""} · ${c.rec[4]}</span>${c.rec[5]?`<small>${spd(c.rec[5],1)} average</small>`:""}</div></div>`:""}
    ${c.wins.length?`<div><div class="mh"><h3>Most wins</h3></div><div class="hchips">${chips(c.wins,(i,n)=>`<button class="hchip" data-hd="${i}">${flagOf(D(i).cc)} ${esc(D(i).n||"")} <b>${n}</b></button>`)}</div></div>`:""}
    ${c.cwins.length?`<div><div class="mh"><h3>Most successful teams</h3></div><div class="hchips">${chips(c.cwins,(i,n)=>`<button class="hchip" data-ht="${i}">${esc(T(i).n2||T(i).n||"")} <b>${n}</b></button>`)}</div></div>`:""}
@@ -1667,7 +1672,7 @@ function openHCirc(i){histIndexCirc();histIndexTeams();const c=HIST.cby[i];if(!c
    ${c.races.length?`<div><div class="mh"><h3>Every race here</h3><span class="lbl">${c.races.length}</span></div><div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Year</th><th>Grand Prix</th><th>Winner</th><th>Team</th><th>Pole</th></tr></thead><tbody>
      ${[...c.races].reverse().map(([y,g,w,t,p])=>`<tr><td class="n">${y}</td><td>${esc(g)}</td><td>${w!=null?hdl(w):"—"}</td><td>${t!=null?tcl(t):"—"}</td><td>${p!=null?`<span style="color:var(--ink-2)">${esc(D(p).n||"")}</span>`:"—"}</td></tr>`).join("")}</tbody></table></div></div>`:""}
   </div>`;
-  modalShell("hcirc",inner,"var(--signal)",pv,nx);setKey("hcirc-"+c.id);document.title=pageTitle("hcirc-"+c.id);loadMaps().then(()=>document.querySelectorAll(".modal svg.cmap").forEach(fillMap));}
+  modalShell("hcirc",inner,"var(--signal)",pv,nx);loadTrackMap();setKey("hcirc-"+c.id);document.title=pageTitle("hcirc-"+c.id);loadMaps().then(()=>document.querySelectorAll(".modal svg.cmap").forEach(fillMap));}
 function viewPage(k){const p=PAGES[k];return `<article class="doc"><span class="lbl">${SITE.name}</span><h1>${p.t}</h1>${p.b}</article>`;}
 /* cookie consent (replace with a Google-certified CMP when AdSense is live in EEA/UK) */
 function consentBanner(force){let c=null;try{c=localStorage.getItem("ta-consent");}catch(e){}
@@ -1753,7 +1758,9 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}
   else if(h==="hcirc"||h.startsWith("hcirc-")){const ck=h.startsWith("hcirc-")?h.slice(6):null,keep=!!$('.hist[data-mode="r"] .hjump');
     if(!keep||!HIST)$("#app").innerHTML=HIST?viewCirc():viewHistory().replace(/<h2 class="h1">Drivers<\/h2>/,'<h2 class="h1">Circuits</h2>');$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hcirc");
-    loadHist().then(()=>{if(curKey()!==h)return;histIndexCirc();if(!$('.hist[data-mode="r"] .hjump')){$("#app").innerHTML=viewCirc();pinSizes();}loadMaps();circMapInit();{const cb=$("#cchg");if(cb&&!cb._s){cb._s=1;let q=0;cb.addEventListener("scroll",()=>{cancelAnimationFrame(q);q=requestAnimationFrame(circDecSync);},{passive:true});}}
+    loadHist().then(()=>{if(curKey()!==h)return;histIndexCirc();if(!$('.hist[data-mode="r"] .hjump')){$("#app").innerHTML=viewCirc();pinSizes();}loadMaps();circMapInit();{const cb=$("#cchg");if(cb&&!cb._s){cb._s=1;let q=0;cb.addEventListener("scroll",()=>{cancelAnimationFrame(q);q=requestAnimationFrame(circDecSync);},{passive:true});
+    cb.addEventListener("scroll",e=>{if(e.target.classList&&e.target.classList.contains("cyear"))e.target.classList.toggle("more",e.target.scrollHeight-e.target.clientHeight-e.target.scrollTop>6);},{passive:true,capture:true});
+    requestAnimationFrame(()=>{circMore();circDecSync();});window.addEventListener("resize",()=>{circMore();circDecSync();},{passive:true});}}
       if(ck&&HIST.cbyid[ck])openHCirc(HIST.cbyid[ck].i);document.title=pageTitle(h);}).catch(()=>{});}
   else if(h==="hcons"||h.startsWith("hcons-")||h.startsWith("heng-")){const tk=h.startsWith("hcons-")?h.slice(6):null,ek=h.startsWith("heng-")?h.slice(5):null,keep=!!$('.hist[data-mode="c"] .hjump');
     if(!keep||!HIST)$("#app").innerHTML=HIST?viewCons():viewHistory().replace(/<h2 class="h1">Drivers<\/h2>/,'<h2 class="h1">Constructors</h2>');$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hcons");
@@ -1810,6 +1817,7 @@ document.addEventListener("click",e=>{
     const hd=e.target.closest("[data-hd]");if(hd&&HIST){e.preventDefault();openHDriver(+hd.dataset.hd);return;}
     if(e.target.closest("a.gmap"))return;
     const hc_=e.target.closest("[data-hc]");if(hc_&&HIST){e.preventDefault();openHCirc(+hc_.dataset.hc);return;}
+    const cnv=e.target.closest("[data-cnav]");if(cnv){circNav(+cnv.dataset.cnav);return;}
     const cdc=e.target.closest("[data-cdec]");if(cdc){circDec(cdc.dataset.cdec);document.querySelectorAll("[data-cdec]").forEach(b=>b.setAttribute("aria-pressed",String(b===cdc)));return;}
     const cwz=e.target.closest("[data-cwz]");if(cwz){circMapZoom(cwz.dataset.cwz);return;}
     const cwb=e.target.closest("[data-cwzb]");if(cwb){if(CWZ)CWZ.zoomBy(cwb.dataset.cwzb==="in"?1/1.6:1.6);return;}
