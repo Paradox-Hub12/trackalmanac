@@ -531,7 +531,7 @@ def history_circ_page(S, D):
     lead = ("Every circuit to host a Formula 1 World Championship race since 1950: %d circuits in %d countries, with track maps, lap records, "
             "most wins and every race held there, plus calendar changes and planned future circuits." % (len(raced), len({c["cc"] for c in raced})))
     out = [pagehead("Formula 1 history: circuits", lead, "Formula 1 history")]
-    ch = "".join("<h3>%s season</h3><p>In: %s. Out: %s.</p>" % (y, ", ".join(esc(cb[i]["n"]) for i in v["add"]) or "none", ", ".join(esc(cb[i]["n"]) for i in v["drop"]) or "none") for y, v in sorted(H["calchanges"].items()))
+    ch = "".join("<h3>%s season</h3><p>In: %s. Out: %s.</p>" % (y, ", ".join(esc(cb[i]["n"]) for i in [x[0] for x in v["add"]]) or "none", ", ".join(esc(cb[i]["n"]) for i in v["drop"]) or "none") for y, v in sorted(H["calchanges"].items(), reverse=True))
     fut = "".join("<h3>%s (%s)</h3><p>%s: %s</p>" % (esc(f["n"]), esc(f["status"]), esc(f["when"]), esc(f["note"])) for f in D.get("FUTURECIRC", []))
     out.append(sec("Calendar changes", ch + fut))
     for it in H["crecords"][0]["items"]:

@@ -830,6 +830,8 @@ def circuit_history(base, D, races, year_now):
             R["flt"] = laptime_ms((r.get("res") or {}).get("fl", [None, None])[1]) if r else None
             p2 = next((x for x in D["SEASON"].get(str(R["r"]), {}).get("race", []) if str(x[0]) == "2"), None)
             R["gap"] = gap_ms(p2[4]) if p2 else None
+            q1 = (D["SEASON"].get(str(R["r"]), {}).get("quali") or [None])[0]
+            R["plt"] = min([t for t in (laptime_ms(x) for x in (q1[3:6] if q1 else [])) if t], default=None)
     by = {}
     for k, R in enumerate(races):
         if R.get("c") is not None: by.setdefault(R["c"], []).append(k)
@@ -839,7 +841,7 @@ def circuit_history(base, D, races, year_now):
     for c, ks in by.items():
         C = CR[c]
         wins, cw, poles, gps, lays = {}, {}, {}, {}, {}
-        rec = None; close = None; pw = 0; winners = set(); rows = []
+        rec = None; close = None; pw = 0; winners = set(); rows = []; dist_ = None
         for k in ks:
             R = races[k]; gps[R["gp"]] = gps.get(R["gp"], 0) + 1
             w = [r for r in R["rows"] if r[1] == 1]
@@ -854,6 +856,7 @@ def circuit_history(base, D, races, year_now):
                 p2 = next((r for r in R["rows"] if r[1] == 2), None)
                 close = [R["gap"], R["y"], R["gp"], w[0][0], p2[0] if p2 else None]
             rows.append([R["y"], R["gp"], w[0][0] if w else None, w[0][7] if w else None, p[0] if p else None, R["r"]])
+            if R.get("laps") and R.get("len"): dist_ = [R["laps"], round(R["laps"] * R["len"], 3), R["y"]]
         cur = last_lay.get(c)
         # lap record: the fastest race lap on the current (or last used) layout
         for k in ks:
@@ -872,24 +875,54 @@ def circuit_history(base, D, races, year_now):
              "r": len(ks), "y": [races[ks[0]]["y"], races[-1 if False else ks[-1]]["y"]], "ns": len({races[k]["y"] for k in ks}),
              "gps": sorted(([g, n] for g, n in gps.items()), key=lambda x: -x[1]), "wins": top(wins), "cwins": top(cw), "poles": top(poles),
              "nw": len(winners), "pw": pw, "rec": [rec[0], fmt_lap(rec[0]), rec[1], rec[2], rec[3], round(3.6e6 * ln / rec[0], 1) if ln else None] if rec else None,
-             "close": [close[0], close[1], close[2], close[3], close[4]] if close else None, "races": rows}
+             "close": [close[0], close[1], close[2], close[3], close[4]] if close else None, "races": rows, "dist": dist_,
+             "dbl": sorted(y for y in {races[k]["y"] for k in ks} if sum(1 for k2 in ks if races[k2]["y"] == y) > 1)}
         out.append(o)
     # calendar changes
     cal = lambda y: {races[k]["c"] for k in range(len(races)) if races[k]["y"] == y and races[k].get("c") is not None}
     c25 = cal(year_now - 1)
     c26 = {cid[TRACKCIRC[r["track"]]] for r in D["RACES"] if TRACKCIRC.get(r["track"]) in cid}
     c27 = {cid[CAL27CIRC[c[3]]] for c in D.get("CAL2027", []) if CAL27CIRC.get(c[3]) in cid}
-    changes = {str(year_now): {"add": sorted(c26 - c25), "drop": sorted(c25 - c26)}}
-    if c27: changes[str(year_now + 1)] = {"add": sorted(c27 - c26), "drop": sorted(c26 - c27)}
+    # every season's calendar: circuit -> Grand Prix names that year (this season and next from the site's calendars)
+    yc = {}
+    for R in races:
+        if R.get("c") is not None and R["y"] < year_now: yc.setdefault(R["y"], {}).setdefault(R["c"], []).append(R["gp"])
+    for r in D["RACES"]:
+        c = cid.get(TRACKCIRC.get(r["track"], ""))
+        if c is not None: yc.setdefault(year_now, {}).setdefault(c, []).append(r["gp"])
+    for c_ in D.get("CAL2027", []):
+        c = cid.get(CAL27CIRC.get(c_[3], ""))
+        if c is not None: yc.setdefault(year_now + 1, {}).setdefault(c, []).append(c_[1])
+    usual = {}
+    for y, m in yc.items():
+        for c, gl in m.items():
+            for g in gl: usual.setdefault(c, {}); usual[c][g] = usual[c].get(g, 0) + 1
+    usual = {c: max(v, key=v.get) for c, v in usual.items()}
+    changes, seen, last = {}, set(), {}
+    prev = set()
+    for y in sorted(yc):
+        cur = set(yc[y])
+        add = []
+        for c in sorted(cur - prev, key=lambda c: CR[c]["n"]):
+            gp = [g for g in yc[y][c] if g != usual.get(c)]
+            add.append([c, "new" if c not in seen else last[c], gp[0] if gp else None])
+        drop = sorted(prev - cur, key=lambda c: CR[c]["n"])
+        changes[str(y)] = {"add": add, "drop": drop, "n": len(cur)}
+        for c in cur: seen.add(c); last[c] = y
+        prev = cur
     for o in out:
         o["cal"] = [y for y, s in ((year_now, c26), (year_now + 1, c27)) if o["i"] in s]
+        # "back after": the last season it was used before returning
+    for y, v in changes.items():
+        for a in v["add"]:
+            if a[1] != "new": a[1] = max(yy for yy in yc if int(yy) < int(y) and a[0] in yc[yy])
     # Madring-style newcomers on a future calendar with no race yet
     known = {o["i"] for o in out}
     for c in (c26 | c27) - known:
         C = CR[c]; L = LY.get(next((lid for lid, v in LY.items() if v[0] == c), None)) or [c, C["len"], C["turns"]]
         out.append({"i": c, "id": C["id"], "n": CIRCNAME.get(C["id"], C["n"]), "full": C["full"], "prev": C.get("prev"), "type": C["type"], "dir": C["dir"], "place": C["place"], "cc": C["cc"],
                     "lat": C["lat"], "lon": C["lon"], "len": C["len"], "turns": C["turns"], "lay": next((lid for lid, v in LY.items() if v[0] == c), None), "layouts": [], "r": 0, "y": None, "ns": 0,
-                    "gps": [], "wins": [], "cwins": [], "poles": [], "nw": 0, "pw": 0, "rec": None, "close": None, "races": [],
+                    "gps": [], "wins": [], "cwins": [], "poles": [], "nw": 0, "pw": 0, "rec": None, "close": None, "races": [], "dist": None, "dbl": [],
                     "cal": [y for y, s in ((year_now, c26), (year_now + 1, c27)) if c in s]})
     # records
     def rk(key, title, unit, extra=lambda o: "", n=10, rev=True, filt=lambda o: True):
@@ -902,6 +935,18 @@ def circuit_history(base, D, races, year_now):
             for i, v in o[kind][:1]: best.append((v, o, i))
         best.sort(key=lambda t: -t[0])
         return [[o["i"], v, (drv[i]["n"] if kind != "cwins" else CN[i])] for v, o, i in best[:10]]
+    def pole_list():
+        L = []
+        for R in races:
+            if R.get("plt") and R.get("len") and R.get("c") is not None:
+                p = next((r[0] for r in R["rows"] if r[6]), None)
+                L.append((R["plt"], 3.6e6 * R["len"] / R["plt"], R, p))
+        return L
+    PL = pole_list()
+    def pole_speed():
+        return [[R["c"], round(v, 3), "%s %d · %s" % (drv[p]["n"] if p is not None else "", R["y"], fmt_lap(t))] for t, v, R, p in sorted(PL, key=lambda x: -x[1])[:10]]
+    def pole_short():
+        return [[R["c"], t / 1000, "%s %d · %s" % (drv[p]["n"] if p is not None else "", R["y"], R["gp"])] for t, v, R, p in sorted(PL, key=lambda x: x[0])[:10]]
     recs = [{"cat": "Circuits", "items": [
         rk(lambda o: o["r"], "Most Grands Prix hosted", "races", extra=lambda o: "%d–%d" % tuple(o["y"]) if o["y"] else ""),
         rk(lambda o: o["ns"], "Most seasons on the calendar", "seasons"),
@@ -917,6 +962,10 @@ def circuit_history(base, D, races, year_now):
            extra=lambda o: "%d of %d" % (o["pw"], o["r"])),
         {"t": "Closest finishes", "u": "s", "rows": [[o["i"], o["close"][0] / 1000, "%d · %s from %s" % (o["close"][1], drv[o["close"][3]]["n"], drv[o["close"][4]]["n"] if o["close"][4] is not None else "")]
                                                      for o in sorted((o for o in out if o["close"]), key=lambda o: o["close"][0])[:10]]},
+        {"t": "Fastest pole laps (average speed)", "u": "km/h", "rows": pole_speed()},
+        {"t": "Shortest lap times (pole)", "u": "lap", "rows": pole_short()},
+        rk(lambda o: len(o["layouts"]) if len(o["layouts"]) > 1 else None, "Most layouts used", "layouts"),
+        rk(lambda o: len(o["gps"]) if len(o["gps"]) > 1 else None, "Most different Grand Prix names", "names", extra=lambda o: ", ".join(g.replace(" Grand Prix", "") for g, _ in o["gps"])),
         {"t": "Most wins at one circuit (driver)", "u": "wins", "rows": at_one("wins")},
         {"t": "Most wins at one circuit (team)", "u": "wins", "rows": at_one("cwins")},
         {"t": "Most poles at one circuit", "u": "poles", "rows": at_one("poles")},
@@ -955,5 +1004,17 @@ def circuit_history(base, D, races, year_now):
     for o in out:
         c = countries.setdefault(o["cc"], {"cc": o["cc"], "n": base["countries"].get(o["cc"], [o["cc"], ""])[0], "c": 0, "r": 0, "cur": 0})
         c["c"] += 1; c["r"] += o["r"]; c["cur"] += year_now in o["cal"]
-    return {"circuits": sorted(out, key=lambda o: o["n"]), "crecords": recs, "calchanges": changes,
+    raced = [o for o in out if o["r"]]
+    cont = {}
+    for o in raced:
+        k = (base["countries"].get(o["cc"]) or [None, None, None])
+        cn = k[2] if len(k) > 2 else None
+        if cn: cont.setdefault(cn, set()).add(o["cc"])
+    y0 = min(int(y) for y in yc)
+    hero = {"n": len(raced), "countries": len({o["cc"] for o in raced}), "continents": sorted(cont), "cw": sum(1 for o in raced if o["dir"] == "CLOCKWISE"),
+            "acw": sum(1 for o in raced if o["dir"] == "ANTI_CLOCKWISE"), "one": sum(1 for o in raced if o["r"] == 1),
+            "first": [[c, year_now in [y for y, s_ in ((year_now, c26),) if c in s_]] for c in sorted(yc[y0], key=lambda c: CR[c]["n"])]}
+    lists = {"one": [[o["i"], o["y"][0]] for o in sorted(raced, key=lambda o: o["y"][0]) if o["r"] == 1],
+             "dbl": [[o["i"], o["dbl"]] for o in sorted(raced, key=lambda o: o["dbl"][0] if o["dbl"] else 0) if o["dbl"]]}
+    return {"circuits": sorted(out, key=lambda o: o["n"]), "crecords": recs, "calchanges": changes, "chero": hero, "clists": lists,
             "ccountries": sorted(countries.values(), key=lambda c: (-c["r"], -c["c"]))}

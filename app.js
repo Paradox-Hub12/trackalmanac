@@ -1518,29 +1518,69 @@ const ctype=t=>({RACE:"Race circuit",STREET:"Street circuit",ROAD:"Road course"}
 const cdir=d=>({CLOCKWISE:"Clockwise",ANTI_CLOCKWISE:"Anticlockwise"})[d]||"";
 const klen=v=>v?dist(v,3):"—";
 function viewCirc(){histIndexTeams();histIndexCirc();
-  const now=HIST.now,cur=HIST.circuits.filter(c=>c.cal.includes(now)).sort((a,b)=>a.n.localeCompare(b.n));
-  const jump=[["r-changes","Calendar changes"],["r-cur",`${now} circuits`],["r-rec","Records"],["r-all","All circuits"],["r-cty","By country"]];
-  const raced=HIST.circuits.filter(c=>c.r).length;
+  const now=HIST.now;
+  const jump=[["r-changes","Calendar changes"],["r-map","Map"],["r-flow","Speed vs corners"],["r-all","All circuits"],["r-cty","By country"],["r-lists","Firsts & one-offs"],["r-rec","Records"]];
   return `<div class="hist" data-mode="r"><div class="pagehead"><div><span class="lbl">Formula 1 history</span><h2 class="h1">Circuits</h2>
-    <p>Every circuit to host a World Championship race since 1950: <b>${raced}</b> circuits in <b>${new Set(HIST.circuits.filter(c=>c.r).map(c=>c.cc)).size}</b> countries. Select a circuit for its card, with track map, records and every race held there.</p>${htabs("r")}</div></div>
+    <p>Every circuit to host a World Championship race since 1950. Select a circuit for its card, with track map, records and every race held there.</p>${htabs("r")}</div></div>
+  ${circHero()}
   <nav class="jump hjump" aria-label="Sections">${jump.map(([id,t])=>`<a href="#${id}" data-hj="${id}">${t}</a>`).join("")}</nav>
-  <section class="dsec" id="r-changes"><div class="sec"><h2>Calendar changes</h2><span class="lbl">${now} · ${now+1} · and beyond</span></div>${circChanges()}</section>
-  <section class="dsec" id="r-cur"><div class="sec"><h2>${now} circuits</h2><span class="lbl">${cur.length} venues on this season's calendar</span></div><div class="ccards">${cur.map(circCard).join("")}</div></section>
-  <section class="dsec" id="r-rec"><div class="sec"><h2>Records</h2><span class="lbl">World Championship races</span></div><div id="r-recs">${circRecords()}</div></section>
+  <section class="dsec" id="r-changes"><div class="sec"><h2>Calendar changes</h2><span class="lbl">${now+1} back to 1950 · circuits in and out each season</span></div>${circChanges()}</section>
+  <section class="dsec" id="r-map"><div class="sec"><h2>Where F1 has raced</h2><span class="lbl">Every circuit · select one for its card</span></div>${circMap()}</section>
+  <section class="dsec" id="r-flow"><div class="sec"><h2>Fast and flowing, or tight and technical</h2><span class="lbl">${now} and ${now+1} circuits · lap record speed against corners per km</span></div>${circFlow()}</section>
   <section class="dsec" id="r-all"><div class="sec"><h2>All circuits</h2><span class="lbl" id="r-count">${circFiltered().length} circuits</span></div>${circControls()}<div id="r-list">${circList()}</div></section>
   <section class="dsec" id="r-cty"><div class="sec"><h2>By country</h2><span class="lbl">Select one to list its circuits</span></div>${circCountries()}</section>
-  <p class="note2">Data: <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a> (CC BY 4.0) up to ${HIST.upto[0]} round ${HIST.upto[1]}, with later ${now} rounds from this site's results. Track maps: F1DB circuit outlines by Jules Roy (CC BY 4.0). Length and corners are for the latest layout used; the lap record is the fastest race lap on that layout. Future circuits: sources linked on each.</p></div>`;}
-function circCard(c){return `<button class="ccard" data-hc="${c.i}">${cmapSvg(c.lay,"sm")}<span class="cn">${flagOf(c.cc)} <b>${esc(c.n)}</b></span><small>${esc(c.place)} · ${klen(c.len)}${c.r?` · ${c.r} GP${c.r>1?"s":""}`:" · new"}</small></button>`;}
-function circChanges(){const ch=HIST.calchanges||{},yrs=Object.keys(ch).sort();
-  const gpIn=(c,y)=>{const r=(HIST.cby[c]||{}).races||[];const x=r.filter(z=>z[0]===+y).map(z=>z[1]);return x.length&&!x.every(g=>g.startsWith((HIST.cby[c].place||"").split(",")[0]))?x[0]:null;};
-  const chip=(i,y,add)=>{const c=HIST.cby[i];if(!c)return "";const g=add?gpIn(i,y):null;const was=!add?null:(c.r&&c.y&&c.y[0]<+y?`back after ${c.y[1]<+y?c.y[1]:c.races.filter(z=>z[0]<+y).map(z=>z[0]).pop()}`:c.r&&c.y&&c.y[0]===+y?"first time":c.r?"":"new venue");
-    return `<button class="cchip" data-hc="${c.i}">${cmapSvg(c.lay,"xs")}<span><b>${flagOf(c.cc)} ${esc(c.n)}</b><small>${esc(c.place)}${g?` · as the ${esc(g)}`:""}${was?` · ${was}`:""}</small></span></button>`;};
+  <section class="dsec" id="r-lists"><div class="sec"><h2>Firsts and one-offs</h2></div>${circLists()}</section>
+  <section class="dsec" id="r-rec"><div class="sec"><h2>Records</h2><span class="lbl">World Championship races</span></div><div id="r-recs">${circRecords()}</div></section>
+  <p class="note2">Data: <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a> (CC BY 4.0) up to ${HIST.upto[0]} round ${HIST.upto[1]}, with later ${now} rounds from this site's results. Track maps: F1DB circuit outlines by Jules Roy (CC BY 4.0). Length and corners are for the latest layout used; the lap record is the fastest race lap on that layout. Pole laps come from qualifying. Future circuits: sources linked on each.</p></div>`;}
+function circHero(){const h=HIST.chero,still=h.first.filter(x=>x[1]).length;
+  const box=(n,t,s)=>`<div class="chb"><b>${n}</b><span>${t}</span>${s?`<small>${s}</small>`:""}</div>`;
+  return `<div class="chero2">${box(h.n,"circuits","since 1950")}${box(h.countries,"countries",`on ${h.continents.length} continents`)}${box(h.cw,"run clockwise",`${h.acw} anticlockwise`)}${box(h.one,"hosted one race","and never again")}${box(`${still} of ${h.first.length}`,"1950 circuits","still on the calendar")}</div>
+  <p class="note2">A Grand Prix covers the fewest whole laps that add up to more than 305 km, so the lap count changes from track to track. Monaco is the exception, at about 260 km.</p>`;}
+function circChanges(){const ch=HIST.calchanges||{},yrs=Object.keys(ch).sort((a,b)=>b-a);
+  const chip=(i,tag)=>{const c=HIST.cby[i];if(!c)return "";return `<button class="cchip" data-hc="${c.i}">${cmapSvg(c.lay,"xs")}<span><b>${flagOf(c.cc)} ${esc(c.n)}</b>${tag?`<small>${tag}</small>`:""}</span></button>`;};
   const fut=(typeof FUTURECIRC!=="undefined"?FUTURECIRC:[]);
-  return `<div class="cchg">${yrs.map(y=>`<div class="cyear"><h3>${y} season</h3>
-    <div class="cio"><span class="lbl in">In</span>${ch[y].add.length?ch[y].add.map(i=>chip(i,y,true)).join(""):'<span class="none">No new circuits</span>'}</div>
-    <div class="cio"><span class="lbl out">Out</span>${ch[y].drop.length?ch[y].drop.map(i=>chip(i,y,false)).join(""):'<span class="none">None dropped</span>'}</div></div>`).join("")}
-    ${fut.length?`<div class="cyear cfut"><h3>Planned and future circuits</h3>${fut.map(f=>`<div class="cplan"><div class="ph"><b>${flagOf(f.cc)} ${esc(f.n)}</b><span class="tag${f.status==="Confirmed"?" sig":""}" style="margin:0">${esc(f.status)}</span></div><small>${esc(f.place)} · ${esc(f.when)}</small><p>${esc(f.note)}</p><a href="${esc(f.src[1])}" target="_blank" rel="noopener">${esc(f.src[0])} ↗</a></div>`).join("")}</div>`:""}</div>`;}
-function circRecords(){const it=HIST.crecords[0].items;const val=(v,u)=>typeof v==="string"?esc(v):u==="%"?hn(v)+"%":u==="km"?klen(v):u==="km/h"?spd(v,1):u==="s"?v.toFixed(3)+" s":hn(v);
+  const rows=yrs.map((y,k)=>{const v=ch[y];
+    const ins=v.add.map(([i,back,gp])=>chip(i,[back==="new"?(+y===1950?"":"first time"):`back after ${back}`,gp?`as the ${esc(gp)}`:""].filter(Boolean).join(" · "))).join("");
+    const outs=v.drop.map(i=>chip(i,"")).join("");
+    return `<div class="cyr${k>=12?" more":""}"${k>=12?" hidden":""}><div class="y"><b>${y}</b><small>${v.n} circuits</small></div>
+      <div class="cio"><span class="lbl in">In</span>${ins||'<span class="none">—</span>'}</div><div class="cio"><span class="lbl out">Out</span>${outs||'<span class="none">—</span>'}</div></div>`;}).join("");
+  return `${fut.length?`<div class="cyear cfut"><h3>Planned and future circuits</h3>${fut.map(f=>`<div class="cplan"><div class="ph"><b>${flagOf(f.cc)} ${esc(f.n)}</b><span class="tag${f.status==="Confirmed"?" sig":""}" style="margin:0">${esc(f.status)}</span></div><small>${esc(f.place)} · ${esc(f.when)}</small><p>${esc(f.note)}</p><a href="${esc(f.src[1])}" target="_blank" rel="noopener">${esc(f.src[0])} ↗</a></div>`).join("")}</div>`:""}
+    <div class="cyrs">${rows}</div>${yrs.length>12?`<button class="navbtn" data-cyall style="margin-top:10px">Show every season back to 1950</button>`:""}`;}
+/* world map of every circuit (current, next season, past) */
+const CWV=[-20,10,1040,465],CEU=[[35,-12],[57,32]];
+function circMap(){const pts=HIST.circuits.map(c=>{const [x,y]=NE1(c.lat,c.lon);return {c,x,y};}).sort((a,b)=>a.c.r-b.c.r);
+  const cls=c=>c.cal.includes(HIST.now)?"now":c.cal.includes(HIST.now+1)?"next":"past";
+  return `<div class="rmap cwmap"><div class="rbar"><div class="rzoom" role="group" aria-label="Map area"><button type="button" data-cwz="w" aria-pressed="true">World</button><button type="button" data-cwz="e" aria-pressed="false">Europe</button></div>
+    <div class="cwkey"><span><i class="now"></i>${HIST.now} calendar</span><span><i class="next"></i>${HIST.now+1} only</span><span><i class="past"></i>No longer used</span></div></div>
+    <div class="rwrap"><svg id="cwsvg" viewBox="${CWV.join(" ")}" role="img" aria-label="World map of every Formula 1 circuit"><g class="cwland"></g>
+    ${pts.map(({c,x,y})=>`<circle class="cwd ${cls(c)}" data-hc="${c.i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(2.6+Math.sqrt(c.r||1)*.55).toFixed(2)}"><title>${esc(c.n)} · ${esc(c.place)} · ${c.r?`${c.r} GP${c.r>1?"s":""}, ${c.y[0]===c.y[1]?c.y[0]:c.y[0]+"–"+c.y[1]}`:"new"}</title></circle>`).join("")}</svg></div></div>`;}
+function circMapInit(){const svg=$("#cwsvg");if(!svg)return;loadWorld().then(w=>{const g=svg.querySelector(".cwland");if(g&&!g.firstChild)g.innerHTML=`<path class="rland" d="${w.land}"/><path class="rbord" d="${w.borders}"/>`;}).catch(()=>{});}
+function circMapZoom(k){const svg=$("#cwsvg");if(!svg)return;let vb=CWV;
+  if(k==="e"){const a=NE1(CEU[0][0],CEU[0][1]),b=NE1(CEU[1][0],CEU[1][1]);const x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]),y0=Math.min(a[1],b[1]),y1=Math.max(a[1],b[1]);const w=x1-x0+20,h=w*CWV[3]/CWV[2];vb=[x0-10,(y0+y1)/2-h/2,w,h];}
+  svg.setAttribute("viewBox",vb.join(" "));const f=vb[2]/CWV[2];svg.querySelectorAll(".cwd").forEach(d=>{if(!d._r)d._r=+d.getAttribute("r");d.setAttribute("r",(d._r*(f<1?Math.max(f*1.5,.2):1)).toFixed(2));});
+  document.querySelectorAll("[data-cwz]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.cwz===k)));}
+/* scatter: average speed of the lap record against corners per km */
+function circFlow(){const L=HIST.circuits.filter(c=>(c.cal.includes(HIST.now)||c.cal.includes(HIST.now+1))&&c.rec&&c.rec[5]&&c.len&&c.turns);
+  if(!L.length)return "";const W=760,H=420,P={l:56,r:16,t:16,b:44};
+  const xs=L.map(c=>c.turns/c.len),ys=L.map(c=>c.rec[5]);const x0=Math.floor(Math.min(...xs)*2)/2,x1=Math.ceil(Math.max(...xs)*2)/2,y0=Math.floor(Math.min(...ys)/10)*10,y1=Math.ceil(Math.max(...ys)/10)*10;
+  const X=v=>P.l+(v-x0)/(x1-x0)*(W-P.l-P.r),Y=v=>H-P.b-(v-y0)/(y1-y0)*(H-P.t-P.b);
+  const gx=[];for(let v=x0;v<=x1+1e-9;v+=.5)gx.push(v);const gy=[];for(let v=y0;v<=y1;v+=10)gy.push(v);
+  const placed=[];const lab=(c,x,y)=>{let dy=-8;for(const p of placed)if(Math.abs(p[0]-x)<62&&Math.abs(p[1]-(y+dy))<11)dy+=dy<0?22:12;placed.push([x,y+dy]);const SH={"Gilles Villeneuve":"Montreal","Hermanos Rodríguez":"Mexico City","Circuit of the Americas":"Austin","José Carlos Pace":"Interlagos","Americas":"Austin"};const nm=SH[c.n]||(c.n.length>14?c.n.split(/[ -]/)[0]:c.n);
+    return `<text x="${x.toFixed(1)}" y="${(y+dy).toFixed(1)}" text-anchor="middle">${esc(nm)}</text>`;};
+  return `<div class="tw cflow"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Lap record speed against corners per kilometre">
+    ${gx.map(v=>`<line class="g" x1="${X(v)}" x2="${X(v)}" y1="${P.t}" y2="${H-P.b}"/><text class="ax" x="${X(v)}" y="${H-P.b+16}" text-anchor="middle">${v.toFixed(1)}</text>`).join("")}
+    ${gy.map(v=>`<line class="g" x1="${P.l}" x2="${W-P.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${P.l-8}" y="${Y(v)+4}" text-anchor="end">${UNIT==="mi"?Math.round(v*KM2MI):v}</text>`).join("")}
+    <text class="axt" x="${(P.l+W-P.r)/2}" y="${H-6}" text-anchor="middle">Corners per km</text><text class="axt" transform="translate(14 ${(P.t+H-P.b)/2}) rotate(-90)" text-anchor="middle">Lap record average, ${UNIT==="mi"?"mph":"km/h"}</text>
+    <text class="axq" x="${P.l+8}" y="${P.t+14}">Fast and flowing</text><text class="axq" x="${W-P.r-8}" y="${H-P.b-8}" text-anchor="end">Tight and technical</text>
+    ${L.map(c=>{const x=X(c.turns/c.len),y=Y(c.rec[5]);return `<g class="fp" data-hc="${c.i}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5"/>${lab(c,x,y)}<title>${esc(c.n)}: ${c.turns} corners in ${klen(c.len)}, lap record ${c.rec[1]} (${spd(c.rec[5],1)})</title></g>`;}).join("")}</svg></div>`;}
+function circLists(){const h=HIST.chero,l=HIST.clists;
+  const row=(i,t)=>{const c=HIST.cby[i];return c?`<li><button class="hdl" data-hc="${c.i}">${flagOf(c.cc)} ${esc(c.n)}</button><small>${t}</small></li>`:"";};
+  return `<div class="hrecs">
+    <div class="hrec"><h3>The 1950 circuits</h3><ol class="plain">${h.first.map(([i,a])=>row(i,a?`still raced · ${HIST.cby[i].r} GPs`:`last used ${HIST.cby[i].y[1]}`)).join("")}</ol></div>
+    <div class="hrec"><h3>One race and never again</h3><ol class="plain">${l.one.map(([i,y])=>row(i,String(y)+(HIST.cby[i].cal.length?" · on the calendar again":""))).join("")}</ol></div>
+    <div class="hrec"><h3>Two races in one season</h3><ol class="plain">${l.dbl.map(([i,ys])=>row(i,ys.join(", "))).join("")}</ol></div></div>`;}
+function circRecords(){const it=HIST.crecords[0].items;const lapf=v=>{const m=Math.floor(v/60),r=v-m*60;return m?`${m}:${r.toFixed(3).padStart(6,"0")}`:r.toFixed(3);};
+  const val=(v,u)=>typeof v==="string"?esc(v):u==="%"?hn(v)+"%":u==="km"?klen(v):u==="km/h"?spd(v,1):u==="s"?v.toFixed(3)+" s":u==="lap"?lapf(v):hn(v);
   return `<div class="hrecs">${it.map((x,k)=>{const more=RS["rm"+k],rows=x.rows.slice(0,more?10:5);let rank=0,prev=null;
     return `<div class="hrec"><h3>${esc(x.t)}</h3><ol>${rows.map((r,j)=>{if(r[1]!==prev){rank=j+1;prev=r[1];}return `<li><span class="rk">${rank}</span><span class="who">${ccl(r[0])}${r[2]?`<small>${esc(r[2])}</small>`:""}</span><b class="v">${val(r[1],x.u)}</b></li>`;}).join("")}</ol>
     ${x.rows.length>5?`<button class="hmore" data-rrm="${k}">${more?"Show top 5":"Show top 10"}</button>`:""}</div>`;}).join("")}</div>`;}
@@ -1549,10 +1589,11 @@ function circControls(){const ccs=[...new Map(HIST.circuits.map(c=>[c.cc,hcc(c.c
   return `<div class="hctl"><label class="hsearch"><span class="lbl">Search</span><input id="rq" type="search" placeholder="Circuit or place…" autocomplete="off" value="${esc(RS.q)}"></label>
    <label><span class="lbl">Country</span><select id="rcc"><option value="">All countries</option>${ccs.map(([cc,n])=>`<option value="${cc}"${RS.cc===cc?" selected":""}>${esc(n)} (${HIST.circuits.filter(c=>c.cc===cc).length})</option>`).join("")}</select></label>
    <label><span class="lbl">Type</span><select id="rtype"><option value="">Any type</option>${["RACE","STREET","ROAD"].map(t=>`<option value="${t}"${RS.type===t?" selected":""}>${ctype(t)}</option>`).join("")}</select></label>
+   <label><span class="lbl">Direction</span><select id="rdir"><option value="">Either</option><option value="CLOCKWISE"${RS.dir2==="CLOCKWISE"?" selected":""}>Clockwise</option><option value="ANTI_CLOCKWISE"${RS.dir2==="ANTI_CLOCKWISE"?" selected":""}>Anticlockwise</option></select></label>
    <label><span class="lbl">Raced in</span><select id="rera"><option value="">Any decade</option>${eras.map(y=>`<option value="${y}"${String(RS.era)===String(y)?" selected":""}>${y}s</option>`).join("")}</select></label>
    <div><span class="lbl">Show</span><div class="dsort hshow" role="group">${[["all","All"],["cur",HIST.now+" calendar"],["next",(HIST.now+1)+" calendar"],["gone","Not used now"]].map(([k,n])=>`<button data-rshow="${k}" aria-pressed="${RS.show===k}">${n}</button>`).join("")}</div></div></div>`;}
 function circFiltered(){histIndexCirc();const q=RS.q.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
-  const L=HIST.circuits.filter(c=>(!q||c._q.includes(q))&&(!RS.cc||c.cc===RS.cc)&&(!RS.type||c.type===RS.type)&&(!RS.era||c.races.some(r=>r[0]>=+RS.era&&r[0]<=+RS.era+9))&&(RS.show==="all"||(RS.show==="cur"&&c.cal.includes(HIST.now))||(RS.show==="next"&&c.cal.includes(HIST.now+1))||(RS.show==="gone"&&!c.cal.length)));
+  const L=HIST.circuits.filter(c=>(!q||c._q.includes(q))&&(!RS.cc||c.cc===RS.cc)&&(!RS.type||c.type===RS.type)&&(!RS.dir2||c.dir===RS.dir2)&&(!RS.era||c.races.some(r=>r[0]>=+RS.era&&r[0]<=+RS.era+9))&&(RS.show==="all"||(RS.show==="cur"&&c.cal.includes(HIST.now))||(RS.show==="next"&&c.cal.includes(HIST.now+1))||(RS.show==="gone"&&!c.cal.length)));
   const k=RS.sort,dir=RS.dir,get=c=>k==="y"?(c.y?c.y[0]:9999):k==="rec"?(c.rec?c.rec[5]:0):k==="w"?(c.wins[0]?c.wins[0][1]:0):k==="type"?ctype(c.type):c[k];
   return L.sort((a,b)=>{const x=get(a),y=get(b);const r=typeof x==="string"?x.localeCompare(y):(x||0)-(y||0);return r*dir||b.r-a.r||a.n.localeCompare(b.n);});}
 function circList(){const L=circFiltered(),shown=L.slice(0,RS.limit),cn=$("#r-count");if(cn)cn.textContent=`${L.length} circuit${L.length===1?"":"s"}`;
@@ -1573,6 +1614,8 @@ function openHCirc(i){histIndexCirc();histIndexTeams();const c=HIST.cby[i];if(!c
   const D=i=>(HIST.by[i]||{}),T=i=>(HIST.tby[i]||{});
   const S=[["Grands Prix",c.r,c.y?(c.y[0]===c.y[1]?String(c.y[0]):c.y[0]+"–"+c.y[1]):""],["Seasons",c.ns,""],["Length",klen(c.len),"latest layout"],["Corners",c.turns||"—",""],["Direction",cdir(c.dir)||"—",""],["Type",ctype(c.type),""],
     ["Different winners",c.nw,""],["Won from pole",c.r?`${c.pw} of ${c.r}`:"—",c.r?Math.round(100*c.pw/c.r)+"%":""],["Layouts",c.layouts.length||1,""]];
+  if(c.dist)S.splice(4,0,["Race distance",`${c.dist[0]} laps`,`${klen(c.dist[1])} · ${c.dist[2]}`]);
+  const note=(typeof CIRCNOTES!=="undefined"&&CIRCNOTES[c.id])||{};if(note.corner)S.push(["Signature corner",note.corner,""]);
   const chips=(L,f)=>L.map(([i,n])=>f(i,n)).join("");
   const inner=`<div class="mhero hhero chero"><div class="cbig">${cmapSvg(c.lay,"lg")}</div><div class="tx"><span class="lbl">${flagOf(c.cc)} ${esc(hcc(c.cc))} · ${esc(c.place)}</span><h2>${esc(c.n)}</h2>
     <div>${esc(c.full)}</div><div style="margin-top:6px">${c.cal.includes(HIST.now)?`<span class="tag sig" style="margin:0 6px 0 0">${HIST.now} calendar</span>`:""}${c.cal.includes(HIST.now+1)?`<span class="tag" style="margin:0">${HIST.now+1} calendar</span>`:""}</div></div></div>
@@ -1583,7 +1626,7 @@ function openHCirc(i){histIndexCirc();histIndexTeams();const c=HIST.cby[i];if(!c
    ${c.cwins.length?`<div><div class="mh"><h3>Most successful teams</h3></div><div class="hchips">${chips(c.cwins,(i,n)=>`<button class="hchip" data-ht="${i}">${esc(T(i).n2||T(i).n||"")} <b>${n}</b></button>`)}</div></div>`:""}
    ${c.poles.length?`<div><div class="mh"><h3>Most poles</h3></div><div class="hchips">${chips(c.poles,(i,n)=>`<button class="hchip" data-hd="${i}">${flagOf(D(i).cc)} ${esc(D(i).n||"")} <b>${n}</b></button>`)}</div></div>`:""}
    ${c.layouts.length>1?`<div><div class="mh"><h3>Layouts</h3><span class="lbl">${c.layouts.length} versions</span></div><div class="clays">${c.layouts.map(([id,a,b,ln,tn,n])=>`<div class="clay">${cmapSvg(id,"sm")}<b>${a===b?a:a+"–"+b}</b><small>${klen(ln)}${tn?` · ${tn} corners`:""} · ${n} race${n>1?"s":""}</small></div>`).join("")}</div></div>`:""}
-   ${c.facts.length?`<div><div class="mh"><h3>Facts</h3></div><ul class="hfacts">${c.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>`:""}
+   ${(c.facts.length||(note.notes||[]).length)?`<div><div class="mh"><h3>Facts</h3></div><ul class="hfacts">${[...(note.notes||[]),...c.facts].map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>`:""}
    ${c.races.length?`<div><div class="mh"><h3>Every race here</h3><span class="lbl">${c.races.length}</span></div><div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Year</th><th>Grand Prix</th><th>Winner</th><th>Team</th><th>Pole</th></tr></thead><tbody>
      ${[...c.races].reverse().map(([y,g,w,t,p])=>`<tr><td class="n">${y}</td><td>${esc(g)}</td><td>${w!=null?hdl(w):"—"}</td><td>${t!=null?tcl(t):"—"}</td><td>${p!=null?`<span style="color:var(--ink-2)">${esc(D(p).n||"")}</span>`:"—"}</td></tr>`).join("")}</tbody></table></div></div>`:""}
   </div>`;
@@ -1673,7 +1716,7 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}
   else if(h==="hcirc"||h.startsWith("hcirc-")){const ck=h.startsWith("hcirc-")?h.slice(6):null,keep=!!$('.hist[data-mode="r"] .hjump');
     if(!keep||!HIST)$("#app").innerHTML=HIST?viewCirc():viewHistory().replace(/<h2 class="h1">Drivers<\/h2>/,'<h2 class="h1">Circuits</h2>');$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hcirc");
-    loadHist().then(()=>{if(curKey()!==h)return;histIndexCirc();if(!$('.hist[data-mode="r"] .hjump')){$("#app").innerHTML=viewCirc();pinSizes();}loadMaps();
+    loadHist().then(()=>{if(curKey()!==h)return;histIndexCirc();if(!$('.hist[data-mode="r"] .hjump')){$("#app").innerHTML=viewCirc();pinSizes();}loadMaps();circMapInit();
       if(ck&&HIST.cbyid[ck])openHCirc(HIST.cbyid[ck].i);document.title=pageTitle(h);}).catch(()=>{});}
   else if(h==="hcons"||h.startsWith("hcons-")||h.startsWith("heng-")){const tk=h.startsWith("hcons-")?h.slice(6):null,ek=h.startsWith("heng-")?h.slice(5):null,keep=!!$('.hist[data-mode="c"] .hjump');
     if(!keep||!HIST)$("#app").innerHTML=HIST?viewCons():viewHistory().replace(/<h2 class="h1">Drivers<\/h2>/,'<h2 class="h1">Constructors</h2>');$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hcons");
@@ -1729,11 +1772,13 @@ document.addEventListener("click",e=>{
   if($(".hist")||$(".modal")){
     const hd=e.target.closest("[data-hd]");if(hd&&HIST){e.preventDefault();openHDriver(+hd.dataset.hd);return;}
     const hc_=e.target.closest("[data-hc]");if(hc_&&HIST){e.preventDefault();openHCirc(+hc_.dataset.hc);return;}
+    if(e.target.closest("[data-cyall]")){document.querySelectorAll(".cyr.more").forEach(x=>x.hidden=false);e.target.closest("[data-cyall]").remove();loadMaps();return;}
+    const cwz=e.target.closest("[data-cwz]");if(cwz){circMapZoom(cwz.dataset.cwz);return;}
     const rrm=e.target.closest("[data-rrm]");if(rrm){RS["rm"+rrm.dataset.rrm]=!RS["rm"+rrm.dataset.rrm];$("#r-recs").innerHTML=circRecords();loadMaps();return;}
     const rso=e.target.closest("[data-rsort]");if(rso){const k=rso.dataset.rsort;if(RS.sort===k)RS.dir=-RS.dir;else{RS.sort=k;RS.dir=(k==="n"||k==="place"||k==="type"||k==="y")?1:-1;}circRefresh();return;}
     const rsh=e.target.closest("[data-rshow]");if(rsh){RS.show=rsh.dataset.rshow;document.querySelectorAll("[data-rshow]").forEach(b=>b.setAttribute("aria-pressed",String(b===rsh)));circRefresh();return;}
     const rl=e.target.closest("[data-rlimit]");if(rl){RS.limit=+rl.dataset.rlimit;circRefresh();return;}
-    if(e.target.closest("[data-rreset]")){Object.assign(RS,{q:"",cc:"",type:"",era:"",show:"all"});["rq","rcc","rtype","rera"].forEach(id=>{const x=$("#"+id);if(x)x.value="";});document.querySelectorAll("[data-rshow]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rshow==="all")));circRefresh();return;}
+    if(e.target.closest("[data-rreset]")){Object.assign(RS,{q:"",cc:"",type:"",era:"",show:"all",dir2:""});["rq","rcc","rtype","rera","rdir"].forEach(id=>{const x=$("#"+id);if(x)x.value="";});document.querySelectorAll("[data-rshow]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rshow==="all")));circRefresh();return;}
     const rct=e.target.closest("[data-rcty]");if(rct){RS.cc=rct.dataset.rcty;$("#rcc").value=RS.cc;circRefresh();$("#r-all").scrollIntoView({behavior:"smooth",block:"start"});return;}
     const ht=e.target.closest("[data-ht]");if(ht&&HIST){e.preventDefault();openHTeam(+ht.dataset.ht);return;}
     const he=e.target.closest("[data-he]");if(he&&HIST){e.preventDefault();openHEngine(+he.dataset.he);return;}
@@ -1790,6 +1835,7 @@ document.addEventListener("click",e=>{
 /* history page: search as you type, filter selects */
 {let qt=0;document.addEventListener("input",e=>{if(e.target.id==="rq"){clearTimeout(qt);qt=setTimeout(()=>{RS.q=e.target.value;circRefresh();},120);return;}if(e.target.id==="cq"){clearTimeout(qt);qt=setTimeout(()=>{CS.q=e.target.value;CS.limit=60;consRefresh();},120);return;}if(e.target.id==="hq"){clearTimeout(qt);qt=setTimeout(()=>{HS.q=e.target.value;HS.limit=60;histRefresh();},120);}});
  document.addEventListener("change",e=>{if(e.target.id==="hcc"){HS.cc=e.target.value;HS.limit=60;histRefresh();}else if(e.target.id==="hera"){HS.era=e.target.value;HS.limit=60;histRefresh();}
+   else if(e.target.id==="rdir"){RS.dir2=e.target.value;circRefresh();}
    else if(e.target.id==="rcc"){RS.cc=e.target.value;circRefresh();}else if(e.target.id==="rtype"){RS.type=e.target.value;circRefresh();}else if(e.target.id==="rera"){RS.era=e.target.value;circRefresh();}
    else if(e.target.id==="ccc"){CS.cc=e.target.value;CS.limit=60;consRefresh();}else if(e.target.id==="cera"){CS.era=e.target.value;CS.limit=60;consRefresh();}});}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$(".moremenu")&&!$(".moremenu").hidden){$(".moremenu").hidden=true;$(".morebtn").setAttribute("aria-expanded","false");$(".morebtn").focus();return;}if(e.key==="Escape"&&$(".modal")){closeModal(pageBase());return;}if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches(".tower li[role=button],[data-sess]")){e.preventDefault();e.target.click();return;}if(e.key==="Escape"&&$(".fsbox.full")){toggleFS($(".fsbox.full").id,false);return;}if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("article[role=button]")){e.preventDefault();e.target.click();return;}if(e.key==="Escape"&&$(".drawer")){setKey("season");closeDrawer();}});

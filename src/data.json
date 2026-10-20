@@ -22868,5 +22868,54 @@
    "note": "Off the 2027 calendar. Barcelona is due back in 2028, sharing a slot with Spa-Francorchamps, the two alternating year by year.",
    "src": ["Spanienpress, 16 September 2026", "https://spanienpress.com/formula-1-2027-madrid-stays-barcelona-has-to-pause-spain-loses-a-race-for-now/?lang=en"]
   }
- ]
+ ],
+ "CIRCNOTES": {
+  "spa-francorchamps": {
+   "corner": "Eau Rouge and Raidillon",
+   "notes": ["The original public-road layout used until 1970 was over 14 km long."]
+  },
+  "monza": {
+   "corner": "Parabolica (Curva Alboreto)",
+   "notes": ["Known as the Temple of Speed. It has hosted the Italian Grand Prix every year since 1950 except 1980, when the race went to Imola."]
+  },
+  "monaco": {
+   "corner": "Casino Square, the Fairmont hairpin and the tunnel",
+   "notes": ["The one race allowed to run short of the usual 305 km race distance: 78 laps, about 260 km."]
+  },
+  "suzuka": {
+   "corner": "130R and the Esses",
+   "notes": ["A figure-of-eight layout: the back straight crosses over the first part of the lap on a bridge."]
+  },
+  "silverstone": {
+   "corner": "Maggotts, Becketts and Chapel",
+   "notes": ["Hosted the first World Championship race, the 1950 British Grand Prix, on a former RAF airfield."]
+  },
+  "interlagos": {"corner": "The Senna S"},
+  "montreal": {
+   "corner": "The Wall of Champions at the final chicane",
+   "notes": ["Laid out on Île Notre-Dame, an artificial island in the St Lawrence river."]
+  },
+  "zandvoort": {"corner": "The banked Hugenholtz (Turn 3) and Arie Luyendyk (final turn) corners"},
+  "austin": {"corner": "The steep climb to Turn 1"},
+  "mexico-city": {
+   "corner": "The stadium section through the Foro Sol",
+   "notes": ["The highest circuit F1 visits, more than 2,200 m above sea level; the thin air cuts drag and downforce."]
+  },
+  "baku": {"corner": "The narrow castle section past the old city walls"},
+  "imola": {"corner": "Tamburello, Acque Minerali and Rivazza"},
+  "marina-bay": {"notes": ["Hosted F1's first night race, in 2008."]},
+  "yas-marina": {"notes": ["Races start in daylight and finish under floodlights."]},
+  "las-vegas": {"notes": ["Runs along the Las Vegas Strip, with the race held late on Saturday night."]},
+  "caesars-palace": {"notes": ["Laid out in the car park of the Caesars Palace hotel in Las Vegas."]},
+  "avus": {"notes": ["Two long straights of a Berlin motorway joined by hairpins, one of them a steep brick banking."]},
+  "nurburgring": {
+   "notes": ["Until 1976 the race used the Nordschleife, a loop of more than 22 km through the Eifel forest, nicknamed the Green Hell."]
+  },
+  "indianapolis": {
+   "notes": ["The Indianapolis 500 counted towards the World Championship from 1950 to 1960; from 2000 to 2007 the United States Grand Prix used a road course inside the oval."]
+  },
+  "dijon": {"notes": ["Hosted the 1982 Swiss Grand Prix: circuit racing has been banned in Switzerland since 1955."]},
+  "bahrain": {"notes": ["The 2020 Sakhir Grand Prix used the short Outer Circuit, giving the shortest lap times in F1 history."]},
+  "jeddah": {"notes": ["One of the fastest street circuits ever raced, with 27 corners."]}
+ }
 }

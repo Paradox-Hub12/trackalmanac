@@ -33,6 +33,12 @@ def main(src):
     # circuits and their layouts
     CIR = sorted(L("circuits"), key=lambda c: c["id"]); cirx = {c["id"]: k for k, c in enumerate(CIR)}
     LAY = {l["id"]: l for l in L("circuits-layouts")}
+    # pole lap: the fastest lap of the driver qualifying first (overall time, or the best of Q1-Q3)
+    plt = {}
+    for x in L("races-qualifying-results"):
+        if x["positionNumber"] == 1:
+            ts = [t for t in (x.get("timeMillis"), x.get("q1Millis"), x.get("q2Millis"), x.get("q3Millis")) if t]
+            if ts: plt[x["raceId"]] = min(ts)
     fl = {}  # race -> drivers with the fastest lap (shared in a few 1950s races)
     for x in L("races-fastest-laps"):
         if x["positionNumber"] == 1: fl.setdefault(x["raceId"], []).append(x)
@@ -94,7 +100,7 @@ def main(src):
         R.append({"y": r["year"], "r": r["round"], "gp": g["fullName"], "cc": countries[g.get("countryId") or circ[r["circuitId"]]["countryId"]]["alpha2Code"],
                   "d": r["date"], "fl": [dix[x["driverId"]] for x in fl.get(r["id"], []) if x["driverId"] in dix],
                   "flc": [[ci(x["constructorId"]), ei(x["engineManufacturerId"])] for x in fl.get(r["id"], [])],
-                  "c": cirx[r["circuitId"]], "lay": r.get("circuitLayoutId"), "len": r.get("courseLength"), "laps": r.get("laps"),
+                  "c": cirx[r["circuitId"]], "lay": r.get("circuitLayoutId"), "plt": plt.get(r["id"]), "len": r.get("courseLength"), "laps": r.get("laps"),
                   "flt": min((x["timeMillis"] for x in fl.get(r["id"], []) if x.get("timeMillis")), default=None),
                   "gap": next((x["gapMillis"] for x in byrace[r["id"]] if x["positionNumber"] == 2 and x.get("gapMillis") and not x.get("gapLaps")), None), "dec": 1 if r.get("driversChampionshipDecider") else 0, "cdec": 1 if r.get("constructorsChampionshipDecider") else 0,
                   "rows": rows, "sp": sp})
@@ -110,7 +116,8 @@ def main(src):
     fam = [[dix[f["parentDriverId"]] if f["parentDriverId"] in dix else byid[f["parentDriverId"]]["name"], dix[f["driverId"]], f["type"]]
            for f in L("drivers-family-relationships") if f["driverId"] in dix]
     used_cc = {d[k] for d in D for k in ("cc", "cc2", "cob") if d.get(k)} | {r["cc"] for r in R}
-    CC = {c["alpha2Code"]: [c["name"], c["demonym"]] for c in countries.values() if c["alpha2Code"] in used_cc}
+    cont = {c["id"]: c["name"] for c in L("continents")}
+    CC = {c["alpha2Code"]: [c["name"], c["demonym"], cont.get(c["continentId"])] for c in countries.values() if c["alpha2Code"] in used_cc}
     last = races[-1]
     # constructors' standings every season (from 1958): [position, constructor, engine, points]
     CST = {}
@@ -127,10 +134,10 @@ def main(src):
     TYR = [{"id": t, "n": tmk[t]["name"] if t in tmk else t, "cc": countries[tmk[t]["countryId"]]["alpha2Code"] if t in tmk and tmk[t].get("countryId") else None} for t in TN]
     for c in L("circuits"):
         a2 = countries[c["countryId"]]["alpha2Code"]
-        if a2 not in CC: CC[a2] = [countries[c["countryId"]]["name"], countries[c["countryId"]]["demonym"]]
+        if a2 not in CC: CC[a2] = [countries[c["countryId"]]["name"], countries[c["countryId"]]["demonym"], cont.get(countries[c["countryId"]]["continentId"])]
     for c in CI + ENG + TYR:
         if c["cc"] and c["cc"] not in CC:
-            k = next(v for v in countries.values() if v["alpha2Code"] == c["cc"]); CC[c["cc"]] = [k["name"], k["demonym"]]
+            k = next(v for v in countries.values() if v["alpha2Code"] == c["cc"]); CC[c["cc"]] = [k["name"], k["demonym"], cont.get(k["continentId"])]
     out = {"source": "F1DB (github.com/f1db/f1db), CC BY 4.0", "upto": [last["year"], last["round"]],
            "drivers": D, "cons": CN, "cinfo": CI, "engines": ENG, "tyres": TYR, "cstand": CST, "chron": CHR, "countries": CC,
            "circuits": [{"id": c["id"], "n": c["name"], "full": c["fullName"], "prev": c.get("previousNames"), "type": c["type"], "dir": c["direction"],
