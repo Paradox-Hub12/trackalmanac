@@ -503,13 +503,13 @@ def history_cons_page(S):
         t = c["top"]
         won = (esc(c["dec"][0]) if c["dec"] else "In progress")
         d = c.get("d") or {}
-        drivers = ", ".join("%s%s %s%s" % ("(" if x[3] else "", x[1] if x[1] is not None else "", esc(dv[x[0]]["n"]), ")" if x[3] else "") for x in d.get("drv", []) if x[0] in dv)
+        drivers = ", ".join("%s%s%s" % ("(" if x[3] else "", esc(dv[x[0]]["n"]), ")" if x[3] else "") for x in d.get("drv", []) if x[0] in dv)
         clinched = ("Race %d of %d (%s)" % (c["dec"][1], c["rounds"], esc(c["dec"][0]))) if c["dec"] else "In progress"
-        rows.append([c["y"], "<b>%s</b>" % esc(tb[t[0][0]]["n"] if t[0][0] in tb else t[0][1]), esc(c["eng"][0]) if c.get("eng") else "", esc(", ".join(d.get("tyre", []))), drivers,
+        rows.append([c["y"], "<b>%s</b>" % esc(tb[t[0][0]]["n"] if t[0][0] in tb else t[0][1]), esc(c["eng"][0]) if c.get("eng") else "", drivers,
                      d.get("poles", ""), d.get("wins", ""), d.get("pod", ""), d.get("fl", ""), fmtn(t[0][2]), "%.2f" % d["pct"] if d.get("pct") is not None else "",
-                     clinched, fmtn(c["margin"]) if c["margin"] is not None else "", "%.2f" % c["mpct"] if c.get("mpct") is not None else "",
+                     clinched, fmtn(c["margin"]) if c["margin"] is not None else "",
                      "%s (%s)" % (esc(t[1][1]), fmtn(t[1][2])) if len(t) > 1 else "", "%s (%s)" % (esc(t[2][1]), fmtn(t[2][2])) if len(t) > 2 else ""])
-    out.append(sec("Constructors' champions by year", table(["Season", "Chassis", "Engine", "Tyre", "Drivers", "Poles", "Wins", "Podiums", "Fastest laps", "Points", "% points", "Clinched", "Margin", "Margin %", "Runner-up", "Third"], rows)))
+    out.append(sec("Constructors' champions by year", table(["Season", "Chassis", "Engine", "Drivers", "Poles", "Wins", "Podiums", "Fastest laps", "Points", "% points", "Clinched", "Margin", "Runner-up", "Third"], rows)))
     ch = sorted((t for t in H["teams"] if t["t"]), key=lambda t: (-t["t"], t["ty"][0]))
     out.append(sec("All constructors' champions", table(["Team", "Titles", "Years"], [[esc(t["n"]), t["t"], ", ".join(map(str, t["ty"]))] for t in ch])))
     for c in H["crec"]:

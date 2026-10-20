@@ -735,9 +735,19 @@ a.dcard,a.tcard{text-decoration:none;color:inherit}
 .hdl .sw,.hcons .sw{display:inline-block;width:4px;height:14px;vertical-align:-2px;margin-right:7px}
 .hch[style*="--tc"] .t{color:var(--tc)}
 .hcc td,.hcc th{white-space:nowrap}
+.hsw{position:relative}
+.hsw>.hasbar{scrollbar-width:none}
+.hsw>.hasbar::-webkit-scrollbar{display:none}
+.hbar{position:sticky;bottom:0;z-index:5;padding:5px 6px;margin-top:-1px;background:color-mix(in srgb,var(--sheet) 90%,transparent);border:1px solid var(--rule-2);border-top:0;touch-action:pan-y}
+.htrack{position:relative;height:8px;border-radius:4px;background:color-mix(in srgb,var(--ink) 10%,transparent);cursor:pointer}
+.hthumb{position:absolute;left:0;top:0;height:8px;border-radius:4px;background:var(--ink-3);cursor:grab;touch-action:none}
+.hthumb:hover,.hthumb.on{background:var(--ink-2)}
+.hthumb.on{cursor:grabbing}
+@media (pointer:coarse){.hbar{padding:7px 8px}.htrack,.hthumb{height:10px;border-radius:5px}}
+.hbar[hidden]{display:none}
 .hcc td.hdrvs{white-space:nowrap;font-size:12.5px;line-height:1.35}
 .hcc .hdv .no{font-family:var(--f-data);color:var(--ink-3);display:inline-block;min-width:30px;text-align:right}
-.hcc .hmore{padding:2px 0 0 34px;font-size:12px}
+.hcc .hmore{padding:2px 0 0;font-size:12px}
 .hcc .hdv.sub{color:var(--ink-3)}
 .hcc .hdv .hdl{font-weight:500}
 .hcc .star{color:var(--signal);font-weight:700;margin-left:2px}

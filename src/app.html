@@ -740,9 +740,19 @@ a.dcard,a.tcard{text-decoration:none;color:inherit}
 .hdl .sw,.hcons .sw{display:inline-block;width:4px;height:14px;vertical-align:-2px;margin-right:7px}
 .hch[style*="--tc"] .t{color:var(--tc)}
 .hcc td,.hcc th{white-space:nowrap}
+.hsw{position:relative}
+.hsw>.hasbar{scrollbar-width:none}
+.hsw>.hasbar::-webkit-scrollbar{display:none}
+.hbar{position:sticky;bottom:0;z-index:5;padding:5px 6px;margin-top:-1px;background:color-mix(in srgb,var(--sheet) 90%,transparent);border:1px solid var(--rule-2);border-top:0;touch-action:pan-y}
+.htrack{position:relative;height:8px;border-radius:4px;background:color-mix(in srgb,var(--ink) 10%,transparent);cursor:pointer}
+.hthumb{position:absolute;left:0;top:0;height:8px;border-radius:4px;background:var(--ink-3);cursor:grab;touch-action:none}
+.hthumb:hover,.hthumb.on{background:var(--ink-2)}
+.hthumb.on{cursor:grabbing}
+@media (pointer:coarse){.hbar{padding:7px 8px}.htrack,.hthumb{height:10px;border-radius:5px}}
+.hbar[hidden]{display:none}
 .hcc td.hdrvs{white-space:nowrap;font-size:12.5px;line-height:1.35}
 .hcc .hdv .no{font-family:var(--f-data);color:var(--ink-3);display:inline-block;min-width:30px;text-align:right}
-.hcc .hmore{padding:2px 0 0 34px;font-size:12px}
+.hcc .hmore{padding:2px 0 0;font-size:12px}
 .hcc .hdv.sub{color:var(--ink-3)}
 .hcc .hdv .hdl{font-weight:500}
 .hcc .star{color:var(--signal);font-weight:700;margin-left:2px}
@@ -2259,17 +2269,17 @@ function consChamps(){
   const rows=[...HIST.cchamps].reverse().map(c=>{const [a,b,t]=c.top,d=c.d||{drv:[],tyre:[]},T=HIST.tby[a[0]]||{};
     const won=c.done?(c.dec?`<span class="nw">Race ${c.dec[1]} of ${c.rounds}</span><small class="tm">${flagOf(c.dec[3])} ${gpS(c.dec[0])}</small>`:"—"):`<span class="tag sig" style="margin:0">In progress</span><small class="tm">${c.rounds} rounds run</small>`;
     const one=([i,no,n,sub])=>{const x=HIST.by[i];if(!x)return "";const star=c.dch&&c.dch[0]===i&&c.done;
-      return `<div class="hdv${sub?" sub":""}"><span class="no">${no!=null?(sub?`(${no})`:no):""}</span> <button class="hdl" data-hd="${i}">${esc(x.n)}</button>${star?`<span class="star" title="Drivers' champion">*</span>`:""}</div>`;};
+      return `<div class="hdv${sub?" sub":""}">${sub?"(":""}<button class="hdl" data-hd="${i}">${esc(x.n)}</button>${sub?")":""}${star?`<span class="star" title="Drivers' champion">*</span>`:""}</div>`;};
     /* 1950s-60s customer cars: many privateers raced the champion's chassis; show the regulars and the first stand-ins */
     const reg=d.drv.filter(x=>!x[3]),sub=d.drv.filter(x=>x[3]),show=[...reg,...sub.slice(0,2)],rest=sub.slice(2);
     const drv=show.map(one).join("")+(rest.length?`<div class="hdvx" hidden>${rest.map(one).join("")}</div><button class="hmore" data-ccx>+${rest.length} more</button>`:"");
     return `<tr${c.done?"":` class="live"`}><td class="n yr"><b>${c.y}</b></td>
-      <td class="nw">${flagOf(c.cc)} ${tcl(a[0])}</td><td class="nw">${c.eng?`${flagOf(c.eng[1])} ${esc(c.eng[0])}`:"—"}</td><td class="c">${d.tyre.map(tyb).join(" ")}</td>
+      <td class="nw">${flagOf(c.cc)} ${tcl(a[0])}</td><td class="nw">${c.eng?`${flagOf(c.eng[1])} ${esc(c.eng[0])}`:"—"}</td>
       <td class="hdrvs">${drv}</td><td class="n">${d.poles}</td><td class="n">${d.wins}</td><td class="n">${d.pod}</td><td class="n">${d.fl}</td>
-      <td class="n"><b>${hn(a[2])}</b></td><td class="n">${pc(d.pct)}</td><td>${won}</td><td class="n">${c.margin!=null?hn(c.margin):"—"}</td><td class="n">${pc(c.mpct)}</td>
+      <td class="n"><b>${hn(a[2])}</b></td><td class="n">${pc(d.pct)}</td><td>${won}</td><td class="n">${c.margin!=null?hn(c.margin):"—"}</td>
       <td class="nw">${b?tcl(b[0]):""}<small class="tm">${b?hn(b[2])+" pts":""}</small></td><td class="nw">${t?tcl(t[0]):""}<small class="tm">${t?hn(t[2])+" pts":""}</small></td></tr>`;}).join("");
-  return `<div class="tw hwide"><table class="t htab hcc"><thead><tr><th class="n yr">Season</th><th>Chassis</th><th>Engine</th><th class="c">Tyre</th><th>Drivers</th><th class="n">Poles</th><th class="n">Wins</th><th class="n">Podiums</th><th class="n">Fastest laps</th><th class="n">Points</th><th class="n" title="Share of the points the team could have scored">% points</th><th>Clinched</th><th class="n">Margin</th><th class="n">Margin %</th><th>Runner-up</th><th>Third</th></tr></thead><tbody>${rows}</tbody></table></div>
-  <p class="note2">* Drivers' champion. A number in brackets is a stand-in who raced a third of the season or less. Tyres: P Pirelli, B Bridgestone, MI Michelin, G Goodyear, F Firestone, D Dunlop. % points is the share of the points the team could have scored: 1958–1978 only a team's best-placed car scored and only its best results counted, so it is out of those; from 1979 it is out of first and second in every race, plus sprints and the fastest-lap point (2019–2024), with half-points and double-points races allowed for. Margin % is the margin as a share of the champion's points.</p>`;}
+  return `<div class="tw hwide"><table class="t htab hcc"><thead><tr><th class="n yr">Season</th><th>Chassis</th><th>Engine</th><th>Drivers</th><th class="n">Poles</th><th class="n">Wins</th><th class="n">Podiums</th><th class="n">Fastest laps</th><th class="n">Points</th><th class="n" title="Share of the points the team could have scored">% points</th><th>Clinched</th><th class="n">Margin</th><th>Runner-up</th><th>Third</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="note2">* Drivers' champion. A name in brackets is a stand-in who raced a third of the season or less. % points is the share of the points the team could have scored: 1958–1978 only a team's best-placed car scored and only its best results counted, so it is out of those; from 1979 it is out of first and second in every race, plus sprints and the fastest-lap point (2019–2024), with half-points and double-points races allowed for.</p>`;}
 function consAllChamps(){const ch=HIST.teams.filter(t=>t.t).sort((a,b)=>b.t-a.t||a.ty[0]-b.ty[0]);
   return `<div class="hchamps">${ch.map(t=>`<button class="hch" data-ht="${t.i}" style="--tc:${hcol(t.id,t.ty[t.ty.length-1])}"><span class="t">${t.t}<small>title${t.t>1?"s":""}</small></span><span class="nm">${flagOf(t.cc)} <b>${esc(t.n2||t.n)}</b><small>${t.ty.join(" · ")}</small></span></button>`).join("")}</div>`;}
 function consRecords(){const R=HIST.crec,c=R[CS.rcat]||R[0];
@@ -2353,11 +2363,32 @@ function consentBanner(force){let c=null;try{c=localStorage.getItem("ta-consent"
 let t=null;
 function setNav(k){["season","championship","drivers","teams","archive","history"].forEach(x=>{const b=$("#n-"+x);if(x===k)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
 /* the race bar and section tabs stay pinned: the tabs sit just under the bar */
+/* wide tables and charts: a copy of the horizontal scrollbar stays at the bottom of the screen while the table is in view */
+const HSEL=".tw,.mx,.tyrechart";
+/* drawn (not native) so it shows on phones too, where scrollbars only appear while scrolling */
+function hbarPaint(el,bar){const tr=bar.firstChild,th=tr.firstChild,max=el.scrollWidth-el.clientWidth,W=tr.clientWidth;
+  const tw=Math.max(36,W*el.clientWidth/el.scrollWidth);th.style.width=tw+"px";th.style.transform=`translateX(${max>0?(W-tw)*el.scrollLeft/max:0}px)`;}
+function stickyBars(){document.querySelectorAll(HSEL).forEach(el=>{if(el.closest(".fsbox.full"))return;
+  let w=el.parentElement&&el.parentElement.classList.contains("hsw")?el.parentElement:null;
+  const over=el.scrollWidth>el.clientWidth+2;
+  if(!over){if(w){w.querySelector(":scope>.hbar").hidden=true;el.classList.remove("hasbar");}return;}
+  if(!w){w=document.createElement("div");w.className="hsw";el.parentNode.insertBefore(w,el);w.appendChild(el);
+    const bar=document.createElement("div");bar.className="hbar";bar.setAttribute("aria-hidden","true");bar.innerHTML='<div class="htrack"><div class="hthumb"></div></div>';w.appendChild(bar);
+    const tr=bar.firstChild,th=tr.firstChild;
+    el.addEventListener("scroll",()=>hbarPaint(el,bar),{passive:true});
+    let drag=null;
+    th.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();drag={x:e.clientX,s:el.scrollLeft};try{th.setPointerCapture(e.pointerId)}catch(err){}th.classList.add("on");});
+    th.addEventListener("pointermove",e=>{if(!drag)return;const max=el.scrollWidth-el.clientWidth,room=tr.clientWidth-th.offsetWidth;el.scrollLeft=drag.s+(e.clientX-drag.x)*(room>0?max/room:0);});
+    const end=()=>{drag=null;th.classList.remove("on");};th.addEventListener("pointerup",end);th.addEventListener("pointercancel",end);
+    /* tap or click the track: jump there */
+    tr.addEventListener("pointerdown",e=>{if(e.target===th)return;const r=tr.getBoundingClientRect(),max=el.scrollWidth-el.clientWidth,room=tr.clientWidth-th.offsetWidth;
+      el.scrollTo({left:Math.max(0,Math.min(max,(e.clientX-r.left-th.offsetWidth/2)*(room>0?max/room:0))),behavior:"smooth"});});}
+  const bar=w.querySelector(":scope>.hbar");bar.hidden=false;el.classList.add("hasbar");hbarPaint(el,bar);});}
 /* big display titles: if a word is wider than its box (e.g. the narrow display font didn't load), shrink it until it fits */
 const FITSEL="#app :is(h1,.h1),.dhero :is(h1,.h1),.arch .h1,.dcard .ln,.drawer :is(h1,h2,.h1),.sec h2";
 function fitTitles(){document.querySelectorAll(FITSEL).forEach(el=>{el.style.fontSize="";if(!el.clientWidth||el.scrollWidth<=el.clientWidth+1)return;
   let f=parseFloat(getComputedStyle(el).fontSize),n=0;while(el.scrollWidth>el.clientWidth+1&&f>14&&n++<40){f*=.94;el.style.fontSize=f.toFixed(1)+"px";}});}
-{let q=0;const run=()=>{if(!q){q=requestAnimationFrame(()=>{q=0;fitTitles();});}};
+{let q=0;const run=()=>{if(!q){q=requestAnimationFrame(()=>{q=0;fitTitles();stickyBars();});}};
   new MutationObserver(run).observe(document.body,{childList:true,subtree:true});addEventListener("resize",run,{passive:true});
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(run);if(document.fonts)document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",run);}
 function pinSizes(){const p=$(".dnav.pin"),j=$(".jump"),R=document.documentElement.style;R.setProperty("--pinh",(p?p.offsetHeight:0)+"px");R.setProperty("--jumph",(j?j.offsetHeight:0)+"px");}
