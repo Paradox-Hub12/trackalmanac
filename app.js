@@ -808,7 +808,7 @@ function raceDay(c,y=2027){const m=c[5].split("–").pop().trim().match(/^(\d+)\
 /* 2026 race start at the same circuit, local time, as a guide until F1 publishes the 2027 times */
 function ref26(g){return g&&g[4]?tfmt(g[4],g[2],{hour:"2-digit",minute:"2-digit"}):null;}
 /* full view: on phones the map is taller, so there is room above and below the land for labels */
-let RFULL=[-20,10,1040,465],RAR=RFULL[2]/RFULL[3];
+let RFULL=[-20,10,1040,465],RAR=RFULL[2]/RFULL[3];const RMINW=90;
 const rFull=px=>{const f=px<600?[-20,-105,1040,700]:[-20,10,1040,465];const ch=f[3]!==RFULL[3];RFULL=f;RAR=f[2]/f[3];return ch;};
 const RREG={world:RFULL,europe:[[35,-12],[57,32]],americas:[[-38,-125],[56,-35]],asia:[[-40,34],[46,150]]};
 let WORLD=null,RT=null;
@@ -829,7 +829,7 @@ function routeMapHTML(){const C=CAL2027,G=CALGEO2027,P=rPts();let km=0;for(let i
       <g id="rleads"></g><g id="rlabels"></g>
       <g id="rpins">${P.map((p,i)=>`<g class="rpin" data-rpin="${i}" transform="translate(${p[0].toFixed(1)} ${p[1].toFixed(1)})"><title>R${C[i][0]} ${esc(C[i][1])} · ${esc(C[i][5])}</title><circle r="7"/><text>${C[i][0]}</text></g>`).join("")}</g>
       <g id="rplane" style="display:none"><path d="M9 0 1-1.6-2.5-7.5H-4.6L-2.6-1.6H-6.4L-8.4-4.3H-9.6L-8.6 0-9.6 4.3H-8.4L-6.4 1.6H-2.6L-4.6 7.5H-2.5L1 1.6Z"/></g>
-    </svg><div class="rcard hide" id="rcard" aria-live="polite"></div></div>
+    </svg><div class="rzbtn" role="group" aria-label="Zoom"><button type="button" data-rz="in" aria-label="Zoom in">+</button><button type="button" data-rz="out" aria-label="Zoom out">−</button></div><div class="rcard hide" id="rcard" aria-live="polite"></div></div>
     <div class="rstops" id="rstops">${C.map((c,i)=>`<button type="button" data-rstop="${i}" aria-pressed="false"><b>${c[0]}</b>${flagOf(c[2])}<span>${esc(c[4])}</span><small>${esc(raceDay(c).replace(/^\w+ /,""))}</small></button>`).join("")}</div>
   </div>
   <p class="note2">Hover or tap a race for its details. Race start times for 2027 haven't been published yet. Where the circuit also raced in 2026, the card shows that year's start time as a guide. Distances are straight-line distances between circuits.</p>`;}
@@ -848,6 +848,8 @@ function rLayout(R){const svg=R.svg,gl=$("#rlabels"),gd=$("#rleads");gl.innerHTM
     g.innerHTML=`<rect rx="${(2*u).toFixed(2)}"/><text font-size="${fs.toFixed(2)}"><tspan class="c">${esc(C[o.i][4])}</tspan>${small?"":`<tspan class="d" dx="${(4*u).toFixed(2)}">${esc(raceDay(C[o.i]).replace(/^\w+ /,""))}</tspan>`}</text>`;gl.appendChild(g);
     o.g=g;o.w=g.querySelector("text").getComputedTextLength()+8*u;});
   const pinB=P.filter(inV).map(p=>[p[0]-rr-gap,p[1]-rr-gap,p[0]+rr+gap,p[1]+rr+gap]),boxes=[],leads=[];
+  /* keep labels out from under the zoom buttons */
+  {const zb=$(".rzbtn"),sb=svg.getBoundingClientRect();if(zb&&!zb.hidden){const q=zb.getBoundingClientRect(),k=vb[2]/sb.width;pinB.push([vb[0]+(q.left-sb.left)*k-gap,vb[1]+(q.top-sb.top)*k-gap,vb[0]+(q.right-sb.left)*k+gap,vb[1]+(q.bottom-sb.top)*k+gap]);}}
   const ov=(a,b)=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1];
   const segBox=(a,b,x)=>{/* does segment a-b cross box x? (sampled, good enough at this scale) */for(let t=.08;t<.96;t+=.06){const q=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];if(q[0]>x[0]&&q[0]<x[2]&&q[1]>x[1]&&q[1]<x[3])return true;}return false;};
   const near=o=>it.filter(q=>q!==o&&Math.hypot(q.p[0]-o.p[0],q.p[1]-o.p[1])<60*u);
@@ -894,14 +896,21 @@ function initRoute(){const svg=$("#rsvg");if(!svg)return;const P=rPts(),N=P.leng
   R.select=(i,next)=>{R.i=i;card.innerHTML=rCard(i,next);card.classList.remove("hide");R.hl();stripTo(i);svg.appendChild($("#rpins"));svg.appendChild(plane);};
   R.trails=()=>{trs.forEach((el,k)=>{const l=legs[k];if(R.phase==="idle"){el.setAttribute("d","");return;}if(k<R.leg||(R.phase!=="fly"&&k<R.i)){el.setAttribute("d",`M${l[0]}Q${l[1]} ${l[2]}`);}else if(k===R.leg&&R.phase==="fly"){const t=ez(R.t),a=lerp(l[0],l[1],t),b=lerp(l[1],l[2],t),c=lerp(a,b,t);el.setAttribute("d",`M${l[0]}Q${a} ${c}`);}else el.setAttribute("d","");});
     pins.forEach((p,k)=>p.classList.toggle("seen",R.phase!=="idle"&&k<R.i));};
-  R.setBtn=()=>{const b=$("[data-rplay]"),st=$("[data-rreset]");if(b){b.textContent=R.playing?"❚❚ Pause":R.phase==="idle"?"▶ Play route":"▶ Resume";b.setAttribute("aria-pressed",String(R.playing));}if(st)st.hidden=R.phase==="idle";};
-  R.zoom=k=>{const z=RREG[k];R.tg=k==="world"?RFULL.slice():rBox([NE1(z[0][0],z[0][1]),NE1(z[1][0],z[1][1])],10,150);R.laid=false;document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rzoom===k)));R.kick();};
+  R.setBtn=()=>{const zb=$(".rzbtn");if(zb){zb.hidden=R.phase!=="idle";const w=R.tg[2];zb.querySelector('[data-rz="in"]').disabled=w<=RMINW+.5;zb.querySelector('[data-rz="out"]').disabled=w>=RFULL[2]-.5;}
+    svg.classList.toggle("zoomed",R.phase==="idle"&&R.tg[2]<RFULL[2]-.5);const b=$("[data-rplay]"),st=$("[data-rreset]");if(b){b.textContent=R.playing?"❚❚ Pause":R.phase==="idle"?"▶ Play route":"▶ Resume";b.setAttribute("aria-pressed",String(R.playing));}if(st)st.hidden=R.phase==="idle";};
+  R.zoom=k=>{const z=RREG[k];R.tg=k==="world"?RFULL.slice():rBox([NE1(z[0][0],z[0][1]),NE1(z[1][0],z[1][1])],10,150);R.laid=false;document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rzoom===k)));R.setBtn();R.kick();};
+  /* free zoom (buttons, pinch, trackpad pinch) around a point in map units; keeps that point where it is on screen */
+  const clampV=(x,y,w)=>{w=Math.max(RMINW,Math.min(RFULL[2],w));const h=w/RAR;return [Math.max(RFULL[0],Math.min(RFULL[0]+RFULL[2]-w,x)),Math.max(RFULL[1],Math.min(RFULL[1]+RFULL[3]-h,y)),w,h];};
+  const toMap=(cx,cy,v=R.vb)=>{const b=svg.getBoundingClientRect();return [v[0]+(cx-b.left)/b.width*v[2],v[1]+(cy-b.top)/b.height*v[3],(cx-b.left)/b.width,(cy-b.top)/b.height];};
+  const manual=()=>{document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed","false"));R.laid=false;R.setBtn();};
+  R.zoomBy=(f,cx,cy,now)=>{if(R.phase!=="idle")return;const v=R.tg,b=svg.getBoundingClientRect();if(cx==null){cx=b.left+b.width/2;cy=b.top+b.height/2;}
+    const [mx,my,fx,fy]=toMap(cx,cy,v),w=Math.max(RMINW,Math.min(RFULL[2],v[2]*f));R.tg=clampV(mx-fx*w,my-fy*w/RAR,w);if(now)R.vb=R.tg.slice();manual();R.kick();};
   const startLeg=i=>{R.leg=i;R.t=0;R.phase="fly";R.dur=R.calm?1:Math.max(900,Math.min(2600,700+legs[i][3]*3.2));R.tg=rBox([P[i],P[i+1]]);card.innerHTML=rCard(i+1,true);plane.style.display="";};
   const arrive=j=>{R.phase="dwell";R.wait=R.calm?700:900;R.select(j);if(j<N-1)R.tg=rBox([P[j],P[j+1]]);};
   R.play=()=>{if(R.phase==="idle"){R.pin=null;R.hov=null;$("#rlabels").innerHTML="";$("#rleads").innerHTML="";R.leg=-1;R.phase="dwell";R.wait=700;R.select(0);R.tg=rBox([P[0],P[1]]);document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed","false"));}R.playing=true;R.setBtn();R.kick();};
   /* bring a stop into view (keeps the zoom level) */
   R.show=i=>{const p=P[i],v=R.tg;if(p[0]>v[0]+v[2]*.08&&p[0]<v[0]+v[2]*.92&&p[1]>v[1]+v[3]*.08&&p[1]<v[1]+v[3]*.92)return;const w=v[2],h=v[3];
-    R.tg=[Math.max(RFULL[0],Math.min(RFULL[0]+RFULL[2]-w,p[0]-w/2)),Math.max(RFULL[1],Math.min(RFULL[1]+RFULL[3]-h,p[1]-h/2)),w,h];R.laid=false;document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed","false"));R.kick();};
+    R.tg=[Math.max(RFULL[0],Math.min(RFULL[0]+RFULL[2]-w,p[0]-w/2)),Math.max(RFULL[1],Math.min(RFULL[1]+RFULL[3]-h,p[1]-h/2)),w,h];R.laid=false;R.setBtn();document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed","false"));R.kick();};
   R.pause=()=>{R.playing=false;R.setBtn();};
   /* back to the still map with every race labelled */
   R.reset=()=>{R.playing=false;R.phase="idle";R.leg=-1;R.i=-1;plane.style.display="none";R.trails();R.laid=false;R.setBtn();R.cardFor();R.zoom("world");};
@@ -916,11 +925,33 @@ function initRoute(){const svg=$("#rsvg");if(!svg)return;const P=rPts(),N=P.leng
     svg.setAttribute("viewBox",R.vb.map(v=>v.toFixed(2)).join(" "));
     const px=svg.getBoundingClientRect().width||1000,u=R.vb[2]/px,rr=(px<600?7:8.5)*u;
     pins.forEach(p=>{const c=p.firstElementChild.nextElementSibling,t=c.nextElementSibling;c.setAttribute("r",rr.toFixed(2));t.setAttribute("font-size",(rr*1.15).toFixed(2));});
-    if(R.phase==="idle"){if(moving){if(R.laid||$("#rlabels").firstChild){$("#rlabels").innerHTML="";$("#rleads").innerHTML="";}R.laid=false;}else if(!R.laid){R.laid=true;rLayout(R);}}
+    if(R.phase==="idle"){if(moving){if(R.laid||$("#rlabels").firstChild){$("#rlabels").innerHTML="";$("#rleads").innerHTML="";}R.laid=false;}else if(!R.laid&&!R.gest){R.laid=true;rLayout(R);}}
     if(R.playing||moving)R.raf=requestAnimationFrame(tick);};
   /* hover a pin or label (mouse); taps go through the click handler */
   svg.addEventListener("pointerover",e=>{if(e.pointerType!=="mouse")return;const g=e.target.closest("[data-rpin]");if(g)R.hover(+g.dataset.rpin);else R.unhover();});
   svg.addEventListener("pointerleave",()=>R.unhover());
+  /* touch: pinch to zoom; drag to move the map once zoomed in (mouse can drag too). Only on the still map. */
+  const pts=new Map();let g0=null,drag=null,endT=0;
+  const gestEnd=()=>{clearTimeout(endT);endT=setTimeout(()=>{R.gest=false;R.laid=false;R.kick();},120);};
+  svg.addEventListener("pointerdown",e=>{if(R.phase!=="idle"||(e.pointerType==="mouse"&&e.button!==0))return;pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pts.size===2){const [a,b]=[...pts.values()];g0={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,v:R.vb.slice(),m:toMap((a[0]+b[0])/2,(a[1]+b[1])/2)};drag=null;R.gest=true;svg.setPointerCapture&&[...pts.keys()].forEach(id=>{try{svg.setPointerCapture(id)}catch(err){}});}
+    else if(pts.size===1&&(R.tg[2]<RFULL[2]-.5||e.pointerType==="mouse")){drag={x:e.clientX,y:e.clientY,v:R.vb.slice(),moved:false,id:e.pointerId};}});
+  svg.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(g0&&pts.size>=2){const [a,b]=[...pts.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1])||1,bx=svg.getBoundingClientRect(),w=Math.max(RMINW,Math.min(RFULL[2],g0.v[2]*g0.d/d)),
+        mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;R.vb=R.tg=clampV(g0.m[0]-(mx-bx.left)/bx.width*w,g0.m[1]-(my-bx.top)/bx.height*w/RAR,w);
+      if(!R.cleared){$("#rlabels").innerHTML="";$("#rleads").innerHTML="";R.cleared=true;}manual();R.kick();e.preventDefault();return;}
+    if(drag&&drag.id===e.pointerId){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<5)return;
+      if(!drag.moved){drag.moved=true;R.gest=true;try{svg.setPointerCapture(e.pointerId)}catch(err){}svg.classList.add("dragging");}
+      const bx=svg.getBoundingClientRect(),u=drag.v[2]/bx.width;R.vb=R.tg=clampV(drag.v[0]-dx*u,drag.v[1]-dy*u,drag.v[2]);
+      if(!R.cleared){$("#rlabels").innerHTML="";$("#rleads").innerHTML="";R.cleared=true;}manual();R.kick();e.preventDefault();}});
+  const up=e=>{if(!pts.has(e.pointerId))return;pts.delete(e.pointerId);if(pts.size<2)g0=null;
+    if(drag&&drag.id===e.pointerId){if(drag.moved){R.dragged=true;setTimeout(()=>R.dragged=false,0);}drag=null;svg.classList.remove("dragging");}
+    if(!pts.size&&R.gest){R.cleared=false;gestEnd();}};
+  ["pointerup","pointercancel"].forEach(t=>svg.addEventListener(t,up));
+  /* a drag shouldn't also count as a click on a pin */
+  svg.addEventListener("click",e=>{if(R.dragged){e.stopPropagation();e.preventDefault();R.dragged=false;}},true);
+  /* trackpad pinch (ctrl + wheel); a plain mouse wheel still scrolls the page */
+  svg.addEventListener("wheel",e=>{if(!e.ctrlKey||R.phase!=="idle")return;e.preventDefault();R.gest=true;R.zoomBy(Math.exp(e.deltaY*.01),e.clientX,e.clientY,true);gestEnd();},{passive:false});
   R.setBtn();R.cardFor();R.kick();
   let rz=0;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(svg.isConnected){if(rFull(svg.getBoundingClientRect().width||1000)){svg.style.aspectRatio=`${RFULL[2]}/${RFULL[3]}`;if(R.phase==="idle"){R.vb=RFULL.slice();R.tg=RFULL.slice();}}R.laid=false;R.kick();}},150);},{passive:true});}
 function view2027(){const C=CAL2027;
@@ -1328,6 +1359,7 @@ document.addEventListener("click",e=>{
     if(e.target.closest("[data-rreset]")){RT.reset();return;}
     const rz=e.target.closest("[data-rzoom]");if(rz){if(RT.phase!=="idle")RT.reset();RT.zoom(rz.dataset.rzoom);return;}
     if(e.target.closest("[data-rclose]")){RT.unpick();return;}
+    const zb=e.target.closest("[data-rz]");if(zb){RT.zoomBy(zb.dataset.rz==="in"?1/1.6:1.6);return;}
     const rs=e.target.closest("[data-rstop],[data-rpin]");if(rs){RT.pick(+(rs.dataset.rstop??rs.dataset.rpin));return;}
     if(e.target.closest("#rsvg")&&RT.phase==="idle"&&RT.pin!=null){RT.unpick();return;}}
   const dc=e.target.closest("[data-dec]");if(dc){scrollDecade(dc.dataset.dec);return;}

@@ -695,6 +695,15 @@ a.dcard,a.tcard{text-decoration:none;color:inherit}
 .rlead{stroke:var(--ink-2);stroke-width:1;stroke-dasharray:2 2.5;opacity:.85;vector-effect:non-scaling-stroke}
 .rlead.on{stroke:var(--signal)}
 .rcard.hide{display:none}
+#rsvg{touch-action:pan-y}
+#rsvg.zoomed{touch-action:none;cursor:grab}
+#rsvg.dragging{cursor:grabbing}
+.rzbtn{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;z-index:3;border:1.5px solid var(--rule-2);background:var(--panel)}
+.rzbtn[hidden]{display:none}
+.rzbtn button{width:34px;height:34px;background:none;border:0;color:var(--ink);font-size:20px;line-height:1;cursor:pointer;font-family:var(--f-data)}
+.rzbtn button+button{border-top:1px solid var(--rule)}
+.rzbtn button:hover:not(:disabled){background:color-mix(in srgb,var(--ink) 8%,var(--panel))}
+.rzbtn button:disabled{color:var(--ink-3);opacity:.5;cursor:default}
 .rcard .rx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;padding:2px 4px}
 .rcard .rx:hover{color:var(--ink)}
 .rpin circle{fill:var(--panel);stroke:var(--ink-2);stroke-width:1.3;vector-effect:non-scaling-stroke}
