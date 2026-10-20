@@ -1020,7 +1020,7 @@ function viewPrewar(){const P=PREWAR,yrs=Object.keys(P.years).sort();
   const car=m=>`<span class="sw" style="background:${makeCol(m)}"></span>${esc(m)}`;
   const getag='<span class="tag" style="margin:0 0 0 6px;padding:1px 5px;font-size:9.5px">Grande Épreuve</span>';
   const row=(p,i)=>`<div class="row"><span class="pp">${i+1}</span><span class="c" style="background:${p[2]}"></span><span><strong>${p[0]}</strong></span><span class="mono">${p[1]}</span></div>`;
-  const tbl=(rs,yr)=>`<div class="tw"><table class="t gpt"><thead><tr>${yr?"<th>Year</th>":""}<th>Date</th><th>Race</th><th>Circuit</th><th>Winner</th><th>Car</th></tr></thead><tbody>${rs.map(r=>`<tr>${yr?`<td class="n">${r.y}</td>`:""}<td class="m">${dt(r.d)}</td><td>${flagOf(r.cc)} ${r.ge?`<b>${esc(r.gp)}</b>${getag}`:esc(r.gp)}</td><td>${esc(r.circ)}</td><td>${r.ge?`<b>${who(r)}</b>`:who(r)}</td><td>${car(r.car)}</td></tr>`).join("")}</tbody></table></div>`;
+  const tbl=(rs,yr)=>`<div class="tw"><table class="t gpt" data-fz="${yr?3:2}"><thead><tr>${yr?"<th>Year</th>":""}<th>Date</th><th>Race</th><th>Circuit</th><th>Winner</th><th>Car</th></tr></thead><tbody>${rs.map(r=>`<tr>${yr?`<td class="n">${r.y}</td>`:""}<td class="m">${dt(r.d)}</td><td>${flagOf(r.cc)} ${r.ge?`<b>${esc(r.gp)}</b>${getag}`:esc(r.gp)}</td><td>${esc(r.circ)}</td><td>${r.ge?`<b>${who(r)}</b>`:who(r)}</td><td>${car(r.car)}</td></tr>`).join("")}</tbody></table></div>`;
   const yt=(t,name)=>`<div class="tw"><table class="t"><thead><tr><th class="n">#</th><th>${name}</th>${yrs.map(y=>`<th class="n">${y}</th>`).join("")}<th class="n">Grandes Épreuves</th><th class="n">Wins</th></tr></thead><tbody>${t.map(([k,v],i)=>`<tr><td class="n">${i+1}</td><td>${name==="Driver"?`${flagOf(nat[k])} <b>${esc(k)}</b>`:car(k)}</td>${yrs.map(y=>`<td class="n">${v.y[y]||'<span style="color:var(--ink-3)">–</span>'}</td>`).join("")}<td class="n">${v.ge||'<span style="color:var(--ink-3)">–</span>'}</td><td class="n"><b>${v.n}</b></td></tr>`).join("")}</tbody></table></div>`;
   const yearSec=y=>{const Y=P.years[y],rs=all.filter(r=>r.y===y),g=rs.filter(r=>r.ge).length,top=tally(r=>r.who,rs)[0],tm=tally(r=>[r.car],rs)[0];
     return `<section class="dsec" id="pw-${y}"><div class="sec"><h2>${y}</h2><span class="lbl">${rs.length} races · ${g?g+" Grande"+(g>1?"s":"")+" Épreuve"+(g>1?"s":""):"no Grandes Épreuves"}</span></div>
@@ -1641,10 +1641,10 @@ function circList(){const L=circFiltered(),shown=L.slice(0,RS.limit),cn=$("#r-co
   const rows=shown.map(c=>`<tr data-hc="${c.i}" class="go"><td class="cm">${cmapSvg(c.lay,"xs")}</td><td>${flagOf(c.cc)} <b>${esc(c.n)}</b>${c.cal.includes(HIST.now)?` <span class="hnow">${HIST.now}</span>`:c.cal.includes(HIST.now+1)?` <span class="hnow">${HIST.now+1}</span>`:""}</td><td><a class="gmap" href="${gmap(c)}" target="_blank" rel="noopener" title="Open in Google Maps">${esc(c.place)}</a></td><td style="color:var(--ink-2)">${ctype(c.type)}</td>
     <td class="m">${c.y?(c.y[0]===c.y[1]?c.y[0]:c.y[0]+"–"+String(c.y[1]).slice(-2)):"—"}</td><td class="n"><b>${c.r}</b></td><td class="n">${klen(c.len)}</td><td class="n">${c.turns||"—"}</td>
     <td class="m">${c.rec?`${c.rec[1]} <small style="color:var(--ink-3)">${esc((HIST.by[c.rec[2]]||{}).n||"")} ${c.rec[4]}</small>`:"—"}</td><td>${c.wins[0]?`${esc(HIST.by[c.wins[0][0]].n)} <small style="color:var(--ink-3)">${c.wins[0][1]}</small>`:"—"}</td></tr>`).join("");
-  return L.length?`<div class="tw"><table class="t htab hdrv hcirc"><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table></div>${L.length>RS.limit?`<div class="hmorebar"><span>Showing ${RS.limit} of ${L.length}</span><button class="navbtn" data-rlimit="99999">Show all</button></div>`:""}`
+  return L.length?`<div class="tw"><table class="t htab hdrv hcirc" data-fz="2"><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table></div>${L.length>RS.limit?`<div class="hmorebar"><span>Showing ${RS.limit} of ${L.length}</span><button class="navbtn" data-rlimit="99999">Show all</button></div>`:""}`
     :`<p class="note2">No circuit matches. <button class="hmore" data-rreset>Clear the search and filters</button></p>`;}
-function circCountries(){return `<div class="tw"><table class="t htab"><thead><tr><th>Country</th><th class="n">Circuits</th><th class="n">Grands Prix</th><th class="n">On the ${HIST.now} calendar</th><th>Circuits</th></tr></thead><tbody>
-  ${HIST.ccountries.map(k=>`<tr class="go" data-rcty="${k.cc}"><td>${flagOf(k.cc)} <b>${esc(k.n)}</b></td><td class="n">${k.c}</td><td class="n"><b>${k.r}</b></td><td class="n">${k.cur||"—"}</td><td class="hcn">${HIST.circuits.filter(c=>c.cc===k.cc).sort((a,b)=>b.r-a.r).map(c=>esc(c.n)).join(", ")}</td></tr>`).join("")}</tbody></table></div>`;}
+function circCountries(){return `<div class="tw"><table class="t htab"><thead><tr><th>Country</th><th class="n">Circuits</th><th class="n">Grands Prix</th><th>Circuits</th></tr></thead><tbody>
+  ${HIST.ccountries.map(k=>`<tr class="go" data-rcty="${k.cc}"><td>${flagOf(k.cc)} <b>${esc(k.n)}</b></td><td class="n">${k.c}</td><td class="n"><b>${k.r}</b></td><td class="hcn">${HIST.circuits.filter(c=>c.cc===k.cc).sort((a,b)=>b.r-a.r).map(c=>esc(c.n)).join(", ")}</td></tr>`).join("")}</tbody></table></div>`;}
 function circRefresh(){const l=$("#r-list");if(l)l.innerHTML=circList();loadMaps();}
 /* circuit card */
 function openHCirc(i){histIndexCirc();histIndexTeams();const c=HIST.cby[i];if(!c)return;
@@ -1742,7 +1742,31 @@ function stickyBars(){document.querySelectorAll(HSEL).forEach(el=>{if(el.closest
 const FITSEL="#app :is(h1,.h1),.dhero :is(h1,.h1),.arch .h1,.dcard .ln,.drawer :is(h1,h2,.h1),.sec h2";
 function fitTitles(){document.querySelectorAll(FITSEL).forEach(el=>{el.style.fontSize="";if(!el.clientWidth||el.scrollWidth<=el.clientWidth+1)return;
   let f=parseFloat(getComputedStyle(el).fontSize),n=0;while(el.scrollWidth>el.clientWidth+1&&f>14&&n++<40){f*=.94;el.style.fontSize=f.toFixed(1)+"px";}});}
-{let q=0;const run=()=>{if(!q){q=requestAnimationFrame(()=>{q=0;fitTitles();stickyBars();stickyHeads();});}};
+/* wide tables: keep the column(s) that say what each row is in view while scrolling sideways.
+   One column normally; two when the first is only a rank, year, number, flag or track icon.
+   A table can set data-fz="N" to choose; tables with their own frozen cells (stk0/stk1, matrices) are left alone. */
+function freezeCols(){document.querySelectorAll(".tw>table.t").forEach(tb=>{const box=tb.parentElement;
+  if(tb.querySelector(".stk0,.stk1")||tb.classList.contains("mxt"))return;
+  const wide=box.scrollWidth>box.clientWidth+2;
+  const rows=[...(tb.tHead?tb.tHead.rows:[]),...(tb.tBodies[0]?tb.tBodies[0].rows:[])];
+  if(!wide){if(tb._fz){rows.forEach(r=>[...r.cells].forEach(c=>{c.classList.remove("fzc","fzl");c.style.left="";}));tb._fz=0;}return;}
+  const first=tb.tBodies[0]&&tb.tBodies[0].rows[0];if(!first||first.cells.length<3)return;
+  let n=+tb.dataset.fz||0;
+  if(!n){const c0=first.cells[0];n=(first.cells.length>3&&(c0.getBoundingClientRect().width<72||c0.innerText.trim().length<=4))?2:1;}
+  /* frozen part may take up to 70% of the visible width; a long name column wraps to fit rather than losing the freeze */
+  const cap=box.clientWidth*.7,c0s=[...first.cells].slice(0,n);
+  let ws=c0s.map(c=>c.getBoundingClientRect().width);
+  const fixed=ws.slice(0,n-1).reduce((a,b)=>a+b,0);
+  if(fixed+ws[n-1]>cap&&cap-fixed>=96){const mw=Math.floor(cap-fixed);
+    rows.forEach(r=>{const c=r.cells[n-1];if(c&&c.colSpan===1){c.style.maxWidth=c.style.width=mw+"px";c.style.whiteSpace="normal";}});
+    ws=c0s.map(c=>c.getBoundingClientRect().width);}
+  while(n>1&&ws.slice(0,n).reduce((a,b)=>a+b,0)>cap+1)n--;
+  if(ws[0]>cap+1)return;
+  const left=[0];for(let k=1;k<n;k++)left[k]=left[k-1]+ws[k-1];
+  rows.forEach(r=>{let col=0;for(const c of r.cells){if(col<n&&c.colSpan===1){c.classList.add("fzc");c.classList.toggle("fzl",col===n-1);c.style.left=left[col]+"px";}
+      else if(c.classList.contains("fzc")){c.classList.remove("fzc","fzl");c.style.left="";}col+=c.colSpan;}});
+  tb._fz=n;});}
+{let q=0;const run=()=>{if(!q){q=requestAnimationFrame(()=>{q=0;fitTitles();stickyBars();freezeCols();stickyHeads();});}};
   new MutationObserver(run).observe(document.body,{childList:true,subtree:true});addEventListener("resize",run,{passive:true});
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(run);if(document.fonts)document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",run);}
 function pinSizes(){const p=$(".dnav.pin"),j=$(".jump"),R=document.documentElement.style;R.setProperty("--pinh",(p?p.offsetHeight:0)+"px");R.setProperty("--jumph",(j?j.offsetHeight:0)+"px");}

@@ -229,6 +229,12 @@ h1,h2,h3{font-family:var(--f-display);text-transform:uppercase;margin:0;line-hei
 :root{--zebra:color-mix(in srgb,var(--ink) 4%,var(--panel))}
 :where(table.t tbody tr:nth-child(even))>td{background:var(--zebra)}
 :where(table.mxt tbody tr:nth-child(even))>td{background:var(--zebra)}
+/* frozen first column(s) of wide tables (set by freezeCols) */
+table.t .fzc{position:sticky;z-index:2;background:var(--panel)}
+table.t thead .fzc{background:var(--panel-2);z-index:3}
+table.t tbody tr:nth-child(even)>.fzc{background:var(--zebra)}
+table.t .fzc.fzl{box-shadow:6px 0 8px -6px rgba(0,0,0,.55)}
+.gpt tr.go:hover>.fzc{background:var(--panel-2)}
 table.mxt tbody tr:nth-child(even) td.nm,.hcc tbody tr:nth-child(even) .yr{background:var(--zebra)}
 /* copied header row of a long table, shown at the top of the screen */
 .hhead{position:fixed;z-index:24;overflow:hidden;display:none;background:var(--panel);border:1.5px solid var(--rule-2);border-top:0;box-shadow:0 4px 12px rgba(0,0,0,.25);pointer-events:auto}
@@ -910,7 +916,7 @@ a.gco{display:inline-block;margin-top:4px;font-family:var(--f-data);font-size:12
 .hstats{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
 .hstats small,.facts small{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
 .hfacts{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:var(--ink-2)}
-@media (max-width:640px){.hdrv th:nth-child(2),.hdrv td:nth-child(2){display:none}}
+@media (max-width:640px){.hdrv:not(.hcirc) th:nth-child(2),.hdrv:not(.hcirc) td:nth-child(2){display:none}}
 @media (max-width:430px){.tb nav a.s27 small{display:none}.tb nav .nrow2>a:not(.s27),.tb nav .nrow2 .morebtn{padding:6px 7px;letter-spacing:.04em}}
 @media (max-width:640px){.hctl select{max-width:none}.hctl>label:not(.hsearch){flex:1 1 140px}.hrecs{grid-template-columns:minmax(0,1fr)}}
 .decs{display:flex;gap:6px;margin-top:20px;overflow-x:auto;scrollbar-width:none}
