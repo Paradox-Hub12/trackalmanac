@@ -801,7 +801,7 @@ CAL27CIRC = {"Bahrain International Circuit": "bahrain", "Jeddah Corniche Circui
 CIRCNAME = {"imola": "Imola", "jacarepagua": "Jacarepaguá"}
 CFACT = {"Most Grands Prix hosted": "most Grands Prix hosted", "Most seasons on the calendar": "most seasons on the calendar",
          "Most different race winners": "most different race winners", "Longest circuits": "longest circuit", "Shortest circuits": "shortest circuit",
-         "Most corners": "most corners", "Fastest lap records (average speed)": "fastest lap record by average speed"}
+         "Most corners": "most corners", "Highest circuits (altitude)": "highest circuit above sea level", "Lowest circuits (altitude)": "lowest circuit", "Fastest lap records (average speed)": "fastest lap record by average speed"}
 
 
 def laptime_ms(s):
@@ -943,6 +943,11 @@ def circuit_history(base, D, races, year_now):
                 L.append((R["plt"], 3.6e6 * R["len"] / R["plt"], R, p))
         return L
     PL = pole_list()
+    EL = (D.get("CIRCELEV") or {}).get("m", {})
+    for o in out:
+        g = (D.get("CIRCGEO") or {}).get(o["id"])
+        if g: o["lat"], o["lon"] = g
+        if o["id"] in EL: o["el"] = EL[o["id"]]
     def pole_speed():
         return [[R["c"], round(v, 3), "%s %d · %s" % (drv[p]["n"] if p is not None else "", R["y"], fmt_lap(t))] for t, v, R, p in sorted(PL, key=lambda x: -x[1])[:10]]
     def pole_short():
@@ -963,6 +968,8 @@ def circuit_history(base, D, races, year_now):
         {"t": "Closest finishes", "u": "s", "rows": [[o["i"], o["close"][0] / 1000, "%d · %s from %s" % (o["close"][1], drv[o["close"][3]]["n"], drv[o["close"][4]]["n"] if o["close"][4] is not None else "")]
                                                      for o in sorted((o for o in out if o["close"]), key=lambda o: o["close"][0])[:10]]},
         {"t": "Fastest pole laps (average speed)", "u": "km/h", "rows": pole_speed()},
+        rk(lambda o: o.get("el"), "Highest circuits (altitude)", "m", filt=lambda o: o["r"] > 0, extra=lambda o: o["place"]),
+        rk(lambda o: o.get("el"), "Lowest circuits (altitude)", "m", rev=False, filt=lambda o: o["r"] > 0, extra=lambda o: o["place"]),
         {"t": "Shortest lap times (pole)", "u": "lap", "rows": pole_short()},
         rk(lambda o: len(o["layouts"]) if len(o["layouts"]) > 1 else None, "Most layouts used", "layouts"),
         rk(lambda o: len(o["gps"]) if len(o["gps"]) > 1 else None, "Most different Grand Prix names", "names", extra=lambda o: ", ".join(g.replace(" Grand Prix", "") for g, _ in o["gps"])),

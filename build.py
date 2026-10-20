@@ -698,6 +698,19 @@ def build(out, data_path=DATA):
     wtxt = json.dumps(load_data(WORLD), separators=(",", ":"))
     open(os.path.join(out, "data", "world.json"), "w", encoding="utf-8").write(wtxt)
     data += "const WORLDV=%s;\n" % json.dumps(vhash(wtxt))
+    # detailed track diagrams: src/tracks/<circuit id>.webp, copied under a content hash so browsers can cache them for good
+    ti = {}
+    tdir = os.path.join(os.path.dirname(MEDIA), "tracks")
+    if os.path.isdir(tdir):
+        from PIL import Image
+        os.makedirs(imgdir, exist_ok=True)
+        for f in sorted(os.listdir(tdir)):
+            if not f.endswith(".webp"): continue
+            raw = open(os.path.join(tdir, f), "rb").read(); name = "t-" + hashlib.sha1(raw).hexdigest()[:12] + ".webp"
+            open(os.path.join(imgdir, name), "wb").write(raw); written.add(name)
+            w, h = Image.open(os.path.join(tdir, f)).size
+            ti[f[:-5]] = ["/img/" + name, w, h]
+    data += "const TRACKIMG=%s;\n" % json.dumps(ti, separators=(",", ":"))
     data_x = extract_images(data, imgdir, written)
     app_x = extract_images(app, imgdir, written)
     css_x = extract_images(css, imgdir, written)

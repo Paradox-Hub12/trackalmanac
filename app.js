@@ -1519,46 +1519,81 @@ const cdir=d=>({CLOCKWISE:"Clockwise",ANTI_CLOCKWISE:"Anticlockwise"})[d]||"";
 const klen=v=>v?dist(v,3):"—";
 function viewCirc(){histIndexTeams();histIndexCirc();
   const now=HIST.now;
-  const jump=[["r-changes","Calendar changes"],["r-map","Map"],["r-flow","Speed vs corners"],["r-all","All circuits"],["r-cty","By country"],["r-lists","Firsts & one-offs"],["r-rec","Records"]];
+  const jump=[["r-changes","Calendar changes"],["r-map","Map"],["r-all","All circuits"],["r-cty","By country"],["r-flow","Speed vs corners"],["r-lists","Firsts & one-offs"],["r-rec","Records"]];
   return `<div class="hist" data-mode="r"><div class="pagehead"><div><span class="lbl">Formula 1 history</span><h2 class="h1">Circuits</h2>
     <p>Every circuit to host a World Championship race since 1950. Select a circuit for its card, with track map, records and every race held there.</p>${htabs("r")}</div></div>
   ${circHero()}
   <nav class="jump hjump" aria-label="Sections">${jump.map(([id,t])=>`<a href="#${id}" data-hj="${id}">${t}</a>`).join("")}</nav>
   <section class="dsec" id="r-changes"><div class="sec"><h2>Calendar changes</h2><span class="lbl">${now+1} back to 1950 · circuits in and out each season</span></div>${circChanges()}</section>
   <section class="dsec" id="r-map"><div class="sec"><h2>Where F1 has raced</h2><span class="lbl">Every circuit · select one for its card</span></div>${circMap()}</section>
-  <section class="dsec" id="r-flow"><div class="sec"><h2>Fast and flowing, or tight and technical</h2><span class="lbl">${now} and ${now+1} circuits · lap record speed against corners per km</span></div>${circFlow()}</section>
   <section class="dsec" id="r-all"><div class="sec"><h2>All circuits</h2><span class="lbl" id="r-count">${circFiltered().length} circuits</span></div>${circControls()}<div id="r-list">${circList()}</div></section>
   <section class="dsec" id="r-cty"><div class="sec"><h2>By country</h2><span class="lbl">Select one to list its circuits</span></div>${circCountries()}</section>
+  <section class="dsec" id="r-flow"><div class="sec"><h2>Fast and flowing, or tight and technical</h2><span class="lbl">${now} and ${now+1} circuits · lap record speed against corners per km</span></div>${circFlow()}</section>
   <section class="dsec" id="r-lists"><div class="sec"><h2>Firsts and one-offs</h2></div>${circLists()}</section>
   <section class="dsec" id="r-rec"><div class="sec"><h2>Records</h2><span class="lbl">World Championship races</span></div><div id="r-recs">${circRecords()}</div></section>
-  <p class="note2">Data: <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a> (CC BY 4.0) up to ${HIST.upto[0]} round ${HIST.upto[1]}, with later ${now} rounds from this site's results. Track maps: F1DB circuit outlines by Jules Roy (CC BY 4.0). Length and corners are for the latest layout used; the lap record is the fastest race lap on that layout. Pole laps come from qualifying. Future circuits: sources linked on each.</p></div>`;}
+  <p class="note2">Data: <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a> (CC BY 4.0) up to ${HIST.upto[0]} round ${HIST.upto[1]}, with later ${now} rounds from this site's results. Track outlines: F1DB circuit outlines by Jules Roy (CC BY 4.0). Detailed track maps on the cards: Wikimedia Commons contributors (CC BY-SA). Altitude: SRTM 90 m elevation model via Open Topo Data, taken at one point on each circuit, so it is approximate. Length and corners are for the latest layout used; the lap record is the fastest race lap on that layout. Pole laps come from qualifying. Future circuits: sources linked on each.</p></div>`;}
 function circHero(){const h=HIST.chero,still=h.first.filter(x=>x[1]).length;
   const box=(n,t,s)=>`<div class="chb"><b>${n}</b><span>${t}</span>${s?`<small>${s}</small>`:""}</div>`;
   return `<div class="chero2">${box(h.n,"circuits","since 1950")}${box(h.countries,"countries",`on ${h.continents.length} continents`)}${box(h.cw,"run clockwise",`${h.acw} anticlockwise`)}${box(h.one,"hosted one race","and never again")}${box(`${still} of ${h.first.length}`,"1950 circuits","still on the calendar")}</div>
   <p class="note2">A Grand Prix covers the fewest whole laps that add up to more than 305 km, so the lap count changes from track to track. Monaco is the exception, at about 260 km.</p>`;}
 function circChanges(){const ch=HIST.calchanges||{},yrs=Object.keys(ch).sort((a,b)=>b-a);
-  const chip=(i,tag)=>{const c=HIST.cby[i];if(!c)return "";return `<button class="cchip" data-hc="${c.i}">${cmapSvg(c.lay,"xs")}<span><b>${flagOf(c.cc)} ${esc(c.n)}</b>${tag?`<small>${tag}</small>`:""}</span></button>`;};
+  const chip=(i,tag)=>{const c=HIST.cby[i];if(!c)return "";return `<button class="cchip" data-hc="${c.i}">${cmapSvg(c.lay,"xs")}<span><b>${flagOf(c.cc)} ${esc(c.n)}</b><small>${esc(c.place)}${tag?` · ${tag}`:""}</small></span></button>`;};
   const fut=(typeof FUTURECIRC!=="undefined"?FUTURECIRC:[]);
-  const rows=yrs.map((y,k)=>{const v=ch[y];
+  const decs=[];for(let d=Math.floor(+yrs[0]/10)*10;d>=1950;d-=10)decs.push([Math.min(d+9,+yrs[0]),d]);
+  const boxes=yrs.map(y=>{const v=ch[y];
     const ins=v.add.map(([i,back,gp])=>chip(i,[back==="new"?(+y===1950?"":"first time"):`back after ${back}`,gp?`as the ${esc(gp)}`:""].filter(Boolean).join(" · "))).join("");
     const outs=v.drop.map(i=>chip(i,"")).join("");
-    return `<div class="cyr${k>=12?" more":""}"${k>=12?" hidden":""}><div class="y"><b>${y}</b><small>${v.n} circuits</small></div>
-      <div class="cio"><span class="lbl in">In</span>${ins||'<span class="none">—</span>'}</div><div class="cio"><span class="lbl out">Out</span>${outs||'<span class="none">—</span>'}</div></div>`;}).join("");
-  return `${fut.length?`<div class="cyear cfut"><h3>Planned and future circuits</h3>${fut.map(f=>`<div class="cplan"><div class="ph"><b>${flagOf(f.cc)} ${esc(f.n)}</b><span class="tag${f.status==="Confirmed"?" sig":""}" style="margin:0">${esc(f.status)}</span></div><small>${esc(f.place)} · ${esc(f.when)}</small><p>${esc(f.note)}</p><a href="${esc(f.src[1])}" target="_blank" rel="noopener">${esc(f.src[0])} ↗</a></div>`).join("")}</div>`:""}
-    <div class="cyrs">${rows}</div>${yrs.length>12?`<button class="navbtn" data-cyall style="margin-top:10px">Show every season back to 1950</button>`:""}`;}
+    return `<div class="cyear" data-cy="${y}"><h3>${y} season<small>${v.n} circuits</small></h3>
+      <div class="cio"><span class="lbl in">In</span>${ins||`<span class="none">${+y===1950?"":"No new circuits"}</span>`}</div>
+      <div class="cio"><span class="lbl out">Out</span>${outs||'<span class="none">None dropped</span>'}</div></div>`;}).join("");
+  return `<div class="decs" role="group" aria-label="Jump to decade">${decs.map(([a,b],k)=>`<button type="button" data-cdec="${a}" aria-pressed="${k===0}">${a}–${b}</button>`).join("")}</div>
+    <div class="cchg" id="cchg" tabindex="0" aria-label="Calendar changes by season, newest first">${boxes}</div>
+    ${fut.length?`<div class="cyear cfut"><h3>Planned and future circuits</h3>${fut.map(f=>`<div class="cplan"><div class="ph"><b>${flagOf(f.cc)} ${esc(f.n)}</b><span class="tag${f.status==="Confirmed"?" sig":""}" style="margin:0">${esc(f.status)}</span></div><small>${esc(f.place)} · ${esc(f.when)}</small><p>${esc(f.note)}</p><a href="${esc(f.src[1])}" target="_blank" rel="noopener">${esc(f.src[0])} ↗</a></div>`).join("")}</div>`:""}`;}
+function circDec(y){const box=$("#cchg"),t=box&&box.querySelector(`[data-cy="${y}"]`);if(!t)return;box.scrollTo({left:t.offsetLeft-box.offsetLeft-box.clientLeft,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});}
+function circDecSync(){const box=$("#cchg");if(!box)return;const x=box.scrollLeft+8;let cur=null;
+  box.querySelectorAll("[data-cy]").forEach(b=>{if(b.offsetLeft-box.offsetLeft<=x)cur=+b.dataset.cy;});if(cur==null)return;
+  document.querySelectorAll("[data-cdec]").forEach(b=>{const a=+b.dataset.cdec;b.setAttribute("aria-pressed",String(cur<=a&&cur>=Math.floor(a/10)*10));});}
+const gmap=c=>`https://www.google.com/maps/search/?api=1&query=${c.lat.toFixed(5)},${c.lon.toFixed(5)}`;
+const gcoord=c=>`${Math.abs(c.lat).toFixed(4)}° ${c.lat>=0?"N":"S"}, ${Math.abs(c.lon).toFixed(4)}° ${c.lon>=0?"E":"W"}`;
 /* world map of every circuit (current, next season, past) */
 const CWV=[-20,10,1040,465],CEU=[[35,-12],[57,32]];
 function circMap(){const pts=HIST.circuits.map(c=>{const [x,y]=NE1(c.lat,c.lon);return {c,x,y};}).sort((a,b)=>a.c.r-b.c.r);
   const cls=c=>c.cal.includes(HIST.now)?"now":c.cal.includes(HIST.now+1)?"next":"past";
   return `<div class="rmap cwmap"><div class="rbar"><div class="rzoom" role="group" aria-label="Map area"><button type="button" data-cwz="w" aria-pressed="true">World</button><button type="button" data-cwz="e" aria-pressed="false">Europe</button></div>
     <div class="cwkey"><span><i class="now"></i>${HIST.now} calendar</span><span><i class="next"></i>${HIST.now+1} only</span><span><i class="past"></i>No longer used</span></div></div>
-    <div class="rwrap"><svg id="cwsvg" viewBox="${CWV.join(" ")}" role="img" aria-label="World map of every Formula 1 circuit"><g class="cwland"></g>
-    ${pts.map(({c,x,y})=>`<circle class="cwd ${cls(c)}" data-hc="${c.i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(2.6+Math.sqrt(c.r||1)*.55).toFixed(2)}"><title>${esc(c.n)} · ${esc(c.place)} · ${c.r?`${c.r} GP${c.r>1?"s":""}, ${c.y[0]===c.y[1]?c.y[0]:c.y[0]+"–"+c.y[1]}`:"new"}</title></circle>`).join("")}</svg></div></div>`;}
-function circMapInit(){const svg=$("#cwsvg");if(!svg)return;loadWorld().then(w=>{const g=svg.querySelector(".cwland");if(g&&!g.firstChild)g.innerHTML=`<path class="rland" d="${w.land}"/><path class="rbord" d="${w.borders}"/>`;}).catch(()=>{});}
-function circMapZoom(k){const svg=$("#cwsvg");if(!svg)return;let vb=CWV;
+    <div class="rwrap"><svg id="cwsvg" viewBox="${CWV.join(" ")}" style="aspect-ratio:${CWV[2]}/${CWV[3]}" role="img" aria-label="World map of every Formula 1 circuit"><g class="cwland"></g>
+    ${pts.map(({c,x,y})=>`<circle class="cwd ${cls(c)}" data-hc="${c.i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" data-r="${(2.6+Math.sqrt(c.r||1)*.55).toFixed(2)}" r="${(2.6+Math.sqrt(c.r||1)*.55).toFixed(2)}"><title>${esc(c.n)} · ${esc(c.place)} · ${c.r?`${c.r} GP${c.r>1?"s":""}, ${c.y[0]===c.y[1]?c.y[0]:c.y[0]+"–"+c.y[1]}`:"new"}</title></circle>`).join("")}</svg>
+    <div class="rzbtn" role="group" aria-label="Zoom"><button type="button" data-cwzb="in" aria-label="Zoom in">+</button><button type="button" data-cwzb="out" aria-label="Zoom out">−</button></div></div>
+    <p class="note2" style="margin:6px 10px 8px">Pinch or use + and − to zoom; drag to move around.</p></div>`;}
+let CWZ=null;
+function circMapInit(){const svg=$("#cwsvg");if(!svg)return;loadWorld().then(w=>{const g=svg.querySelector(".cwland");if(g&&!g.firstChild)g.innerHTML=`<path class="rland" d="${w.land}"/><path class="rbord" d="${w.borders}"/>`;}).catch(()=>{});
+  const FULL=CWV,AR=FULL[2]/FULL[3],MINW=FULL[2]/14;const Z={vb:FULL.slice()};CWZ=Z;
+  const clamp=(x,y,w)=>{w=Math.max(MINW,Math.min(FULL[2],w));const h=w/AR;return [Math.max(FULL[0],Math.min(FULL[0]+FULL[2]-w,x)),Math.max(FULL[1],Math.min(FULL[1]+FULL[3]-h,y)),w,h];};
+  const apply=()=>{svg.setAttribute("viewBox",Z.vb.map(v=>v.toFixed(2)).join(" "));const f=Z.vb[2]/FULL[2],k=f<1?Math.max(Math.pow(f,.8),.12):1;
+    svg.querySelectorAll(".cwd").forEach(d=>d.setAttribute("r",(+d.dataset.r*k).toFixed(2)));svg.classList.toggle("zoomed",Z.vb[2]<FULL[2]-.5);
+    const zb=svg.parentNode.querySelector(".rzbtn");if(zb){zb.querySelector('[data-cwzb="in"]').disabled=Z.vb[2]<=MINW+.5;zb.querySelector('[data-cwzb="out"]').disabled=Z.vb[2]>=FULL[2]-.5;}};
+  const toMap=(cx,cy,v=Z.vb)=>{const b=svg.getBoundingClientRect();return [v[0]+(cx-b.left)/b.width*v[2],v[1]+(cy-b.top)/b.height*v[3],(cx-b.left)/b.width,(cy-b.top)/b.height];};
+  const manual=()=>document.querySelectorAll("[data-cwz]").forEach(b=>b.setAttribute("aria-pressed","false"));
+  Z.set=vb=>{Z.vb=clamp(vb[0],vb[1],vb[2]);apply();};
+  Z.zoomBy=(f,cx,cy)=>{const b=svg.getBoundingClientRect();if(cx==null){cx=b.left+b.width/2;cy=b.top+b.height/2;}const [mx,my,fx,fy]=toMap(cx,cy),w=Math.max(MINW,Math.min(FULL[2],Z.vb[2]*f));Z.vb=clamp(mx-fx*w,my-fy*w/AR,w);manual();apply();};
+  const pts=new Map();let g0=null,drag=null;
+  svg.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse"&&e.button!==0)return;pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pts.size===2){const [a,b]=[...pts.values()];g0={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,v:Z.vb.slice(),m:toMap((a[0]+b[0])/2,(a[1]+b[1])/2)};drag=null;}
+    else if(pts.size===1&&(Z.vb[2]<FULL[2]-.5||e.pointerType==="mouse"))drag={x:e.clientX,y:e.clientY,v:Z.vb.slice(),moved:false,id:e.pointerId};});
+  svg.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(g0&&pts.size>=2){const [a,b]=[...pts.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1])||1,bx=svg.getBoundingClientRect(),w=Math.max(MINW,Math.min(FULL[2],g0.v[2]*g0.d/d)),mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
+      Z.vb=clamp(g0.m[0]-(mx-bx.left)/bx.width*w,g0.m[1]-(my-bx.top)/bx.height*w/AR,w);manual();apply();e.preventDefault();return;}
+    if(drag&&drag.id===e.pointerId){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<5)return;
+      if(!drag.moved){drag.moved=true;try{svg.setPointerCapture(e.pointerId)}catch(err){}svg.classList.add("dragging");}
+      const bx=svg.getBoundingClientRect(),u=drag.v[2]/bx.width;Z.vb=clamp(drag.v[0]-dx*u,drag.v[1]-dy*u,drag.v[2]);manual();apply();e.preventDefault();}});
+  const up=e=>{if(!pts.has(e.pointerId))return;pts.delete(e.pointerId);if(pts.size<2)g0=null;if(drag&&drag.id===e.pointerId){if(drag.moved){Z.dragged=true;setTimeout(()=>Z.dragged=false,0);}drag=null;svg.classList.remove("dragging");}};
+  ["pointerup","pointercancel"].forEach(t=>svg.addEventListener(t,up));
+  svg.addEventListener("click",e=>{if(Z.dragged){e.stopPropagation();e.preventDefault();Z.dragged=false;}},true);
+  svg.addEventListener("wheel",e=>{if(!e.ctrlKey)return;e.preventDefault();Z.zoomBy(Math.exp(e.deltaY*.01),e.clientX,e.clientY);},{passive:false});
+  apply();}
+function circMapZoom(k){if(!CWZ)return;let vb=CWV;
   if(k==="e"){const a=NE1(CEU[0][0],CEU[0][1]),b=NE1(CEU[1][0],CEU[1][1]);const x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]),y0=Math.min(a[1],b[1]),y1=Math.max(a[1],b[1]);const w=x1-x0+20,h=w*CWV[3]/CWV[2];vb=[x0-10,(y0+y1)/2-h/2,w,h];}
-  svg.setAttribute("viewBox",vb.join(" "));const f=vb[2]/CWV[2];svg.querySelectorAll(".cwd").forEach(d=>{if(!d._r)d._r=+d.getAttribute("r");d.setAttribute("r",(d._r*(f<1?Math.max(f*1.5,.2):1)).toFixed(2));});
-  document.querySelectorAll("[data-cwz]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.cwz===k)));}
+  CWZ.set(vb);document.querySelectorAll("[data-cwz]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.cwz===k)));}
 /* scatter: average speed of the lap record against corners per km */
 function circFlow(){const L=HIST.circuits.filter(c=>(c.cal.includes(HIST.now)||c.cal.includes(HIST.now+1))&&c.rec&&c.rec[5]&&c.len&&c.turns);
   if(!L.length)return "";const W=760,H=420,P={l:56,r:16,t:16,b:44};
@@ -1580,7 +1615,7 @@ function circLists(){const h=HIST.chero,l=HIST.clists;
     <div class="hrec"><h3>One race and never again</h3><ol class="plain">${l.one.map(([i,y])=>row(i,String(y)+(HIST.cby[i].cal.length?" · on the calendar again":""))).join("")}</ol></div>
     <div class="hrec"><h3>Two races in one season</h3><ol class="plain">${l.dbl.map(([i,ys])=>row(i,ys.join(", "))).join("")}</ol></div></div>`;}
 function circRecords(){const it=HIST.crecords[0].items;const lapf=v=>{const m=Math.floor(v/60),r=v-m*60;return m?`${m}:${r.toFixed(3).padStart(6,"0")}`:r.toFixed(3);};
-  const val=(v,u)=>typeof v==="string"?esc(v):u==="%"?hn(v)+"%":u==="km"?klen(v):u==="km/h"?spd(v,1):u==="s"?v.toFixed(3)+" s":u==="lap"?lapf(v):hn(v);
+  const val=(v,u)=>typeof v==="string"?esc(v):u==="%"?hn(v)+"%":u==="km"?klen(v):u==="km/h"?spd(v,1):u==="s"?v.toFixed(3)+" s":u==="lap"?lapf(v):u==="m"?(UNIT==="mi"?hn(Math.round(v*3.28084))+" ft":hn(v)+" m"):hn(v);
   return `<div class="hrecs">${it.map((x,k)=>{const more=RS["rm"+k],rows=x.rows.slice(0,more?10:5);let rank=0,prev=null;
     return `<div class="hrec"><h3>${esc(x.t)}</h3><ol>${rows.map((r,j)=>{if(r[1]!==prev){rank=j+1;prev=r[1];}return `<li><span class="rk">${rank}</span><span class="who">${ccl(r[0])}${r[2]?`<small>${esc(r[2])}</small>`:""}</span><b class="v">${val(r[1],x.u)}</b></li>`;}).join("")}</ol>
     ${x.rows.length>5?`<button class="hmore" data-rrm="${k}">${more?"Show top 5":"Show top 10"}</button>`:""}</div>`;}).join("")}</div>`;}
@@ -1598,7 +1633,7 @@ function circFiltered(){histIndexCirc();const q=RS.q.trim().toLowerCase().normal
   return L.sort((a,b)=>{const x=get(a),y=get(b);const r=typeof x==="string"?x.localeCompare(y):(x||0)-(y||0);return r*dir||b.r-a.r||a.n.localeCompare(b.n);});}
 function circList(){const L=circFiltered(),shown=L.slice(0,RS.limit),cn=$("#r-count");if(cn)cn.textContent=`${L.length} circuit${L.length===1?"":"s"}`;
   const th=RCOLS.map(([k,n])=>k==="map"?`<th class="cm"></th>`:`<th${["n","place","type","y","rec","w"].includes(k)?"":` class="n"`}><button data-rsort="${k}" aria-sort="${RS.sort===k?(RS.dir<0?"descending":"ascending"):"none"}">${n}${RS.sort===k?(RS.dir<0?" ↓":" ↑"):""}</button></th>`).join("");
-  const rows=shown.map(c=>`<tr data-hc="${c.i}" class="go"><td class="cm">${cmapSvg(c.lay,"xs")}</td><td>${flagOf(c.cc)} <b>${esc(c.n)}</b>${c.cal.includes(HIST.now)?` <span class="hnow">${HIST.now}</span>`:c.cal.includes(HIST.now+1)?` <span class="hnow">${HIST.now+1}</span>`:""}</td><td style="color:var(--ink-2)">${esc(c.place)}</td><td style="color:var(--ink-2)">${ctype(c.type)}</td>
+  const rows=shown.map(c=>`<tr data-hc="${c.i}" class="go"><td class="cm">${cmapSvg(c.lay,"xs")}</td><td>${flagOf(c.cc)} <b>${esc(c.n)}</b>${c.cal.includes(HIST.now)?` <span class="hnow">${HIST.now}</span>`:c.cal.includes(HIST.now+1)?` <span class="hnow">${HIST.now+1}</span>`:""}</td><td><a class="gmap" href="${gmap(c)}" target="_blank" rel="noopener" title="Open in Google Maps">${esc(c.place)}</a></td><td style="color:var(--ink-2)">${ctype(c.type)}</td>
     <td class="m">${c.y?(c.y[0]===c.y[1]?c.y[0]:c.y[0]+"–"+String(c.y[1]).slice(-2)):"—"}</td><td class="n"><b>${c.r}</b></td><td class="n">${klen(c.len)}</td><td class="n">${c.turns||"—"}</td>
     <td class="m">${c.rec?`${c.rec[1]} <small style="color:var(--ink-3)">${esc((HIST.by[c.rec[2]]||{}).n||"")} ${c.rec[4]}</small>`:"—"}</td><td>${c.wins[0]?`${esc(HIST.by[c.wins[0][0]].n)} <small style="color:var(--ink-3)">${c.wins[0][1]}</small>`:"—"}</td></tr>`).join("");
   return L.length?`<div class="tw"><table class="t htab hdrv hcirc"><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table></div>${L.length>RS.limit?`<div class="hmorebar"><span>Showing ${RS.limit} of ${L.length}</span><button class="navbtn" data-rlimit="99999">Show all</button></div>`:""}`
@@ -1615,12 +1650,14 @@ function openHCirc(i){histIndexCirc();histIndexTeams();const c=HIST.cby[i];if(!c
   const S=[["Grands Prix",c.r,c.y?(c.y[0]===c.y[1]?String(c.y[0]):c.y[0]+"–"+c.y[1]):""],["Seasons",c.ns,""],["Length",klen(c.len),"latest layout"],["Corners",c.turns||"—",""],["Direction",cdir(c.dir)||"—",""],["Type",ctype(c.type),""],
     ["Different winners",c.nw,""],["Won from pole",c.r?`${c.pw} of ${c.r}`:"—",c.r?Math.round(100*c.pw/c.r)+"%":""],["Layouts",c.layouts.length||1,""]];
   if(c.dist)S.splice(4,0,["Race distance",`${c.dist[0]} laps`,`${klen(c.dist[1])} · ${c.dist[2]}`]);
+  if(c.el!=null)S.push(["Altitude",UNIT==="mi"?`${hn(Math.round(c.el*3.28084))} ft`:`${hn(c.el)} m`,"above sea level, approx."]);
   const note=(typeof CIRCNOTES!=="undefined"&&CIRCNOTES[c.id])||{};if(note.corner)S.push(["Signature corner",note.corner,""]);
   const chips=(L,f)=>L.map(([i,n])=>f(i,n)).join("");
-  const inner=`<div class="mhero hhero chero"><div class="cbig">${cmapSvg(c.lay,"lg")}</div><div class="tx"><span class="lbl">${flagOf(c.cc)} ${esc(hcc(c.cc))} · ${esc(c.place)}</span><h2>${esc(c.n)}</h2>
-    <div>${esc(c.full)}</div><div style="margin-top:6px">${c.cal.includes(HIST.now)?`<span class="tag sig" style="margin:0 6px 0 0">${HIST.now} calendar</span>`:""}${c.cal.includes(HIST.now+1)?`<span class="tag" style="margin:0">${HIST.now+1} calendar</span>`:""}</div></div></div>
+  const inner=`<div class="mhero hhero chero"><div class="cbig">${cmapSvg(c.lay,"lg")}</div><div class="tx"><span class="lbl">${flagOf(c.cc)} ${esc(hcc(c.cc))} · <a class="gmap" href="${gmap(c)}" target="_blank" rel="noopener" title="Open in Google Maps">${esc(c.place)} ↗</a></span><h2>${esc(c.n)}</h2>
+    <div>${esc(c.full)}</div><a class="gmap gco" href="${gmap(c)}" target="_blank" rel="noopener" title="Open in Google Maps"><span aria-hidden="true">⌖</span> ${gcoord(c)}</a><div style="margin-top:6px">${c.cal.includes(HIST.now)?`<span class="tag sig" style="margin:0 6px 0 0">${HIST.now} calendar</span>`:""}${c.cal.includes(HIST.now+1)?`<span class="tag" style="margin:0">${HIST.now+1} calendar</span>`:""}</div></div></div>
   <div class="mb">
    <div><div class="mh"><h3>Circuit</h3><span class="lbl">World Championship races</span></div><div class="facts hstats">${S.map(([l,v,s])=>`<div><span class="lbl">${l}</span><b>${typeof v==="number"?hn(v):esc(v)}</b>${s?`<small>${esc(s)}</small>`:""}</div>`).join("")}</div></div>
+   ${(typeof TRACKIMG!=="undefined"&&TRACKIMG[c.id])?`<div><div class="mh"><h3>Track map</h3><span class="lbl">Turns, corner names and direction · select to enlarge</span></div><a class="ctrack" href="${TRACKIMG[c.id][0]}" target="_blank" rel="noopener"><img src="${TRACKIMG[c.id][0]}" width="${TRACKIMG[c.id][1]}" height="${TRACKIMG[c.id][2]}" alt="Track map of ${esc(c.full)} with turn numbers and corner names" loading="lazy" decoding="async"></a></div>`:""}
    ${c.rec?`<div><div class="mh"><h3>Lap record</h3><span class="lbl">Fastest race lap, current layout</span></div><div class="crec"><b class="t">${c.rec[1]}</b><span>${hdl(c.rec[2])} ${c.rec[3]!=null?`· ${tcl(c.rec[3])}`:""} · ${c.rec[4]}</span>${c.rec[5]?`<small>${spd(c.rec[5],1)} average</small>`:""}</div></div>`:""}
    ${c.wins.length?`<div><div class="mh"><h3>Most wins</h3></div><div class="hchips">${chips(c.wins,(i,n)=>`<button class="hchip" data-hd="${i}">${flagOf(D(i).cc)} ${esc(D(i).n||"")} <b>${n}</b></button>`)}</div></div>`:""}
    ${c.cwins.length?`<div><div class="mh"><h3>Most successful teams</h3></div><div class="hchips">${chips(c.cwins,(i,n)=>`<button class="hchip" data-ht="${i}">${esc(T(i).n2||T(i).n||"")} <b>${n}</b></button>`)}</div></div>`:""}
@@ -1716,7 +1753,7 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}
   else if(h==="hcirc"||h.startsWith("hcirc-")){const ck=h.startsWith("hcirc-")?h.slice(6):null,keep=!!$('.hist[data-mode="r"] .hjump');
     if(!keep||!HIST)$("#app").innerHTML=HIST?viewCirc():viewHistory().replace(/<h2 class="h1">Drivers<\/h2>/,'<h2 class="h1">Circuits</h2>');$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hcirc");
-    loadHist().then(()=>{if(curKey()!==h)return;histIndexCirc();if(!$('.hist[data-mode="r"] .hjump')){$("#app").innerHTML=viewCirc();pinSizes();}loadMaps();circMapInit();
+    loadHist().then(()=>{if(curKey()!==h)return;histIndexCirc();if(!$('.hist[data-mode="r"] .hjump')){$("#app").innerHTML=viewCirc();pinSizes();}loadMaps();circMapInit();{const cb=$("#cchg");if(cb&&!cb._s){cb._s=1;let q=0;cb.addEventListener("scroll",()=>{cancelAnimationFrame(q);q=requestAnimationFrame(circDecSync);},{passive:true});}}
       if(ck&&HIST.cbyid[ck])openHCirc(HIST.cbyid[ck].i);document.title=pageTitle(h);}).catch(()=>{});}
   else if(h==="hcons"||h.startsWith("hcons-")||h.startsWith("heng-")){const tk=h.startsWith("hcons-")?h.slice(6):null,ek=h.startsWith("heng-")?h.slice(5):null,keep=!!$('.hist[data-mode="c"] .hjump');
     if(!keep||!HIST)$("#app").innerHTML=HIST?viewCons():viewHistory().replace(/<h2 class="h1">Drivers<\/h2>/,'<h2 class="h1">Constructors</h2>');$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hcons");
@@ -1771,9 +1808,11 @@ document.addEventListener("click",e=>{
     if(e.target.closest("#rsvg")&&RT.phase==="idle"&&RT.pin!=null){RT.unpick();return;}}
   if($(".hist")||$(".modal")){
     const hd=e.target.closest("[data-hd]");if(hd&&HIST){e.preventDefault();openHDriver(+hd.dataset.hd);return;}
+    if(e.target.closest("a.gmap"))return;
     const hc_=e.target.closest("[data-hc]");if(hc_&&HIST){e.preventDefault();openHCirc(+hc_.dataset.hc);return;}
-    if(e.target.closest("[data-cyall]")){document.querySelectorAll(".cyr.more").forEach(x=>x.hidden=false);e.target.closest("[data-cyall]").remove();loadMaps();return;}
+    const cdc=e.target.closest("[data-cdec]");if(cdc){circDec(cdc.dataset.cdec);document.querySelectorAll("[data-cdec]").forEach(b=>b.setAttribute("aria-pressed",String(b===cdc)));return;}
     const cwz=e.target.closest("[data-cwz]");if(cwz){circMapZoom(cwz.dataset.cwz);return;}
+    const cwb=e.target.closest("[data-cwzb]");if(cwb){if(CWZ)CWZ.zoomBy(cwb.dataset.cwzb==="in"?1/1.6:1.6);return;}
     const rrm=e.target.closest("[data-rrm]");if(rrm){RS["rm"+rrm.dataset.rrm]=!RS["rm"+rrm.dataset.rrm];$("#r-recs").innerHTML=circRecords();loadMaps();return;}
     const rso=e.target.closest("[data-rsort]");if(rso){const k=rso.dataset.rsort;if(RS.sort===k)RS.dir=-RS.dir;else{RS.sort=k;RS.dir=(k==="n"||k==="place"||k==="type"||k==="y")?1:-1;}circRefresh();return;}
     const rsh=e.target.closest("[data-rshow]");if(rsh){RS.show=rsh.dataset.rshow;document.querySelectorAll("[data-rshow]").forEach(b=>b.setAttribute("aria-pressed",String(b===rsh)));circRefresh();return;}
