@@ -38,7 +38,7 @@ The build makes one folder with an `index.html` for every page (`/`, `/champions
 
 ## History page
 
-`/history/` lists every World Championship driver since 1950 with career stats, champions by year (with the race where each title was won), all-time records and stats by country. `build.py` computes it from `src/history.json` plus the current season's results in `src/data.json`, so new races show up after every build without touching the history file.
+`/history/` lists every World Championship driver since 1950 with career stats, champions by year (with the race where each title was won), all-time records and stats by country. `/history/constructors/` does the same for teams and engine makers: constructors' champions since 1958, every team and engine with a card (record, drivers' champions, engines or teams supplied, team history), team and engine records, and stats by country. `build.py` computes it from `src/history.json` plus the current season's results in `src/data.json`, so new races show up after every build without touching the history file.
 
 To take in a newer F1DB release (for example to pick up corrections), download `f1db-json-splitted.zip` from https://github.com/f1db/f1db/releases, unzip it and run:
 
@@ -46,6 +46,8 @@ To take in a newer F1DB release (for example to pick up corrections), download `
 python3 scripts/history.py path/to/unzipped-folder
 python3 build.py
 ```
+
+Rounds newer than the F1DB release are added from the site's results using each driver's latest team. If a driver changes team after the newest F1DB round, refresh the F1DB file once it includes that race so the team totals stay exact.
 
 ## Automatic result updates
 

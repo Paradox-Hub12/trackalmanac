@@ -727,6 +727,20 @@ a.dcard,a.tcard{text-decoration:none;color:inherit}
 .rstops button small{font-family:var(--f-data);color:var(--ink-3)}
 .rstops button[aria-pressed="true"]{border-color:var(--signal);background:color-mix(in srgb,var(--signal) 12%,var(--panel));color:var(--ink)}
 /* history */
+.htabs{display:flex;gap:0;margin-top:14px;border:1.5px solid var(--rule-2);width:max-content;max-width:100%}
+.htabs a{font-family:var(--f-data);font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;color:var(--ink-2);text-decoration:none;background:var(--panel)}
+.htabs a+a{border-left:1px solid var(--rule-2)}
+.htabs a[aria-selected="true"]{background:var(--ink);color:var(--sheet)}
+.htabs a:hover:not([aria-selected="true"]){color:var(--ink)}
+.hdl .sw,.hcons .sw{display:inline-block;width:4px;height:14px;vertical-align:-2px;margin-right:7px}
+.hch[style*="--tc"] .t{color:var(--tc)}
+.hdbl{font-family:var(--f-data);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--signal);color:var(--signal);padding:0 4px;vertical-align:1px;margin-left:4px}
+.hchips{display:flex;flex-wrap:wrap;gap:6px}
+.hchip{background:var(--panel);border:1px solid var(--rule-2);color:var(--ink);font:inherit;font-size:13px;padding:5px 9px;cursor:pointer}
+.hchip:not([data-hd]):not([data-ht]):not([data-he]){cursor:default}
+.hchip:hover[data-hd],.hchip:hover[data-ht],.hchip:hover[data-he]{border-color:var(--signal)}
+.hchip small{color:var(--ink-3);font-family:var(--f-data);font-size:11px}
+
 .hist .hjump{margin-bottom:6px}
 .htab td small.tm{display:block;color:var(--ink-3);font-size:11.5px;margin-top:1px}
 .htab td small{color:var(--ink-3)}

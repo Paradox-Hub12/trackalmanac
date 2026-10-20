@@ -220,6 +220,7 @@ class Site:
             r = next(x for x in self.RACES if x["r"] == int(key[7:])); return "/races/%d/%s/" % (YEAR, slug(r))
         if key.startswith("archive-"): return "/archive/%s/" % key[8:]
         if key == "sitemap": return "/site-map/"
+        if key == "hcons": return "/history/constructors/"
         return "/%s/" % key
     def a(self, key, text): return '<a href="%s">%s</a>' % (self.path(key), text)
     def dlink(self, name):
@@ -491,6 +492,33 @@ def history_page(S):
     return "".join(out)
 
 
+def history_cons_page(S):
+    H = S.HIST; tb = {t["i"]: t for t in H["teams"]}; dv = {d["i"]: d for d in H["drivers"]}; eb = {e["i"]: e for e in H["engines"]}
+    tn = lambda i: esc(tb[i]["n"]) if i in tb else ""
+    lead = ("Every constructor to enter a Formula 1 World Championship race since 1950: %d teams and %d engine makers. "
+            "Constructors' champions since 1958, every champion team, team and engine records, and stats by country." % (len(H["teams"]), len(H["engines"])))
+    out = [pagehead("Formula 1 history: constructors", lead, "Formula 1 history")]
+    rows = []
+    for c in reversed(H["cchamps"]):
+        t = c["top"]
+        won = (esc(c["dec"][0]) if c["dec"] else "In progress")
+        rows.append([c["y"], "<b>%s</b>" % esc(t[0][1]), fmtn(t[0][2]), "%s (%s)" % (esc(t[1][1]), fmtn(t[1][2])) if len(t) > 1 else "",
+                     "%s (%s)" % (esc(t[2][1]), fmtn(t[2][2])) if len(t) > 2 else "", won, esc(dv[c["dch"][0]]["n"]) if c.get("dch") and c["dch"][0] in dv else ""])
+    out.append(sec("Constructors' champions by year", table(["Year", "Champion", "Pts", "Runner-up", "Third", "Title won at", "Drivers' champion"], rows)))
+    ch = sorted((t for t in H["teams"] if t["t"]), key=lambda t: (-t["t"], t["ty"][0]))
+    out.append(sec("All constructors' champions", table(["Team", "Titles", "Years"], [[esc(t["n"]), t["t"], ", ".join(map(str, t["ty"]))] for t in ch])))
+    for c in H["crec"]:
+        nm = (lambda i: esc(eb[i]["n"]) if i in eb else "") if c["cat"] == "Engines" else tn
+        items = "".join("<h3>%s</h3><ol>%s</ol>" % (esc(it["t"]), "".join("<li>%s: %s%s</li>" % (nm(r[0]), fmtn(r[1]) if not isinstance(r[1], str) else esc(r[1]), (" (%s)" % esc(r[2])) if r[2] else "") for r in it["rows"][:5])) for it in c["items"])
+        out.append(sec("Records: %s" % esc(c["cat"].lower()), items))
+    ts = sorted(H["teams"], key=lambda t: t["n"])
+    out.append(sec("All Formula 1 constructors", table(["Team", "Country", "Years", "Races", "Wins", "Poles", "Titles"],
+               [[esc(t["n"]), esc(H["ccn"].get(t["cc"], t["cc"] or "")), ("%d–%d" % tuple(t["y"])) if t["y"] else "", t["s"], t["w"], t["pl"], t["t"]] for t in ts])))
+    out.append(sec("Engine makers", table(["Engine", "Country", "Years", "Races", "Wins", "Constructors' titles", "Drivers' titles"],
+               [[esc(e["n"]), esc(H["ccn"].get(e["cc"], e["cc"] or "")), ("%d–%d" % tuple(e["y"])) if e["y"] else "", e["s"], e["w"], e["t"], e["dt"]] for e in sorted(H["engines"], key=lambda e: -e["w"])])))
+    return "".join(out)
+
+
 def fmtn(x):
     if isinstance(x, float) and x.is_integer(): x = int(x)
     return "{:,}".format(x) if isinstance(x, int) else ("%g" % x)
@@ -606,7 +634,7 @@ def head(p, assets, fonts):
 """
 
 
-NAVKEY = {"/": "season", "/championship/": "championship", "/drivers/": "drivers", "/teams/": "teams", "/history/": "history"}
+NAVKEY = {"/": "season", "/championship/": "championship", "/drivers/": "drivers", "/teams/": "teams", "/history/": "history", "/history/constructors/": "history"}
 
 
 def page_html(p, body_tpl, assets, fonts):
@@ -689,6 +717,9 @@ def build(out, data_path=DATA):
         add("history", "F1 History: Every Driver, World Champion & All-Time Record | Track Almanac",
             "Every Formula 1 driver since 1950 (%d drivers) with career stats, world champions by year, all-time records like most wins and consecutive titles, and stats by country." % len(S.HIST["drivers"]),
             "Formula 1 history: drivers", history_page(S), "F1 HISTORY", home + [("History", "/history/")])
+        add("hcons", "F1 Constructors History: Every Team, Champion, Engine & Record | Track Almanac",
+            "Every Formula 1 constructor since 1950 (%d teams, %d engine makers): constructors' champions by year, team and engine records like most wins and consecutive titles, and team histories." % (len(S.HIST["teams"]), len(S.HIST["engines"])),
+            "Formula 1 history: constructors", history_cons_page(S), "F1 HISTORY", home + [("History", "/history/"), ("Constructors", "/history/constructors/")])
     add("archive", "F1 Season Archive 1946–2025: Results & Champions | Track Almanac",
         "Every Formula 1 World Championship season since 1950: champions, Grand Prix winners, poles, fastest laps, sprint results and full standings, plus Grand Prix racing from 1946 to 1949.",
         "Formula 1 season archive", archive_index_page(S), "SEASON ARCHIVE", home + [("Archive", "/archive/")])

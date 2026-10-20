@@ -28,9 +28,10 @@ def main(src):
     results = L("races-race-results")
     fl = {}  # race -> drivers with the fastest lap (shared in a few 1950s races)
     for x in L("races-fastest-laps"):
-        if x["positionNumber"] == 1: fl.setdefault(x["raceId"], []).append(x["driverId"])
+        if x["positionNumber"] == 1: fl.setdefault(x["raceId"], []).append(x)
     sprint = L("races-sprint-race-results")
-    grid = {(x["raceId"], x["driverId"]): x["positionNumber"] for x in L("races-starting-grid-positions")}
+    # keyed by car too: in a shared drive a driver can appear for two teams in one race
+    grid = {(x["raceId"], x["driverId"], x["constructorId"]): x["positionNumber"] for x in L("races-starting-grid-positions")}
     drivers = L("drivers")
 
     # only races that have been run (results exist)
@@ -53,6 +54,16 @@ def main(src):
     def ci(c):
         if c not in cix: cix[c] = len(CN); CN.append(cons.get(c, c))
         return cix[c]
+    # engine makers and tyre suppliers, by index
+    emk = {e["id"]: e for e in L("engine-manufacturers")}
+    tmk = {t["id"]: t for t in L("tyre-manufacturers")}
+    eix, EN, tix, TN = {}, [], {}, []
+    def ei(e):
+        if e not in eix: eix[e] = len(EN); EN.append(e)
+        return eix[e]
+    def ti(t):
+        if t not in tix: tix[t] = len(TN); TN.append(t)
+        return tix[t]
     byrace = {}
     for x in results: byrace.setdefault(x["raceId"], []).append(x)
     spr = {}
@@ -64,15 +75,17 @@ def main(src):
             t = x["positionText"]
             code = 0 if x["positionNumber"] else NONSTART.get(t, TEXTCODE.get(t, 5))
             if t == "EX" and not x["laps"]: code = 9   # excluded before the start: an entry, not a start
-            g = grid.get((r["id"], x["driverId"]))
+            g = grid.get((r["id"], x["driverId"], x["constructorId"]))
             # [driver, finishing position (0 = not classified), status code, points, grid, laps, pole, constructor]
             rows.append([dix[x["driverId"]], x["positionNumber"] or 0, code, x["points"] or 0, g or 0,
-                         x["laps"] or 0, 1 if x.get("polePosition") else 0, ci(x["constructorId"])])
+                         x["laps"] or 0, 1 if x.get("polePosition") else 0, ci(x["constructorId"]),
+                         ei(x["engineManufacturerId"]), ti(x["tyreManufacturerId"]) if x.get("tyreManufacturerId") else -1])
         # [driver, position (0 = not classified), points, started (0 = did not start)]
         sp = [[dix[x["driverId"]], x["positionNumber"] or 0, x["points"] or 0, 0 if x["positionText"] in NONSTART else 1] for x in spr.get(r["id"], [])]
         g = gps[r["grandPrixId"]]
         R.append({"y": r["year"], "r": r["round"], "gp": g["fullName"], "cc": countries[g.get("countryId") or circ[r["circuitId"]]["countryId"]]["alpha2Code"],
-                  "d": r["date"], "fl": [dix[i] for i in fl.get(r["id"], []) if i in dix], "dec": 1 if r.get("driversChampionshipDecider") else 0,
+                  "d": r["date"], "fl": [dix[x["driverId"]] for x in fl.get(r["id"], []) if x["driverId"] in dix],
+                  "flc": [[ci(x["constructorId"]), ei(x["engineManufacturerId"])] for x in fl.get(r["id"], [])], "dec": 1 if r.get("driversChampionshipDecider") else 0, "cdec": 1 if r.get("constructorsChampionshipDecider") else 0,
                   "rows": rows, "sp": sp})
     # season standings: top three of every season, official (counted) points
     ST = {}
@@ -88,8 +101,24 @@ def main(src):
     used_cc = {d[k] for d in D for k in ("cc", "cc2", "cob") if d.get(k)} | {r["cc"] for r in R}
     CC = {c["alpha2Code"]: [c["name"], c["demonym"]] for c in countries.values() if c["alpha2Code"] in used_cc}
     last = races[-1]
+    # constructors' standings every season (from 1958): [position, constructor, engine, points]
+    CST = {}
+    for x in L("seasons-constructor-standings"):
+        CST.setdefault(str(x["year"]), []).append([x["positionNumber"] or 0, ci(x["constructorId"]), ei(x["engineManufacturerId"]), x["points"] or 0])
+    for v in CST.values(): v.sort(key=lambda r: (r[0] or 999))
+    cfull = {c["id"]: c for c in L("constructors")}
+    # team lineage: a team's history under earlier names, e.g. Tyrrell > BAR > Honda > Brawn > Mercedes
+    CHR = {}
+    for x in sorted(L("constructors-chronology"), key=lambda x: (x["parentConstructorId"], x["positionDisplayOrder"])):
+        CHR.setdefault(str(ci(x["parentConstructorId"])), []).append([ci(x["constructorId"]), x["yearFrom"], x["yearTo"]])
+    CI = [{"id": c, "full": cfull[c]["fullName"] if c in cfull else cons.get(c, c), "cc": countries[cfull[c]["countryId"]]["alpha2Code"] if c in cfull else None} for c in list(cix)]
+    ENG = [{"id": e, "n": emk[e]["name"] if e in emk else e, "cc": countries[emk[e]["countryId"]]["alpha2Code"] if e in emk and emk[e].get("countryId") else None} for e in EN]
+    TYR = [{"id": t, "n": tmk[t]["name"] if t in tmk else t, "cc": countries[tmk[t]["countryId"]]["alpha2Code"] if t in tmk and tmk[t].get("countryId") else None} for t in TN]
+    for c in CI + ENG + TYR:
+        if c["cc"] and c["cc"] not in CC:
+            k = next(v for v in countries.values() if v["alpha2Code"] == c["cc"]); CC[c["cc"]] = [k["name"], k["demonym"]]
     out = {"source": "F1DB (github.com/f1db/f1db), CC BY 4.0", "upto": [last["year"], last["round"]],
-           "drivers": D, "cons": CN, "countries": CC, "races": R, "standings": ST, "family": fam}
+           "drivers": D, "cons": CN, "cinfo": CI, "engines": ENG, "tyres": TYR, "cstand": CST, "chron": CHR, "countries": CC, "races": R, "standings": ST, "family": fam}
     txt = json.dumps(out, ensure_ascii=False, separators=(",", ":"))
     open(OUT, "w", encoding="utf-8").write(txt + "\n")
     print("wrote %s: %d drivers, %d races (to %d R%d), %d KB" % (OUT, len(D), len(R), last["year"], last["round"], len(txt) // 1024))
