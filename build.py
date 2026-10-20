@@ -36,6 +36,9 @@ SRC = os.path.join(ROOT, "src", "app.html")
 DATA = os.path.join(ROOT, "src", "data.json")
 MEDIA = os.path.join(ROOT, "src", "media.json")
 WORLD = os.path.join(ROOT, "src", "world.json")
+HISTBASE = os.path.join(ROOT, "src", "history.json")
+sys.path.insert(0, ROOT)
+import historylib
 SITE = "https://trackalmanac.com"
 STATE = os.path.join(ROOT, ".automation", "build-state.json")
 YEAR = 2026
@@ -197,6 +200,7 @@ class Site:
         if g("CAL2027"): self.ARCHIVE.setdefault("2027", {"next": True})
         self.CAL2027, self.ENT2027 = g("CAL2027") or [], g("ENTRIES2027") or []
         self.PREWAR = g("PREWAR")
+        self.HIST = None
         self.BIO, self.TEAMBIO, self.GRIDNOTES = g("BIO") or {}, g("TEAMBIO") or {}, g("GRIDNOTES") or {}
         self.SITEINFO = const(app_js, "SITE") or {"name": "Track Almanac", "email": "", "domain": "trackalmanac.com", "updated": ""}
         self.full = {}
@@ -463,10 +467,40 @@ def static_page(S, key):
     return t, '<article class="doc"><span class="lbl">Track Almanac</span><h1>%s</h1>%s</article>' % (esc(t), b)
 
 
+def history_page(S):
+    H = S.HIST; dv = {d["i"]: d for d in H["drivers"]}; nm = lambda i: esc(dv[i]["n"]) if i in dv else ""
+    lead = ("Every driver to start or enter a Formula 1 World Championship race since 1950: %d drivers across %d races. "
+            "World champions by year, every champion's titles, all-time records and stats by country." % (len(H["drivers"]), H["races"]))
+    out = [pagehead("Formula 1 history: drivers", lead, "Formula 1 history")]
+    rows = []
+    for c in reversed(H["champs"]):
+        t = c["top"]
+        won = ("%s Grand Prix" % esc(c["dec"][0]) if c["dec"] and not c["dec"][0].endswith(("Prix", "500")) else esc(c["dec"][0]) if c["dec"] else "In progress")
+        rows.append([c["y"], "<b>%s</b> (%s)" % (nm(t[0][0]), esc(t[0][1])), fmtn(t[0][2]), "%s (%s)" % (nm(t[1][0]), fmtn(t[1][2])) if len(t) > 1 else "",
+                     "%s (%s)" % (nm(t[2][0]), fmtn(t[2][2])) if len(t) > 2 else "", won])
+    out.append(sec("World champions by year", table(["Year", "Champion", "Pts", "Runner-up", "Third", "Title won at"], rows)))
+    ch = sorted((d for d in H["drivers"] if d["t"]), key=lambda d: (-d["t"], d["ty"][0]))
+    out.append(sec("All world champions", table(["Driver", "Titles", "Years"], [[esc(d["n"]), d["t"], ", ".join(map(str, d["ty"]))] for d in ch])))
+    for c in H["records"]:
+        items = "".join("<h3>%s</h3><ol>%s</ol>" % (esc(it["t"]), "".join("<li>%s: %s%s</li>" % (nm(r[0]), fmtn(r[1]) if not isinstance(r[1], str) else esc(r[1]), (" (%s)" % esc(r[2])) if r[2] else "") for r in it["rows"][:5])) for it in c["items"])
+        out.append(sec("Records: %s" % esc(c["cat"].lower()), items))
+    ds = sorted(H["drivers"], key=lambda d: d["n"])
+    out.append(sec("All Formula 1 drivers", table(["Driver", "Nationality", "Years", "Starts", "Wins", "Podiums", "Poles", "Titles"],
+               [[esc(d["n"]), esc(H["ccn"].get(d["cc"], d["cc"] or "")), "%d–%d" % tuple(d["y"]) if d["y"] else "", d["s"], d["w"], d["p"], d["pl"], d["t"]] for d in ds])))
+    out.append(sec("Drivers by country", table(["Country", "Drivers", "Wins", "Titles"], [[esc(c["n"]), c["d"], c["w"], c["t"]] for c in H["countries"]])))
+    return "".join(out)
+
+
+def fmtn(x):
+    if isinstance(x, float) and x.is_integer(): x = int(x)
+    return "{:,}".format(x) if isinstance(x, int) else ("%g" % x)
+
+
 def sitemap_page(S, pages):
     groups = [("2026 season", [p for p in pages if p["path"] in ("/", "/championship/", "/drivers/", "/teams/", "/calendar/")]),
               ("2026 races", [p for p in pages if p["path"].startswith("/races/")]),
               ("Season archive", [p for p in pages if p["path"].startswith("/archive/")]),
+              ("History", [p for p in pages if p["path"].startswith("/history/")]),
               ("About the site", [p for p in pages if p["key"] in ("about", "contact", "privacy", "terms", "disclaimer")])]
     body = "".join("<h3>%s</h3><ul class=\"smap\">%s</ul>" % (g, "".join('<li><a href="%s">%s</a></li>' % (p["path"], esc(p["h1"])) for p in ps)) for g, ps in groups)
     return '<article class="doc"><span class="lbl">Track Almanac</span><h1>Site map</h1>%s</article>' % body
@@ -572,7 +606,7 @@ def head(p, assets, fonts):
 """
 
 
-NAVKEY = {"/": "season", "/championship/": "championship", "/drivers/": "drivers", "/teams/": "teams"}
+NAVKEY = {"/": "season", "/championship/": "championship", "/drivers/": "drivers", "/teams/": "teams", "/history/": "history"}
 
 
 def page_html(p, body_tpl, assets, fonts):
@@ -599,6 +633,11 @@ def build(out, data_path=DATA):
         open(os.path.join(adir, "%s.json" % y), "w", encoding="utf-8").write(txt)
         archv[y] = vhash(txt)
     data += "const ARCHDATA={};const ARCHV=%s;\n" % json.dumps(archv, separators=(",", ":"))
+    # history page data (all drivers, champions, records), loaded only on /history/
+    HIST = historylib.compute(load_data(HISTBASE), D) if os.path.exists(HISTBASE) else None
+    htxt = json.dumps(HIST, ensure_ascii=False, separators=(",", ":"))
+    open(os.path.join(out, "data", "history.json"), "w", encoding="utf-8").write(htxt)
+    data += "const HISTV=%s;\n" % json.dumps(vhash(htxt))
     # world map for the 2027 calendar page, loaded only on that page
     wtxt = json.dumps(load_data(WORLD), separators=(",", ":"))
     open(os.path.join(out, "data", "world.json"), "w", encoding="utf-8").write(wtxt)
@@ -611,7 +650,7 @@ def build(out, data_path=DATA):
     open(os.path.join(out, "data.js"), "w", encoding="utf-8").write(data_x)
     open(os.path.join(out, "app.js"), "w", encoding="utf-8").write(app_x)
     assets = {"css": vhash(css_x), "data": vhash(data_x), "app": vhash(app_x)}
-    S = Site(D, app)
+    S = Site(D, app); S.HIST = HIST
 
     home = [("Home", "/")]
     pages = []
@@ -646,6 +685,10 @@ def build(out, data_path=DATA):
             desc = "%s %d (%s, %s): session times, tyre compounds, circuit map and results from every session of the weekend." % (name, YEAR, r.get("days", fmt_date(r["date"])), r["circuit"])
         add("detail-%d" % r["r"], title, desc, "%s %d" % (name, YEAR), race_page(S, r), "R%d · %s" % (r["r"], name.upper()),
             home + [("2026 Season", "/calendar/"), (name, S.path("detail-%d" % r["r"]))], [sports_event(S, r)])
+    if S.HIST:
+        add("history", "F1 History: Every Driver, World Champion & All-Time Record | Track Almanac",
+            "Every Formula 1 driver since 1950 (%d drivers) with career stats, world champions by year, all-time records like most wins and consecutive titles, and stats by country." % len(S.HIST["drivers"]),
+            "Formula 1 history: drivers", history_page(S), "F1 HISTORY", home + [("History", "/history/")])
     add("archive", "F1 Season Archive 1946–2025: Results & Champions | Track Almanac",
         "Every Formula 1 World Championship season since 1950: champions, Grand Prix winners, poles, fastest laps, sprint results and full standings, plus Grand Prix racing from 1946 to 1949.",
         "Formula 1 season archive", archive_index_page(S), "SEASON ARCHIVE", home + [("Archive", "/archive/")])

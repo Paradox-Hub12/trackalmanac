@@ -28,6 +28,7 @@
   "/races/2026/las-vegas/",
   "/races/2026/qatar/",
   "/races/2026/abu-dhabi/",
+  "/history/",
   "/archive/",
   "/archive/2027/",
   "/archive/2026/",
@@ -227,6 +228,10 @@
   "/races/2026/abu-dhabi/": {
    "hash": "8fb7310bb400843336bb44cae7be33f66918de97",
    "lastmod": "2026-10-11"
+  },
+  "/history/": {
+   "hash": "43bf8e41f59dc7157fb35ffd1558b1f928a25d8b",
+   "lastmod": "2026-10-20"
   },
   "/archive/": {
    "hash": "0fba4e458b3c36f0b0c34261d1239919724a390e",
@@ -565,12 +570,12 @@
    "lastmod": "2026-10-11"
   },
   "/disclaimer/": {
-   "hash": "c67f435d9aefcaa9b13013f572655042e3835113",
-   "lastmod": "2026-10-19"
+   "hash": "6efa123eb0412fa8c84cd89b645f4885a1cddfca",
+   "lastmod": "2026-10-20"
   },
   "/site-map/": {
-   "hash": "4c3e8e2e8c6213b190e9112a1f8460ec2f6969d4",
-   "lastmod": "2026-10-19"
+   "hash": "7c4eb03b645af5df28886df19a96ae226f9fb687",
+   "lastmod": "2026-10-20"
   }
  }
 }
