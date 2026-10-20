@@ -1514,14 +1514,46 @@ function setNav(k){["season","championship","drivers","teams","archive","history
 /* the race bar and section tabs stay pinned: the tabs sit just under the bar */
 /* wide tables and charts: a copy of the horizontal scrollbar stays at the bottom of the screen while the table is in view */
 const HSEL=".tw,.mx,.tyrechart";
+/* long tables: the header row stays at the top of the screen while you scroll down the table
+   (a copy, because tables scroll sideways inside their own box, where CSS sticky can't reach the page) */
+const SHSEL=".tw>table,.mx>table";
+function headTop(){let t=0;
+  const p=$(".dnav.pin");if(p){const r=p.getBoundingClientRect();if(r.top<=1)t=Math.max(t,r.bottom);}
+  const j=$(".jump");if(j&&getComputedStyle(j).position==="sticky"){const r=j.getBoundingClientRect();if(r.top<=parseFloat(getComputedStyle(j).top||0)+1)t=Math.max(t,r.bottom);}
+  return t;}
+function hsWrap(el){let w=el.parentElement&&el.parentElement.classList.contains("hsw")?el.parentElement:null;
+  if(!w){w=document.createElement("div");w.className="hsw";el.parentNode.insertBefore(w,el);w.appendChild(el);}return w;}
+function stickyHeads(){document.querySelectorAll(SHSEL).forEach(tb=>{const box=tb.parentElement;if(box.closest(".modal,.drawer,.fsbox.full"))return;
+  const th=tb.tHead;if(!th)return;const n=tb.tBodies[0]?tb.tBodies[0].rows.length:0;
+  const long=n>=12||tb.offsetHeight>innerHeight*.8;
+  let w=box.parentElement&&box.parentElement.classList.contains("hsw")?box.parentElement:null;
+  if(!long){if(w){const h=w.querySelector(":scope>.hhead");if(h)h.remove();}return;}
+  w=hsWrap(box);let h=w.querySelector(":scope>.hhead");
+  if(!h||h._src!==th.innerHTML){if(h)h.remove();h=document.createElement("div");h.className="hhead";h.setAttribute("aria-hidden","true");h._src=th.innerHTML;
+    const c=document.createElement("table");c.className=tb.className;c.appendChild(th.cloneNode(true));h.appendChild(c);w.appendChild(h);h._box=box;h._tb=tb;
+    if(!box._hs){box._hs=1;box.addEventListener("scroll",()=>placeHeads(),{passive:true});}}
+  /* same column widths as the real header */
+  const src=th.rows[0]?th.rows[0].cells:[],dst=h.firstChild.tHead.rows[0]?h.firstChild.tHead.rows[0].cells:[];
+  h.firstChild.style.width=tb.offsetWidth+"px";h.firstChild.style.minWidth=tb.offsetWidth+"px";
+  for(let k=0;k<src.length&&k<dst.length;k++){const wd=src[k].getBoundingClientRect().width;dst[k].style.width=dst[k].style.minWidth=dst[k].style.maxWidth=wd+"px";dst[k]._stick=getComputedStyle(src[k]).position==="sticky";}});
+  placeHeads();}
+function placeHeads(){const top=headTop();
+  document.querySelectorAll(".hsw>.hhead").forEach(h=>{const box=h._box,tb=h._tb;if(!box||!box.isConnected){h.remove();return;}
+    const tr=tb.tHead.getBoundingClientRect(),br=box.getBoundingClientRect(),hh=tr.height;
+    const show=tr.top<top&&br.bottom>top+hh*2.5;
+    h.classList.toggle("on",show);if(!show)return;
+    h.style.top=top+"px";h.style.left=br.left+"px";h.style.width=box.clientWidth+"px";
+    const sl=box.scrollLeft;h.firstChild.style.transform=`translateX(${-sl}px)`;
+    for(const c of h.firstChild.tHead.rows[0].cells)if(c._stick)c.style.transform=`translateX(${sl}px)`;});}
+{let pq=0;addEventListener("scroll",()=>{if(!pq)pq=requestAnimationFrame(()=>{pq=0;placeHeads();});},{passive:true});}
 /* drawn (not native) so it shows on phones too, where scrollbars only appear while scrolling */
 function hbarPaint(el,bar){const tr=bar.firstChild,th=tr.firstChild,max=el.scrollWidth-el.clientWidth,W=tr.clientWidth;
   const tw=Math.max(36,W*el.clientWidth/el.scrollWidth);th.style.width=tw+"px";th.style.transform=`translateX(${max>0?(W-tw)*el.scrollLeft/max:0}px)`;}
 function stickyBars(){document.querySelectorAll(HSEL).forEach(el=>{if(el.closest(".fsbox.full"))return;
   let w=el.parentElement&&el.parentElement.classList.contains("hsw")?el.parentElement:null;
   const over=el.scrollWidth>el.clientWidth+2;
-  if(!over){if(w){w.querySelector(":scope>.hbar").hidden=true;el.classList.remove("hasbar");}return;}
-  if(!w){w=document.createElement("div");w.className="hsw";el.parentNode.insertBefore(w,el);w.appendChild(el);
+  if(!over){if(w){const b0=w.querySelector(":scope>.hbar");if(b0)b0.hidden=true;el.classList.remove("hasbar");}return;}
+  if(!w||!w.querySelector(":scope>.hbar")){w=hsWrap(el);
     const bar=document.createElement("div");bar.className="hbar";bar.setAttribute("aria-hidden","true");bar.innerHTML='<div class="htrack"><div class="hthumb"></div></div>';w.appendChild(bar);
     const tr=bar.firstChild,th=tr.firstChild;
     el.addEventListener("scroll",()=>hbarPaint(el,bar),{passive:true});
@@ -1537,7 +1569,7 @@ function stickyBars(){document.querySelectorAll(HSEL).forEach(el=>{if(el.closest
 const FITSEL="#app :is(h1,.h1),.dhero :is(h1,.h1),.arch .h1,.dcard .ln,.drawer :is(h1,h2,.h1),.sec h2";
 function fitTitles(){document.querySelectorAll(FITSEL).forEach(el=>{el.style.fontSize="";if(!el.clientWidth||el.scrollWidth<=el.clientWidth+1)return;
   let f=parseFloat(getComputedStyle(el).fontSize),n=0;while(el.scrollWidth>el.clientWidth+1&&f>14&&n++<40){f*=.94;el.style.fontSize=f.toFixed(1)+"px";}});}
-{let q=0;const run=()=>{if(!q){q=requestAnimationFrame(()=>{q=0;fitTitles();stickyBars();});}};
+{let q=0;const run=()=>{if(!q){q=requestAnimationFrame(()=>{q=0;fitTitles();stickyBars();stickyHeads();});}};
   new MutationObserver(run).observe(document.body,{childList:true,subtree:true});addEventListener("resize",run,{passive:true});
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(run);if(document.fonts)document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",run);}
 function pinSizes(){const p=$(".dnav.pin"),j=$(".jump"),R=document.documentElement.style;R.setProperty("--pinh",(p?p.offsetHeight:0)+"px");R.setProperty("--jumph",(j?j.offsetHeight:0)+"px");}
