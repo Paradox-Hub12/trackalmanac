@@ -807,7 +807,9 @@ function raceDay(c,y=2027){const m=c[5].split("–").pop().trim().match(/^(\d+)\
   const d=new Date(Date.UTC(y,mo,+m[1]));return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getUTCDay()]} ${d.getUTCDate()} ${MONS[mo]}`;}
 /* 2026 race start at the same circuit, local time, as a guide until F1 publishes the 2027 times */
 function ref26(g){return g&&g[4]?tfmt(g[4],g[2],{hour:"2-digit",minute:"2-digit"}):null;}
-const RFULL=[-20,10,1040,465],RAR=RFULL[2]/RFULL[3];
+/* full view: on phones the map is taller, so there is room above and below the land for labels */
+let RFULL=[-20,10,1040,465],RAR=RFULL[2]/RFULL[3];
+const rFull=px=>{const f=px<600?[-20,-105,1040,700]:[-20,10,1040,465];const ch=f[3]!==RFULL[3];RFULL=f;RAR=f[2]/f[3];return ch;};
 const RREG={world:RFULL,europe:[[35,-12],[57,32]],americas:[[-38,-125],[56,-35]],asia:[[-40,34],[46,150]]};
 let WORLD=null,RT=null;
 function loadWorld(){if(WORLD)return Promise.resolve(WORLD);return fetch(`/data/world.json?v=${WORLDV}`).then(r=>r.json()).then(j=>WORLD=j);}
@@ -818,61 +820,109 @@ function routeMapHTML(){const C=CAL2027,G=CALGEO2027,P=rPts();let km=0;for(let i
   const legs=P.slice(1).map((b,i)=>rLeg(P[i],b));
   return `<div class="sec"><h2>Season route</h2><span class="lbl">${C.length} races · about ${dist(km,0).replace(/\B(?=(\d{3})+(?!\d))/g,",")} of travel</span></div>
   <div class="rmap" id="rmap">
-    <div class="rbar"><div class="rbtns"><button type="button" class="rplay" data-rplay aria-pressed="false">▶ Play route</button><button type="button" data-rreset>Restart</button></div>
+    <div class="rbar"><div class="rbtns"><button type="button" class="rplay" data-rplay aria-pressed="false">▶ Play route</button><button type="button" data-rreset hidden>■ Stop</button></div>
       <div class="rzoom" role="group" aria-label="Map area">${[["world","World"],["europe","Europe"],["americas","Americas"],["asia","Asia & Middle East"]].map(([k,n])=>`<button type="button" data-rzoom="${k}" aria-pressed="${k==="world"}">${n}</button>`).join("")}</div></div>
     <div class="rwrap"><svg id="rsvg" viewBox="${RFULL.join(" ")}" role="img" aria-label="World map of the ${C.length} Grands Prix of 2027 in calendar order">
       <g id="rland"></g>
       <g>${legs.map(l=>`<path class="rleg" d="M${l[0]}Q${l[1]} ${l[2]}"/>`).join("")}</g>
       <g id="rtrail">${legs.map(()=>`<path class="rtr" d=""/>`).join("")}</g>
+      <g id="rleads"></g><g id="rlabels"></g>
       <g id="rpins">${P.map((p,i)=>`<g class="rpin" data-rpin="${i}" transform="translate(${p[0].toFixed(1)} ${p[1].toFixed(1)})"><title>R${C[i][0]} ${esc(C[i][1])} · ${esc(C[i][5])}</title><circle r="7"/><text>${C[i][0]}</text></g>`).join("")}</g>
       <g id="rplane" style="display:none"><path d="M9 0 1-1.6-2.5-7.5H-4.6L-2.6-1.6H-6.4L-8.4-4.3H-9.6L-8.6 0-9.6 4.3H-8.4L-6.4 1.6H-2.6L-4.6 7.5H-2.5L1 1.6Z"/></g>
-    </svg><div class="rcard" id="rcard" aria-live="polite"></div></div>
+    </svg><div class="rcard hide" id="rcard" aria-live="polite"></div></div>
     <div class="rstops" id="rstops">${C.map((c,i)=>`<button type="button" data-rstop="${i}" aria-pressed="false"><b>${c[0]}</b>${flagOf(c[2])}<span>${esc(c[4])}</span><small>${esc(raceDay(c).replace(/^\w+ /,""))}</small></button>`).join("")}</div>
   </div>
-  <p class="note2">Race start times for 2027 haven't been published yet. Where the circuit also raced in 2026, the card shows that year's start time as a guide. Distances are straight-line distances between circuits.</p>`;}
-function rCard(i,next){const C=CAL2027,G=CALGEO2027,c=C[i],ref=ref26(G[i]);
-  return `<span class="lbl">${next?"Next stop · ":""}Round ${c[0]}${c[6]?" · Sprint weekend":""}</span><b class="rgp">${flagOf(c[2])} ${esc(c[1])}</b><span class="rci">${esc(c[3])}, ${esc(c[4])}</span>
+  <p class="note2">Hover or tap a race for its details. Race start times for 2027 haven't been published yet. Where the circuit also raced in 2026, the card shows that year's start time as a guide. Distances are straight-line distances between circuits.</p>`;}
+function rCard(i,next,close){const C=CAL2027,G=CALGEO2027,c=C[i],ref=ref26(G[i]);
+  return `${close?`<button type="button" class="rx" data-rclose aria-label="Close">×</button>`:""}<span class="lbl">${next?"Next stop · ":""}Round ${c[0]}${c[6]?" · Sprint weekend":""}</span><b class="rgp">${flagOf(c[2])} ${esc(c[1])}</b><span class="rci">${esc(c[3])}, ${esc(c[4])}</span>
   <dl><dt>Weekend</dt><dd>${esc(c[5])} 2027</dd><dt>Race day</dt><dd>${raceDay(c)} 2027</dd><dt>Race start</dt><dd>TBC${ref?` <small>· 2026: ${ref} local</small>`:G[i][3]?"":` <small>· no 2026 race here</small>`}</dd>${i?`<dt>From ${esc(C[i-1][4])}</dt><dd>${dist(hav(G[i-1],G[i]),0).replace(/\B(?=(\d{3})+(?!\d))/g,",")}</dd>`:`<dt>Season</dt><dd>Opening round</dd>`}</dl>`;}
 function rBox(pts,pad=70,minw=300){const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);let x0=Math.min(...xs)-pad,x1=Math.max(...xs)+pad,y0=Math.min(...ys)-pad,y1=Math.max(...ys)+pad;
   let w=Math.max(x1-x0,minw),h=Math.max(y1-y0,w/RAR);w=Math.max(w,h*RAR);const cx=(x0+x1)/2,cy=(y0+y1)/2;w=Math.min(w,RFULL[2]);h=w/RAR;
   const x=Math.max(RFULL[0],Math.min(RFULL[0]+RFULL[2]-w,cx-w/2)),y=Math.max(RFULL[1],Math.min(RFULL[1]+RFULL[3]-h,cy-h/2));return [x,y,w,h];}
+/* label every race beside its pin; where there's no room, the label moves into free space with a dotted pointer back to the pin */
+function rLayout(R){const svg=R.svg,gl=$("#rlabels"),gd=$("#rleads");gl.innerHTML="";gd.innerHTML="";if(R.phase!=="idle")return;
+  const C=CAL2027,P=R.P,vb=R.vb,px=svg.getBoundingClientRect().width||1000,u=vb[2]/px,small=px<600,fs=(small?8.5:10.5)*u,h=fs*1.6,rr=(small?7:8.5)*u,gap=2*u,m=3*u;
+  const inV=p=>p[0]>vb[0]+m&&p[0]<vb[0]+vb[2]-m&&p[1]>vb[1]+m&&p[1]<vb[1]+vb[3]-m;
+  const it=P.map((p,i)=>({i,p})).filter(o=>inV(o.p));
+  it.forEach(o=>{const g=document.createElementNS("http://www.w3.org/2000/svg","g");g.setAttribute("class","rlab");g.dataset.rpin=o.i;
+    g.innerHTML=`<rect rx="${(2*u).toFixed(2)}"/><text font-size="${fs.toFixed(2)}"><tspan class="c">${esc(C[o.i][4])}</tspan>${small?"":`<tspan class="d" dx="${(4*u).toFixed(2)}">${esc(raceDay(C[o.i]).replace(/^\w+ /,""))}</tspan>`}</text>`;gl.appendChild(g);
+    o.g=g;o.w=g.querySelector("text").getComputedTextLength()+8*u;});
+  const pinB=P.filter(inV).map(p=>[p[0]-rr-gap,p[1]-rr-gap,p[0]+rr+gap,p[1]+rr+gap]),boxes=[],leads=[];
+  const ov=(a,b)=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1];
+  const segBox=(a,b,x)=>{/* does segment a-b cross box x? (sampled, good enough at this scale) */for(let t=.08;t<.96;t+=.06){const q=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];if(q[0]>x[0]&&q[0]<x[2]&&q[1]>x[1]&&q[1]<x[3])return true;}return false;};
+  const near=o=>it.filter(q=>q!==o&&Math.hypot(q.p[0]-o.p[0],q.p[1]-o.p[1])<60*u);
+  it.forEach(o=>{o.nb=near(o);});
+  it.sort((a,b)=>b.nb.length-a.nb.length);
+  for(const o of it){const [x,y]=o.p,w=o.w;let best=null;
+    const ok=(bx,lead,loose)=>{if(bx[0]<vb[0]+m||bx[2]>vb[0]+vb[2]-m||bx[1]<vb[1]+m||bx[3]>vb[1]+vb[3]-m)return false;
+      for(const q of boxes)if(ov(bx,[q[0]-gap,q[1]-gap,q[2]+gap,q[3]+gap]))return false;for(const q of pinB)if(ov(bx,q))return false;
+      if(loose)return true;for(const l of leads)if(segBox(l[0],l[1],bx))return false;
+      if(lead){for(const q of boxes)if(segBox(lead[0],lead[1],q))return false;for(const q of pinB){const c=[(q[0]+q[2])/2,(q[1]+q[3])/2];if(Math.hypot(c[0]-x,c[1]-y)>1&&segBox(lead[0],lead[1],q))return false;}}return true;};
+    const adj=[[rr+3*u,-h/2],[-rr-3*u-w,-h/2],[-w/2,-rr-3*u-h],[-w/2,rr+3*u],[rr,-rr-h],[rr,rr],[-rr-w,-rr-h],[-rr-w,rr]];
+    for(const [dx,dy] of adj){const bx=[x+dx,y+dy,x+dx+w,y+dy+h];if(ok(bx,null)){best={bx};break;}}
+    if(!best){/* push away from the cluster */let ax=0,ay=0;o.nb.forEach(q=>{ax+=x-q.p[0];ay+=y-q.p[1];});const a0=(ax||ay)?Math.atan2(ay,ax):-Math.PI/2;
+      const angs=[];for(let k=0;k<32;k++){const a=k*Math.PI/16;let d=Math.abs(((a-a0+3*Math.PI)%(2*Math.PI))-Math.PI);angs.push([d,a]);}angs.sort((p,q)=>p[0]-q[0]);
+      /* first pass keeps pointer lines clear of other labels; if that finds nothing, any free spot will do */
+      for(const loose of [false,true]){search:for(let R2=rr+16*u;R2<vb[2]*.6;R2+=6*u)for(const [,a] of angs){const cx=x+R2*Math.cos(a),cy=y+R2*Math.sin(a),bx=[cx-w/2,cy-h/2,cx+w/2,cy+h/2];
+        const e=[Math.max(bx[0],Math.min(x,bx[2])),Math.max(bx[1],Math.min(y,bx[3]))],L=Math.hypot(e[0]-x,e[1]-y)||1,st=[x+(e[0]-x)/L*rr,y+(e[1]-y)/L*rr],lead=[st,e];
+        if(ok(bx,lead,loose)){best={bx,lead};break search;}}if(best)break;}}
+    if(!best){o.g.remove();continue;}
+    const [x0,y0]=best.bx;o.g.setAttribute("transform",`translate(${x0.toFixed(2)} ${y0.toFixed(2)})`);const r=o.g.querySelector("rect");r.setAttribute("width",w.toFixed(2));r.setAttribute("height",h.toFixed(2));
+    const t=o.g.querySelector("text");t.setAttribute("x",(4*u).toFixed(2));t.setAttribute("y",(h/2).toFixed(2));
+    boxes.push(best.bx);if(best.lead){leads.push(best.lead);const l=document.createElementNS("http://www.w3.org/2000/svg","line");l.setAttribute("class","rlead");l.dataset.rlead=o.i;
+      [["x1",best.lead[0][0]],["y1",best.lead[0][1]],["x2",best.lead[1][0]],["y2",best.lead[1][1]]].forEach(([k,v])=>l.setAttribute(k,v.toFixed(2)));gd.appendChild(l);}}
+  R.hl();}
 function initRoute(){const svg=$("#rsvg");if(!svg)return;const P=rPts(),N=P.length,legs=P.slice(1).map((b,i)=>rLeg(P[i],b));
   const calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   if(RT&&RT.raf)cancelAnimationFrame(RT.raf);
-  const R=RT={svg,P,N,legs,i:0,leg:-1,t:0,phase:"idle",playing:false,vb:RFULL.slice(),tg:RFULL.slice(),raf:0,last:0,wait:0,calm};
+  rFull(svg.getBoundingClientRect().width||1000);svg.style.aspectRatio=`${RFULL[2]}/${RFULL[3]}`;svg.setAttribute("viewBox",RFULL.join(" "));
+  const R=RT={svg,P,N,legs,i:-1,leg:-1,t:0,phase:"idle",playing:false,vb:RFULL.slice(),tg:RFULL.slice(),raf:0,last:0,wait:0,calm,laid:false,hov:null,pin:null};
   loadWorld().then(w=>{if(svg.isConnected)$("#rland").innerHTML=`<path class="rland" d="${w.land}"/><path class="rbord" d="${w.borders}"/>`;}).catch(()=>{});
   const trs=[...svg.querySelectorAll(".rtr")],pins=[...svg.querySelectorAll(".rpin")],plane=$("#rplane"),card=$("#rcard"),stops=[...document.querySelectorAll("#rstops button")];
   const ez=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,lerp=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
-  R.select=(i,next)=>{R.i=i;card.innerHTML=rCard(i,next);pins.forEach((p,k)=>{p.classList.toggle("on",k===i);});stops.forEach((b,k)=>b.setAttribute("aria-pressed",String(k===i)));
-    const rs=$("#rstops"),b=stops[i];if(rs&&b)rs.scrollLeft=Math.max(0,b.offsetLeft-rs.offsetLeft-(rs.clientWidth-b.offsetWidth)/2);svg.appendChild($("#rpins"));svg.appendChild(plane);};
-  R.trails=()=>{trs.forEach((el,k)=>{const l=legs[k];if(k<R.leg||(R.phase!=="fly"&&k<R.i)){el.setAttribute("d",`M${l[0]}Q${l[1]} ${l[2]}`);}else if(k===R.leg&&R.phase==="fly"){const t=ez(R.t),a=lerp(l[0],l[1],t),b=lerp(l[1],l[2],t),c=lerp(a,b,t);el.setAttribute("d",`M${l[0]}Q${a} ${c}`);}else el.setAttribute("d","");});
+  const stripTo=i=>{const rs=$("#rstops"),b=stops[i];if(rs&&b)rs.scrollLeft=Math.max(0,b.offsetLeft-rs.offsetLeft-(rs.clientWidth-b.offsetWidth)/2);};
+  /* highlight: the race being flown to, else the hovered or clicked one */
+  R.hl=()=>{const on=R.phase==="idle"?(R.hov??R.pin):R.i;pins.forEach((p,k)=>p.classList.toggle("on",k===on));
+    svg.querySelectorAll(".rlab").forEach(g=>g.classList.toggle("on",+g.dataset.rpin===on));svg.querySelectorAll(".rlead").forEach(l=>l.classList.toggle("on",+l.dataset.rlead===on));
+    stops.forEach((b,k)=>b.setAttribute("aria-pressed",String(k===on)));};
+  /* static map: the card shows while hovering a race, or stays after a click/tap */
+  R.cardFor=()=>{if(R.phase!=="idle")return;const i=R.hov??R.pin;if(i==null){card.classList.add("hide");card.innerHTML="";}else{card.innerHTML=rCard(i,false,R.pin===i&&R.hov==null);card.classList.remove("hide");}R.hl();};
+  R.hover=i=>{if(R.phase!=="idle"||R.hov===i)return;R.hov=i;R.cardFor();};
+  R.unhover=()=>{if(R.hov==null)return;R.hov=null;R.cardFor();};
+  R.pick=i=>{if(R.phase!=="idle")R.reset();R.pin=R.pin===i&&R.hov==null?null:i;R.hov=null;R.cardFor();if(R.pin!=null){stripTo(i);R.show(i);}};
+  R.unpick=()=>{R.pin=null;R.hov=null;R.cardFor();};
+  R.select=(i,next)=>{R.i=i;card.innerHTML=rCard(i,next);card.classList.remove("hide");R.hl();stripTo(i);svg.appendChild($("#rpins"));svg.appendChild(plane);};
+  R.trails=()=>{trs.forEach((el,k)=>{const l=legs[k];if(R.phase==="idle"){el.setAttribute("d","");return;}if(k<R.leg||(R.phase!=="fly"&&k<R.i)){el.setAttribute("d",`M${l[0]}Q${l[1]} ${l[2]}`);}else if(k===R.leg&&R.phase==="fly"){const t=ez(R.t),a=lerp(l[0],l[1],t),b=lerp(l[1],l[2],t),c=lerp(a,b,t);el.setAttribute("d",`M${l[0]}Q${a} ${c}`);}else el.setAttribute("d","");});
     pins.forEach((p,k)=>p.classList.toggle("seen",R.phase!=="idle"&&k<R.i));};
-  R.setBtn=()=>{const b=$("[data-rplay]");if(b){b.textContent=R.playing?"❚❚ Pause":R.phase==="done"?"▶ Replay":R.phase==="idle"?"▶ Play route":"▶ Resume";b.setAttribute("aria-pressed",String(R.playing));}};
-  R.zoom=k=>{const z=RREG[k];R.tg=k==="world"?RFULL.slice():rBox([NE1(z[0][0],z[0][1]),NE1(z[1][0],z[1][1])],10,150);document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rzoom===k)));R.kick();};
+  R.setBtn=()=>{const b=$("[data-rplay]"),st=$("[data-rreset]");if(b){b.textContent=R.playing?"❚❚ Pause":R.phase==="idle"?"▶ Play route":"▶ Resume";b.setAttribute("aria-pressed",String(R.playing));}if(st)st.hidden=R.phase==="idle";};
+  R.zoom=k=>{const z=RREG[k];R.tg=k==="world"?RFULL.slice():rBox([NE1(z[0][0],z[0][1]),NE1(z[1][0],z[1][1])],10,150);R.laid=false;document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rzoom===k)));R.kick();};
   const startLeg=i=>{R.leg=i;R.t=0;R.phase="fly";R.dur=R.calm?1:Math.max(900,Math.min(2600,700+legs[i][3]*3.2));R.tg=rBox([P[i],P[i+1]]);card.innerHTML=rCard(i+1,true);plane.style.display="";};
   const arrive=j=>{R.phase="dwell";R.wait=R.calm?700:900;R.select(j);if(j<N-1)R.tg=rBox([P[j],P[j+1]]);};
-  R.play=()=>{if(R.phase==="done"||R.phase==="idle"){R.leg=-1;R.phase="dwell";R.wait=700;R.select(0);R.tg=rBox([P[0],P[1]]);document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed","false"));}R.playing=true;R.setBtn();R.kick();};
+  R.play=()=>{if(R.phase==="idle"){R.pin=null;R.hov=null;$("#rlabels").innerHTML="";$("#rleads").innerHTML="";R.leg=-1;R.phase="dwell";R.wait=700;R.select(0);R.tg=rBox([P[0],P[1]]);document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed","false"));}R.playing=true;R.setBtn();R.kick();};
   /* bring a stop into view (keeps the zoom level) */
   R.show=i=>{const p=P[i],v=R.tg;if(p[0]>v[0]+v[2]*.08&&p[0]<v[0]+v[2]*.92&&p[1]>v[1]+v[3]*.08&&p[1]<v[1]+v[3]*.92)return;const w=v[2],h=v[3];
-    R.tg=[Math.max(RFULL[0],Math.min(RFULL[0]+RFULL[2]-w,p[0]-w/2)),Math.max(RFULL[1],Math.min(RFULL[1]+RFULL[3]-h,p[1]-h/2)),w,h];document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed","false"));R.kick();};
+    R.tg=[Math.max(RFULL[0],Math.min(RFULL[0]+RFULL[2]-w,p[0]-w/2)),Math.max(RFULL[1],Math.min(RFULL[1]+RFULL[3]-h,p[1]-h/2)),w,h];R.laid=false;document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed","false"));R.kick();};
   R.pause=()=>{R.playing=false;R.setBtn();};
-  R.reset=()=>{R.playing=false;R.phase="idle";R.leg=-1;plane.style.display="none";R.select(0);R.tg=RFULL.slice();R.trails();R.setBtn();R.zoom("world");};
+  /* back to the still map with every race labelled */
+  R.reset=()=>{R.playing=false;R.phase="idle";R.leg=-1;R.i=-1;plane.style.display="none";R.trails();R.laid=false;R.setBtn();R.cardFor();R.zoom("world");};
   R.kick=()=>{if(!R.raf){R.last=performance.now();R.raf=requestAnimationFrame(tick);}};
   const tick=ts=>{R.raf=0;if(!svg.isConnected)return;const dt=Math.min(64,ts-R.last);R.last=ts;
     if(R.playing){if(R.phase==="fly"){R.t+=dt/R.dur;if(R.t>=1){R.t=1;R.leg=-1;arrive(R.i+1);plane.style.display="none";}}
-      else if(R.phase==="dwell"){R.wait-=dt;if(R.wait<=0){if(R.i>=N-1){R.playing=false;R.phase="done";R.tg=RFULL.slice();R.setBtn();document.querySelectorAll("[data-rzoom]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rzoom==="world")));}else startLeg(R.i);}}}
+      else if(R.phase==="dwell"){R.wait-=dt;if(R.wait<=0){if(R.i>=N-1){R.playing=false;R.phase="done";R.tg=RFULL.slice();R.setBtn();setTimeout(()=>{if(R.phase==="done"&&svg.isConnected)R.reset();},1800);}else startLeg(R.i);}}}
     if(R.phase==="fly"){const l=legs[R.leg],t=ez(R.t),a=lerp(l[0],l[1],t),b=lerp(l[1],l[2],t),c=lerp(a,b,t),ang=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;
       plane.setAttribute("transform",`translate(${c[0].toFixed(2)} ${c[1].toFixed(2)}) rotate(${ang.toFixed(1)}) scale(${(R.vb[2]/Math.max(300,svg.getBoundingClientRect().width)*1.25).toFixed(3)})`);}
     R.trails();
-    const f=R.calm?1:1-Math.exp(-dt/320);let moving=false;R.vb=R.vb.map((v,k)=>{const d=R.tg[k]-v;if(Math.abs(d)>.3)moving=true;return Math.abs(d)>.3?v+d*f:R.tg[k];});
+    const f=R.calm?1:1-Math.exp(-dt/320);let moving=false;const eps=Math.max(.05,R.vb[2]*.002);R.vb=R.vb.map((v,k)=>{const d=R.tg[k]-v;if(Math.abs(d)>eps)moving=true;return Math.abs(d)>eps?v+d*f:R.tg[k];});
     svg.setAttribute("viewBox",R.vb.map(v=>v.toFixed(2)).join(" "));
     const px=svg.getBoundingClientRect().width||1000,u=R.vb[2]/px,rr=(px<600?7:8.5)*u;
     pins.forEach(p=>{const c=p.firstElementChild.nextElementSibling,t=c.nextElementSibling;c.setAttribute("r",rr.toFixed(2));t.setAttribute("font-size",(rr*1.15).toFixed(2));});
+    if(R.phase==="idle"){if(moving){if(R.laid||$("#rlabels").firstChild){$("#rlabels").innerHTML="";$("#rleads").innerHTML="";}R.laid=false;}else if(!R.laid){R.laid=true;rLayout(R);}}
     if(R.playing||moving)R.raf=requestAnimationFrame(tick);};
-  R.select(0);R.setBtn();R.kick();
-  /* plays once by itself when the map first comes into view */
-  if(!calm&&"IntersectionObserver" in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();if(R.phase==="idle"&&svg.isConnected)R.play();}},{threshold:.5});io.observe(svg);}
-  window.addEventListener("resize",()=>R.kick(),{passive:true});}
+  /* hover a pin or label (mouse); taps go through the click handler */
+  svg.addEventListener("pointerover",e=>{if(e.pointerType!=="mouse")return;const g=e.target.closest("[data-rpin]");if(g)R.hover(+g.dataset.rpin);else R.unhover();});
+  svg.addEventListener("pointerleave",()=>R.unhover());
+  R.setBtn();R.cardFor();R.kick();
+  let rz=0;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(svg.isConnected){if(rFull(svg.getBoundingClientRect().width||1000)){svg.style.aspectRatio=`${RFULL[2]}/${RFULL[3]}`;if(R.phase==="idle"){R.vb=RFULL.slice();R.tg=RFULL.slice();}}R.laid=false;R.kick();}},150);},{passive:true});}
 function view2027(){const C=CAL2027;
   return `<div class="arch" style="grid-template-columns:minmax(0,1fr)"><div class="txt"><span class="lbl">Season 2027</span><h2 class="h1" style="font-size:clamp(56px,10vw,120px)">2027</h2>
     <p style="font-size:19px;color:var(--ink)"><b>Calendar.</b> The 2027 calendar is confirmed: ${C.length} Grands Prix, ${C.filter(c=>c[6]).length} with a sprint, starting in Bahrain on 14 March and ending in Abu Dhabi on 12 December. Portugal and Türkiye return to the calendar. Pre-season testing runs in Bahrain from 24 to 27 February.</p></div></div>
@@ -1276,8 +1326,10 @@ document.addEventListener("click",e=>{
   const sv=e.target.closest("[data-sess]");if(sv&&!e.target.closest("[data-detail],[data-quick]")){const [sn,sk]=sv.dataset.sess.split(":");const tgt="detail-"+sn+"-"+sk;if(curKey()===tgt)route();else go(tgt);return;}
   if(RT){const rp=e.target.closest("[data-rplay]");if(rp){RT.playing?RT.pause():RT.play();return;}
     if(e.target.closest("[data-rreset]")){RT.reset();return;}
-    const rz=e.target.closest("[data-rzoom]");if(rz){RT.pause();RT.zoom(rz.dataset.rzoom);return;}
-    const rs=e.target.closest("[data-rstop],[data-rpin]");if(rs){const i=+(rs.dataset.rstop??rs.dataset.rpin);RT.pause();if(RT.phase==="fly"||RT.phase==="idle")RT.phase="dwell";RT.leg=-1;$("#rplane").style.display="none";RT.select(i);RT.trails();RT.setBtn();RT.show(i);return;}}
+    const rz=e.target.closest("[data-rzoom]");if(rz){if(RT.phase!=="idle")RT.reset();RT.zoom(rz.dataset.rzoom);return;}
+    if(e.target.closest("[data-rclose]")){RT.unpick();return;}
+    const rs=e.target.closest("[data-rstop],[data-rpin]");if(rs){RT.pick(+(rs.dataset.rstop??rs.dataset.rpin));return;}
+    if(e.target.closest("#rsvg")&&RT.phase==="idle"&&RT.pin!=null){RT.unpick();return;}}
   const dc=e.target.closest("[data-dec]");if(dc){scrollDecade(dc.dataset.dec);return;}
   const pj=e.target.closest("[data-pwj]");if(pj){const t=document.getElementById(pj.dataset.pwj);if(t)t.scrollIntoView({behavior:"smooth",block:"start"});return;}
   const sc2=e.target.closest("[data-scroll]");if(sc2){scrollHome(sc2.dataset.scroll);return;}
