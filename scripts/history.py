@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Make src/history.json (the History page's base data) from an F1DB JSON release.
 
-    python3 scripts/history.py path/to/f1db-json-splitted   # folder with the f1db-*.json files
+    python3 scripts/history.py path/to/f1db-json-splitted [path/to/f1db/src/assets/circuits]
+
+The first folder holds the f1db-*.json files of a release; the optional second one is the circuit SVG
+folder of the F1DB repository (https://github.com/f1db/f1db/tree/main/src/assets/circuits), which makes
+src/circuitmaps.json, the track outlines shown on the Circuits page.
 
 Get the release from https://github.com/f1db/f1db/releases (f1db-json-splitted.zip, CC BY 4.0).
 The file holds every World Championship race up to the newest race in that release, one row per
@@ -26,6 +30,9 @@ def main(src):
     circ = {c["id"]: c for c in L("circuits")}
     races = sorted(L("races"), key=lambda r: (r["year"], r["round"]))
     results = L("races-race-results")
+    # circuits and their layouts
+    CIR = sorted(L("circuits"), key=lambda c: c["id"]); cirx = {c["id"]: k for k, c in enumerate(CIR)}
+    LAY = {l["id"]: l for l in L("circuits-layouts")}
     fl = {}  # race -> drivers with the fastest lap (shared in a few 1950s races)
     for x in L("races-fastest-laps"):
         if x["positionNumber"] == 1: fl.setdefault(x["raceId"], []).append(x)
@@ -86,7 +93,10 @@ def main(src):
         g = gps[r["grandPrixId"]]
         R.append({"y": r["year"], "r": r["round"], "gp": g["fullName"], "cc": countries[g.get("countryId") or circ[r["circuitId"]]["countryId"]]["alpha2Code"],
                   "d": r["date"], "fl": [dix[x["driverId"]] for x in fl.get(r["id"], []) if x["driverId"] in dix],
-                  "flc": [[ci(x["constructorId"]), ei(x["engineManufacturerId"])] for x in fl.get(r["id"], [])], "dec": 1 if r.get("driversChampionshipDecider") else 0, "cdec": 1 if r.get("constructorsChampionshipDecider") else 0,
+                  "flc": [[ci(x["constructorId"]), ei(x["engineManufacturerId"])] for x in fl.get(r["id"], [])],
+                  "c": cirx[r["circuitId"]], "lay": r.get("circuitLayoutId"), "len": r.get("courseLength"), "laps": r.get("laps"),
+                  "flt": min((x["timeMillis"] for x in fl.get(r["id"], []) if x.get("timeMillis")), default=None),
+                  "gap": next((x["gapMillis"] for x in byrace[r["id"]] if x["positionNumber"] == 2 and x.get("gapMillis") and not x.get("gapLaps")), None), "dec": 1 if r.get("driversChampionshipDecider") else 0, "cdec": 1 if r.get("constructorsChampionshipDecider") else 0,
                   "rows": rows, "sp": sp})
     # season standings: top three of every season, official (counted) points
     ST = {}
@@ -115,16 +125,45 @@ def main(src):
     CI = [{"id": c, "full": cfull[c]["fullName"] if c in cfull else cons.get(c, c), "cc": countries[cfull[c]["countryId"]]["alpha2Code"] if c in cfull else None} for c in list(cix)]
     ENG = [{"id": e, "n": emk[e]["name"] if e in emk else e, "cc": countries[emk[e]["countryId"]]["alpha2Code"] if e in emk and emk[e].get("countryId") else None} for e in EN]
     TYR = [{"id": t, "n": tmk[t]["name"] if t in tmk else t, "cc": countries[tmk[t]["countryId"]]["alpha2Code"] if t in tmk and tmk[t].get("countryId") else None} for t in TN]
+    for c in L("circuits"):
+        a2 = countries[c["countryId"]]["alpha2Code"]
+        if a2 not in CC: CC[a2] = [countries[c["countryId"]]["name"], countries[c["countryId"]]["demonym"]]
     for c in CI + ENG + TYR:
         if c["cc"] and c["cc"] not in CC:
             k = next(v for v in countries.values() if v["alpha2Code"] == c["cc"]); CC[c["cc"]] = [k["name"], k["demonym"]]
     out = {"source": "F1DB (github.com/f1db/f1db), CC BY 4.0", "upto": [last["year"], last["round"]],
-           "drivers": D, "cons": CN, "cinfo": CI, "engines": ENG, "tyres": TYR, "cstand": CST, "chron": CHR, "countries": CC, "races": R, "standings": ST, "family": fam}
+           "drivers": D, "cons": CN, "cinfo": CI, "engines": ENG, "tyres": TYR, "cstand": CST, "chron": CHR, "countries": CC,
+           "circuits": [{"id": c["id"], "n": c["name"], "full": c["fullName"], "prev": c.get("previousNames"), "type": c["type"], "dir": c["direction"],
+                         "place": c["placeName"], "cc": countries[c["countryId"]]["alpha2Code"], "lat": c["latitude"], "lon": c["longitude"],
+                         "len": c["length"], "turns": c["turns"]} for c in CIR],
+           "layouts": {k: [cirx[l["circuitId"]], l["length"], l["turns"]] for k, l in LAY.items()}, "races": R, "standings": ST, "family": fam}
     txt = json.dumps(out, ensure_ascii=False, separators=(",", ":"))
     open(OUT, "w", encoding="utf-8").write(txt + "\n")
     print("wrote %s: %d drivers, %d races (to %d R%d), %d KB" % (OUT, len(D), len(R), last["year"], last["round"], len(txt) // 1024))
 
 
+def maps(assets):
+    """src/circuitmaps.json: every layout's outline (F1DB's circuit SVGs by Jules Roy, CC BY 4.0) as one path, 500 x 500 box."""
+    import re
+    d = {}
+    folder = os.path.join(assets, "white")
+    for f in sorted(os.listdir(folder)):
+        if not f.endswith(".svg"): continue
+        svg = open(os.path.join(folder, f), encoding="utf-8").read()
+        paths = re.findall(r'<path[^>]*\sd="([^"]+)"', svg)
+        if not paths: continue
+        p = " ".join(paths)
+        # two decimals in a 500 box (relative paths add up rounding errors); always keep them, because paths run numbers together ("12.04.5" = 12.04, .5)
+        if not re.search(r"[aA]", p):   # arcs run their flags into the next number ("0 011.5"): leave those paths exactly as they are
+            p = re.sub(r"-?\d+\.\d+", lambda m: "%.2f" % float(m.group()), p)
+        d[f[:-4]] = p
+    out = os.path.join(ROOT, "src", "circuitmaps.json")
+    txt = json.dumps(d, separators=(",", ":"))
+    open(out, "w", encoding="utf-8").write(txt + "\n")
+    print("wrote %s: %d layouts, %d KB" % (out, len(d), len(txt) // 1024))
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 2: sys.exit(__doc__)
+    if len(sys.argv) not in (2, 3): sys.exit(__doc__)
     main(sys.argv[1])
+    if len(sys.argv) == 3: maps(sys.argv[2])

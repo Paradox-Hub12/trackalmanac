@@ -744,10 +744,50 @@ a.dcard,a.tcard{text-decoration:none;color:inherit}
 .rstops button small{font-family:var(--f-data);color:var(--ink-3)}
 .rstops button[aria-pressed="true"]{border-color:var(--signal);background:color-mix(in srgb,var(--signal) 12%,var(--panel));color:var(--ink)}
 /* history */
+/* circuits */
+svg.cmap{display:block;fill:none}
+svg.cmap path{fill:none;stroke:var(--ink);stroke-width:18;stroke-linejoin:round;stroke-linecap:round}
+svg.cmap.xs{width:34px;height:34px}svg.cmap.xs path{stroke-width:26}
+svg.cmap.sm{width:100%;height:auto;aspect-ratio:1}
+svg.cmap.lg{width:100%;height:auto;aspect-ratio:1}svg.cmap.lg path{stroke-width:14}
+.ccards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ccard{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--panel);border:1.5px solid var(--rule-2);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
+.ccard:hover{border-color:var(--signal)}.ccard:hover svg.cmap path{stroke:var(--signal)}
+.ccard svg.cmap{padding:6px 10px}
+.ccard .cn{font-size:14px}.ccard small{font-size:11.5px;color:var(--ink-3);font-family:var(--f-data)}
+.cchg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.cyear{border:1.5px solid var(--rule-2);background:var(--panel);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.cyear h3{margin:0;font-size:17px}
+.cio{display:flex;flex-direction:column;gap:6px}
+.cio .lbl.in{color:#4ad07e}.cio .lbl.out{color:var(--signal)}
+.cio .none{color:var(--ink-3);font-size:13px}
+.cchip{display:flex;align-items:center;gap:10px;text-align:left;background:none;border:1px solid var(--rule);padding:6px 8px;cursor:pointer;color:var(--ink);font:inherit}
+.cchip:hover{border-color:var(--signal)}
+.cchip small{display:block;color:var(--ink-3);font-size:11.5px;margin-top:1px}
+.cfut{grid-column:1/-1}
+.cplan{border-top:1px solid var(--rule);padding-top:10px}
+.cplan:first-of-type{border-top:0;padding-top:0}
+.cplan .ph{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cplan small{color:var(--ink-3);font-family:var(--f-data);font-size:11.5px}
+.cplan p{margin:6px 0 4px;font-size:13.5px;color:var(--ink-2);max-width:90ch}
+.cplan a{font-size:12px;color:var(--ink-3)}
+.hcirc td.cm,.hcirc th.cm{width:44px;padding:4px 6px}
+.chero{grid-template-columns:minmax(0,260px) minmax(0,1fr)!important}
+.chero .cbig{padding:18px;background:color-mix(in srgb,var(--ink) 5%,var(--panel));border-right:1px solid var(--rule)}
+.crec{display:flex;flex-direction:column;gap:2px}
+.crec .t{font-family:var(--f-data);font-size:26px}
+.crec small{color:var(--ink-3)}
+.clays{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.clay{border:1px solid var(--rule);padding:8px;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.clay svg.cmap path{stroke-width:22}
+.clay small{color:var(--ink-3);font-size:11px}
+@media (max-width:640px){.chero{grid-template-columns:1fr!important}.chero .cbig{border-right:0;border-bottom:1px solid var(--rule);max-width:260px;margin:0 auto;width:100%}.ccards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 .pagehead>div{min-width:0}
 .htabs{display:flex;gap:0;margin-top:14px;border:1.5px solid var(--rule-2);width:max-content;max-width:100%}
 .htabs a{font-family:var(--f-data);font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;color:var(--ink-2);text-decoration:none;background:var(--panel)}
 .htabs a+a{border-left:1px solid var(--rule-2)}
+@media (max-width:420px){.htabs{width:100%}.htabs a{flex:1 1 auto;text-align:center;padding:9px 6px;letter-spacing:.05em;font-size:11px}}
 .htabs a[aria-selected="true"]{background:var(--ink);color:var(--sheet)}
 .htabs a:hover:not([aria-selected="true"]){color:var(--ink)}
 .hdl .sw,.hcons .sw{display:inline-block;width:4px;height:14px;vertical-align:-2px;margin-right:7px}
@@ -881,6 +921,8 @@ function keyToPath(k){let m;if(!k||k==="season")return "/";
   if(k==="archive-1946-1949")return "/archive/1946-1949/";
   if(m=k.match(/^history-([\w-]+)$/))return "/history/?driver="+m[1];
   if(k==="hcons")return "/history/constructors/";
+  if(k==="hcirc")return "/history/circuits/";
+  if(m=k.match(/^hcirc-([\w-]+)$/))return "/history/circuits/?circuit="+m[1];
   if(m=k.match(/^hcons-([\w-]+)$/))return "/history/constructors/?team="+m[1];
   if(m=k.match(/^heng-([\w-]+)$/))return "/history/constructors/?engine="+m[1];
   if(k==="sitemap")return "/site-map/";
@@ -895,6 +937,7 @@ function pathToKey(){const p=location.pathname.replace(/index\.html$/,""),q=new 
   if(/^\/drivers\/?$/.test(p))return q.get("driver")?"driver-"+q.get("driver"):"drivers";
   if(/^\/teams\/?$/.test(p))return q.get("team")?"team-"+q.get("team"):"teams";
   if(/^\/history\/?$/.test(p))return q.get("driver")?"history-"+q.get("driver"):"history";
+  if(/^\/history\/circuits\/?$/.test(p))return q.get("circuit")?"hcirc-"+q.get("circuit"):"hcirc";
   if(/^\/history\/constructors\/?$/.test(p))return q.get("team")?"hcons-"+q.get("team"):q.get("engine")?"heng-"+q.get("engine"):"hcons";
   if(/^\/site-map\/?$/.test(p))return "sitemap";
   m=p.match(/^\/([a-z]+)\/?$/);return m&&STATIC_KEYS.includes(m[1])?m[1]:"notfound";}
@@ -908,6 +951,8 @@ function pageTitle(k){const T=" | Track Almanac";let m;
   if(k==="archive-1946-1949")return `Grand Prix Racing 1946–1949: Before the F1 World Championship${T}`;
   if(k.startsWith("hcons-")&&HIST&&HIST.tbyid&&HIST.tbyid[k.slice(6)])return `${HIST.tbyid[k.slice(6)].n}: F1 Team History, Stats & Records${T}`;
   if(k.startsWith("heng-")&&HIST&&HIST.ebyid&&HIST.ebyid[k.slice(5)])return `${HIST.ebyid[k.slice(5)].n} F1 Engines: History, Stats & Records${T}`;
+  if(k.startsWith("hcirc-")&&HIST&&HIST.cbyid&&HIST.cbyid[k.slice(6)])return `${HIST.cbyid[k.slice(6)].n}: F1 Circuit History, Records & Lap Record${T}`;
+  if(k==="hcirc"||k.startsWith("hcirc-"))return `F1 Circuits: Every Track, Lap Records & Calendar Changes${T}`;
   if(k==="hcons"||k.startsWith("hcons-")||k.startsWith("heng-"))return `F1 Constructors History: Every Team, Champion, Engine & Record${T}`;
   if(k.startsWith("history-")&&HIST&&HIST.byid[k.slice(8)])return `${HIST.byid[k.slice(8)].n}: F1 Career Stats & Records${T}`;
   if(k==="history"||k.startsWith("history-"))return `F1 History: Every Driver, World Champion & All-Time Record${T}`;
@@ -922,6 +967,7 @@ function h1Text(k){let m;
   if(k==="archive-1946-1949")return "Grand Prix racing 1946–1949";
   if(k==="history"||k.startsWith("history-"))return "Formula 1 history: drivers";
   if(k==="hcons"||k.startsWith("hcons-")||k.startsWith("heng-"))return "Formula 1 history: constructors";
+  if(k==="hcirc"||k.startsWith("hcirc-"))return "Formula 1 history: circuits";
   if(m=k.match(/^archive-(\d{4})$/)){const a=ARCHIVE[+m[1]];return !a?"Formula 1 season archive":a.next?"2027 F1 calendar":m[1]+" Formula 1 season";}
   if(k.startsWith("driver"))return "2026 F1 drivers";
   if(k.startsWith("team"))return "2026 F1 teams";
@@ -2065,9 +2111,9 @@ function openTeam(team){const tb=TEAMBIO[team];if(!tb)return;
   </div>`;
   const base=pageBase();modalShell(base,inner,tcol(team),pv,nx);if(base!=="season")setKey("team-"+tb.key);
   NAVD=true;document.title=pageTitle("team-"+tb.key);}
-const pageBase=()=>$(".home")?"season":$(".tcards")?"teams":$('.hist[data-mode="c"]')?"hcons":$(".hist")?"history":"drivers";
+const pageBase=()=>$(".home")?"season":$(".tcards")?"teams":$('.hist[data-mode="r"]')?"hcirc":$('.hist[data-mode="c"]')?"hcons":$(".hist")?"history":"drivers";
 const teamByKey=k=>Object.keys(TEAMBIO).find(t=>TEAMBIO[t].key===k);
-const closeModal=base=>{if(!$(".modal"))return false;closeDrawer();if(base)setKey(base);NAVD=true;document.title=base==="season"?"Track Almanac · Races. Drivers. Teams. Numbers.":(base==="history"||base==="hcons")?pageTitle(base):(base==="teams"?"2026 Teams":"2026 Drivers")+" · Track Almanac";return true;};
+const closeModal=base=>{if(!$(".modal"))return false;closeDrawer();if(base)setKey(base);NAVD=true;document.title=base==="season"?"Track Almanac · Races. Drivers. Teams. Numbers.":(base==="history"||base==="hcons"||base==="hcirc")?pageTitle(base):(base==="teams"?"2026 Teams":"2026 Drivers")+" · Track Almanac";return true;};
 
 const SITE={name:"Track Almanac",domain:"trackalmanac.com",email:"contact@trackalmanac.com",updated:"8 October 2026"};
 const PAGES={
@@ -2144,7 +2190,7 @@ disclaimer:{t:"Disclaimer & Copyright",b:`
 <h3>Data sources and credits</h3>
 <ul><li>Race classifications, qualifying, practice, starting grids and session times: compiled from official published results and timing.</li>
 <li>Results, qualifying, sprint results, championship standings and the race schedule: Jolpica F1 API (successor to the Ergast API).</li> <li>Lap-by-lap positions: <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> timing data (Apache-2.0), and <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> for new races.</li> <li>Practice and sprint qualifying classifications, lap timing, safety car, virtual safety car and red flag periods, and session times: <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> (openf1.org).</li> <li>Tyre strategy: <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a>, from the official F1 timing feed (Apache-2.0).</li>
-<li>Circuit maps: drawn from <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> car telemetry (Apache-2.0).</li> <li>Past seasons (archive, 1950–2025) and the History page: <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a>, CC BY 4.0.</li> <li>Grand Prix racing 1946–1949: the 1946–1949 Grand Prix season pages on <a href="https://en.wikipedia.org/wiki/1949_Grand_Prix_season" target="_blank" rel="noopener">Wikipedia</a>, CC BY-SA 4.0.</li> <li>Country flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, MIT licence.</li>
+<li>Circuit maps: drawn from <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> car telemetry (Apache-2.0).</li> <li>Past seasons (archive, 1950–2025) and the History page: <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a>, CC BY 4.0.</li> <li>Circuit track maps (History · Circuits): F1DB circuit outlines by <a href="https://github.com/julesr0y" target="_blank" rel="noopener">Jules Roy</a>, CC BY 4.0.</li> <li>Grand Prix racing 1946–1949: the 1946–1949 Grand Prix season pages on <a href="https://en.wikipedia.org/wiki/1949_Grand_Prix_season" target="_blank" rel="noopener">Wikipedia</a>, CC BY-SA 4.0.</li> <li>Country flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, MIT licence.</li>
 <li>Tyre compound selections and weekend forecasts: published team and supplier race previews.</li>
 <li>Fonts: Big Shoulders Display, IBM Plex Sans Condensed and IBM Plex Mono via Google Fonts (SIL Open Font Licence).</li></ul>
 <h3>Copyright</h3>
@@ -2256,7 +2302,7 @@ function openHDriver(i){const d=HIST.by[i];if(!d)return;
 const ordn=n=>n+(n%100>=11&&n%100<=13?"th":({1:"st",2:"nd",3:"rd"}[n%10]||"th"));
 /* ---------- HISTORY · CONSTRUCTORS: constructors' champions, every team, engine makers, records ---------- */
 const CS={q:"",cc:"",era:"",show:"all",sort:"w",dir:-1,limit:60,rcat:0,rmore:{},esort:"w",edir:-1};
-const htabs=m=>`<div class="htabs" role="tablist" aria-label="History sections"><a href="${H("history")}" data-go="history" role="tab" aria-selected="${m==="d"}">Drivers</a><a href="${H("hcons")}" data-go="hcons" role="tab" aria-selected="${m==="c"}">Constructors</a></div>`;
+const htabs=m=>`<div class="htabs" role="tablist" aria-label="History sections"><a href="${H("history")}" data-go="history" role="tab" aria-selected="${m==="d"}">Drivers</a><a href="${H("hcons")}" data-go="hcons" role="tab" aria-selected="${m==="c"}">Constructors</a><a href="${H("hcirc")}" data-go="hcirc" role="tab" aria-selected="${m==="r"}">Circuits</a></div>`;
 const tcl=i=>{const t=HIST.tby[i];return t?`<button class="hdl" data-ht="${t.i}"><span class="sw" style="background:${hcol(t.id,t.y?t.y[1]:2025)}"></span>${esc(t.n2||t.n)}</button>`:"";};
 const ecl=i=>{const e=HIST.eby[i];return e?`<button class="hdl" data-he="${e.i}">${flagOf(e.cc)} ${esc(e.n)}</button>`:"";};
 function histIndexTeams(){if(HIST.tby)return;HIST.tby={};HIST.tbyid={};HIST.teams.forEach(t=>{HIST.tby[t.i]=t;HIST.tbyid[t.id]=t;t._q=t.n.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")+" "+(t.full||"").toLowerCase();});
@@ -2364,6 +2410,88 @@ function openHEngine(i){histIndexTeams();const e=HIST.eby[i];if(!e)return;
    ${e.facts.length?`<div><div class="mh"><h3>Achievements & facts</h3></div><ul class="hfacts">${e.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>`:""}
   </div>`;
   modalShell("hcons",inner,"var(--ink-3)",pv,nx);setKey("heng-"+e.id);document.title=pageTitle("heng-"+e.id);}
+/* ---------- HISTORY · CIRCUITS: every circuit since 1950, calendar changes, records, track maps (F1DB / Jules Roy) ---------- */
+let CMAPS=null,CMAPLOAD=null;
+const RS={q:"",cc:"",type:"",era:"",show:"all",sort:"r",dir:-1,limit:100};
+function loadMaps(){if(CMAPS)return Promise.resolve(CMAPS);if(!CMAPLOAD)CMAPLOAD=fetch(`/data/circuitmaps.json?v=${CMAPV}`).then(r=>r.json()).then(j=>{CMAPS=j;document.querySelectorAll("svg.cmap[data-lay]").forEach(fillMap);return j;}).catch(()=>{CMAPLOAD=null;});return CMAPLOAD;}
+const cmapSvg=(lay,cls="")=>`<svg class="cmap ${cls}" viewBox="0 0 500 500" data-lay="${esc(lay||"")}" role="img" aria-label="Track map">${CMAPS&&CMAPS[lay]?`<path d="${CMAPS[lay]}"/>`:""}</svg>`;
+function fillMap(el){const d=CMAPS&&CMAPS[el.dataset.lay];if(d&&!el.firstChild)el.innerHTML=`<path d="${d}"/>`;}
+function histIndexCirc(){if(HIST.cby)return;HIST.cby={};HIST.cbyid={};HIST.circuits.forEach(c=>{HIST.cby[c.i]=c;HIST.cbyid[c.id]=c;c._q=(c.n+" "+c.full+" "+c.place+" "+(c.prev||"")).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");});}
+const ccl=i=>{const c=HIST.cby[i];return c?`<button class="hdl" data-hc="${c.i}">${flagOf(c.cc)} ${esc(c.n)}</button>`:"";};
+const ctype=t=>({RACE:"Race circuit",STREET:"Street circuit",ROAD:"Road course"})[t]||t||"";
+const cdir=d=>({CLOCKWISE:"Clockwise",ANTI_CLOCKWISE:"Anticlockwise"})[d]||"";
+const klen=v=>v?dist(v,3):"—";
+function viewCirc(){histIndexTeams();histIndexCirc();
+  const now=HIST.now,cur=HIST.circuits.filter(c=>c.cal.includes(now)).sort((a,b)=>a.n.localeCompare(b.n));
+  const jump=[["r-changes","Calendar changes"],["r-cur",`${now} circuits`],["r-rec","Records"],["r-all","All circuits"],["r-cty","By country"]];
+  const raced=HIST.circuits.filter(c=>c.r).length;
+  return `<div class="hist" data-mode="r"><div class="pagehead"><div><span class="lbl">Formula 1 history</span><h2 class="h1">Circuits</h2>
+    <p>Every circuit to host a World Championship race since 1950: <b>${raced}</b> circuits in <b>${new Set(HIST.circuits.filter(c=>c.r).map(c=>c.cc)).size}</b> countries. Select a circuit for its card, with track map, records and every race held there.</p>${htabs("r")}</div></div>
+  <nav class="jump hjump" aria-label="Sections">${jump.map(([id,t])=>`<a href="#${id}" data-hj="${id}">${t}</a>`).join("")}</nav>
+  <section class="dsec" id="r-changes"><div class="sec"><h2>Calendar changes</h2><span class="lbl">${now} · ${now+1} · and beyond</span></div>${circChanges()}</section>
+  <section class="dsec" id="r-cur"><div class="sec"><h2>${now} circuits</h2><span class="lbl">${cur.length} venues on this season's calendar</span></div><div class="ccards">${cur.map(circCard).join("")}</div></section>
+  <section class="dsec" id="r-rec"><div class="sec"><h2>Records</h2><span class="lbl">World Championship races</span></div><div id="r-recs">${circRecords()}</div></section>
+  <section class="dsec" id="r-all"><div class="sec"><h2>All circuits</h2><span class="lbl" id="r-count">${circFiltered().length} circuits</span></div>${circControls()}<div id="r-list">${circList()}</div></section>
+  <section class="dsec" id="r-cty"><div class="sec"><h2>By country</h2><span class="lbl">Select one to list its circuits</span></div>${circCountries()}</section>
+  <p class="note2">Data: <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a> (CC BY 4.0) up to ${HIST.upto[0]} round ${HIST.upto[1]}, with later ${now} rounds from this site's results. Track maps: F1DB circuit outlines by Jules Roy (CC BY 4.0). Length and corners are for the latest layout used; the lap record is the fastest race lap on that layout. Future circuits: sources linked on each.</p></div>`;}
+function circCard(c){return `<button class="ccard" data-hc="${c.i}">${cmapSvg(c.lay,"sm")}<span class="cn">${flagOf(c.cc)} <b>${esc(c.n)}</b></span><small>${esc(c.place)} · ${klen(c.len)}${c.r?` · ${c.r} GP${c.r>1?"s":""}`:" · new"}</small></button>`;}
+function circChanges(){const ch=HIST.calchanges||{},yrs=Object.keys(ch).sort();
+  const gpIn=(c,y)=>{const r=(HIST.cby[c]||{}).races||[];const x=r.filter(z=>z[0]===+y).map(z=>z[1]);return x.length&&!x.every(g=>g.startsWith((HIST.cby[c].place||"").split(",")[0]))?x[0]:null;};
+  const chip=(i,y,add)=>{const c=HIST.cby[i];if(!c)return "";const g=add?gpIn(i,y):null;const was=!add?null:(c.r&&c.y&&c.y[0]<+y?`back after ${c.y[1]<+y?c.y[1]:c.races.filter(z=>z[0]<+y).map(z=>z[0]).pop()}`:c.r&&c.y&&c.y[0]===+y?"first time":c.r?"":"new venue");
+    return `<button class="cchip" data-hc="${c.i}">${cmapSvg(c.lay,"xs")}<span><b>${flagOf(c.cc)} ${esc(c.n)}</b><small>${esc(c.place)}${g?` · as the ${esc(g)}`:""}${was?` · ${was}`:""}</small></span></button>`;};
+  const fut=(typeof FUTURECIRC!=="undefined"?FUTURECIRC:[]);
+  return `<div class="cchg">${yrs.map(y=>`<div class="cyear"><h3>${y} season</h3>
+    <div class="cio"><span class="lbl in">In</span>${ch[y].add.length?ch[y].add.map(i=>chip(i,y,true)).join(""):'<span class="none">No new circuits</span>'}</div>
+    <div class="cio"><span class="lbl out">Out</span>${ch[y].drop.length?ch[y].drop.map(i=>chip(i,y,false)).join(""):'<span class="none">None dropped</span>'}</div></div>`).join("")}
+    ${fut.length?`<div class="cyear cfut"><h3>Planned and future circuits</h3>${fut.map(f=>`<div class="cplan"><div class="ph"><b>${flagOf(f.cc)} ${esc(f.n)}</b><span class="tag${f.status==="Confirmed"?" sig":""}" style="margin:0">${esc(f.status)}</span></div><small>${esc(f.place)} · ${esc(f.when)}</small><p>${esc(f.note)}</p><a href="${esc(f.src[1])}" target="_blank" rel="noopener">${esc(f.src[0])} ↗</a></div>`).join("")}</div>`:""}</div>`;}
+function circRecords(){const it=HIST.crecords[0].items;const val=(v,u)=>typeof v==="string"?esc(v):u==="%"?hn(v)+"%":u==="km"?klen(v):u==="km/h"?spd(v,1):u==="s"?v.toFixed(3)+" s":hn(v);
+  return `<div class="hrecs">${it.map((x,k)=>{const more=RS["rm"+k],rows=x.rows.slice(0,more?10:5);let rank=0,prev=null;
+    return `<div class="hrec"><h3>${esc(x.t)}</h3><ol>${rows.map((r,j)=>{if(r[1]!==prev){rank=j+1;prev=r[1];}return `<li><span class="rk">${rank}</span><span class="who">${ccl(r[0])}${r[2]?`<small>${esc(r[2])}</small>`:""}</span><b class="v">${val(r[1],x.u)}</b></li>`;}).join("")}</ol>
+    ${x.rows.length>5?`<button class="hmore" data-rrm="${k}">${more?"Show top 5":"Show top 10"}</button>`:""}</div>`;}).join("")}</div>`;}
+const RCOLS=[["map",""],["n","Circuit"],["place","Location"],["type","Type"],["y","Years"],["r","Grands Prix"],["len","Length"],["turns","Corners"],["rec","Lap record"],["w","Most wins"]];
+function circControls(){const ccs=[...new Map(HIST.circuits.map(c=>[c.cc,hcc(c.cc)])).entries()].sort((a,b)=>a[1].localeCompare(b[1]));const eras=[];for(let y=1950;y<=HIST.now;y+=10)eras.push(y);
+  return `<div class="hctl"><label class="hsearch"><span class="lbl">Search</span><input id="rq" type="search" placeholder="Circuit or place…" autocomplete="off" value="${esc(RS.q)}"></label>
+   <label><span class="lbl">Country</span><select id="rcc"><option value="">All countries</option>${ccs.map(([cc,n])=>`<option value="${cc}"${RS.cc===cc?" selected":""}>${esc(n)} (${HIST.circuits.filter(c=>c.cc===cc).length})</option>`).join("")}</select></label>
+   <label><span class="lbl">Type</span><select id="rtype"><option value="">Any type</option>${["RACE","STREET","ROAD"].map(t=>`<option value="${t}"${RS.type===t?" selected":""}>${ctype(t)}</option>`).join("")}</select></label>
+   <label><span class="lbl">Raced in</span><select id="rera"><option value="">Any decade</option>${eras.map(y=>`<option value="${y}"${String(RS.era)===String(y)?" selected":""}>${y}s</option>`).join("")}</select></label>
+   <div><span class="lbl">Show</span><div class="dsort hshow" role="group">${[["all","All"],["cur",HIST.now+" calendar"],["next",(HIST.now+1)+" calendar"],["gone","Not used now"]].map(([k,n])=>`<button data-rshow="${k}" aria-pressed="${RS.show===k}">${n}</button>`).join("")}</div></div></div>`;}
+function circFiltered(){histIndexCirc();const q=RS.q.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  const L=HIST.circuits.filter(c=>(!q||c._q.includes(q))&&(!RS.cc||c.cc===RS.cc)&&(!RS.type||c.type===RS.type)&&(!RS.era||c.races.some(r=>r[0]>=+RS.era&&r[0]<=+RS.era+9))&&(RS.show==="all"||(RS.show==="cur"&&c.cal.includes(HIST.now))||(RS.show==="next"&&c.cal.includes(HIST.now+1))||(RS.show==="gone"&&!c.cal.length)));
+  const k=RS.sort,dir=RS.dir,get=c=>k==="y"?(c.y?c.y[0]:9999):k==="rec"?(c.rec?c.rec[5]:0):k==="w"?(c.wins[0]?c.wins[0][1]:0):k==="type"?ctype(c.type):c[k];
+  return L.sort((a,b)=>{const x=get(a),y=get(b);const r=typeof x==="string"?x.localeCompare(y):(x||0)-(y||0);return r*dir||b.r-a.r||a.n.localeCompare(b.n);});}
+function circList(){const L=circFiltered(),shown=L.slice(0,RS.limit),cn=$("#r-count");if(cn)cn.textContent=`${L.length} circuit${L.length===1?"":"s"}`;
+  const th=RCOLS.map(([k,n])=>k==="map"?`<th class="cm"></th>`:`<th${["n","place","type","y","rec","w"].includes(k)?"":` class="n"`}><button data-rsort="${k}" aria-sort="${RS.sort===k?(RS.dir<0?"descending":"ascending"):"none"}">${n}${RS.sort===k?(RS.dir<0?" ↓":" ↑"):""}</button></th>`).join("");
+  const rows=shown.map(c=>`<tr data-hc="${c.i}" class="go"><td class="cm">${cmapSvg(c.lay,"xs")}</td><td>${flagOf(c.cc)} <b>${esc(c.n)}</b>${c.cal.includes(HIST.now)?` <span class="hnow">${HIST.now}</span>`:c.cal.includes(HIST.now+1)?` <span class="hnow">${HIST.now+1}</span>`:""}</td><td style="color:var(--ink-2)">${esc(c.place)}</td><td style="color:var(--ink-2)">${ctype(c.type)}</td>
+    <td class="m">${c.y?(c.y[0]===c.y[1]?c.y[0]:c.y[0]+"–"+String(c.y[1]).slice(-2)):"—"}</td><td class="n"><b>${c.r}</b></td><td class="n">${klen(c.len)}</td><td class="n">${c.turns||"—"}</td>
+    <td class="m">${c.rec?`${c.rec[1]} <small style="color:var(--ink-3)">${esc((HIST.by[c.rec[2]]||{}).n||"")} ${c.rec[4]}</small>`:"—"}</td><td>${c.wins[0]?`${esc(HIST.by[c.wins[0][0]].n)} <small style="color:var(--ink-3)">${c.wins[0][1]}</small>`:"—"}</td></tr>`).join("");
+  return L.length?`<div class="tw"><table class="t htab hdrv hcirc"><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table></div>${L.length>RS.limit?`<div class="hmorebar"><span>Showing ${RS.limit} of ${L.length}</span><button class="navbtn" data-rlimit="99999">Show all</button></div>`:""}`
+    :`<p class="note2">No circuit matches. <button class="hmore" data-rreset>Clear the search and filters</button></p>`;}
+function circCountries(){return `<div class="tw"><table class="t htab"><thead><tr><th>Country</th><th class="n">Circuits</th><th class="n">Grands Prix</th><th class="n">On the ${HIST.now} calendar</th><th>Circuits</th></tr></thead><tbody>
+  ${HIST.ccountries.map(k=>`<tr class="go" data-rcty="${k.cc}"><td>${flagOf(k.cc)} <b>${esc(k.n)}</b></td><td class="n">${k.c}</td><td class="n"><b>${k.r}</b></td><td class="n">${k.cur||"—"}</td><td class="hcn">${HIST.circuits.filter(c=>c.cc===k.cc).sort((a,b)=>b.r-a.r).map(c=>esc(c.n)).join(", ")}</td></tr>`).join("")}</tbody></table></div>`;}
+function circRefresh(){const l=$("#r-list");if(l)l.innerHTML=circList();loadMaps();}
+/* circuit card */
+function openHCirc(i){histIndexCirc();histIndexTeams();const c=HIST.cby[i];if(!c)return;
+  const seq=[...document.querySelectorAll("#r-list tr[data-hc]")].map(x=>+x.dataset.hc),k=seq.indexOf(c.i);
+  const pv=k>0?`<button class="navbtn" data-hc="${seq[k-1]}">← ${esc(HIST.cby[seq[k-1]].n)}</button>`:`<span></span>`;
+  const nx=k>=0&&k<seq.length-1?`<button class="navbtn" data-hc="${seq[k+1]}">${esc(HIST.cby[seq[k+1]].n)} →</button>`:`<span></span>`;
+  const D=i=>(HIST.by[i]||{}),T=i=>(HIST.tby[i]||{});
+  const S=[["Grands Prix",c.r,c.y?(c.y[0]===c.y[1]?String(c.y[0]):c.y[0]+"–"+c.y[1]):""],["Seasons",c.ns,""],["Length",klen(c.len),"latest layout"],["Corners",c.turns||"—",""],["Direction",cdir(c.dir)||"—",""],["Type",ctype(c.type),""],
+    ["Different winners",c.nw,""],["Won from pole",c.r?`${c.pw} of ${c.r}`:"—",c.r?Math.round(100*c.pw/c.r)+"%":""],["Layouts",c.layouts.length||1,""]];
+  const chips=(L,f)=>L.map(([i,n])=>f(i,n)).join("");
+  const inner=`<div class="mhero hhero chero"><div class="cbig">${cmapSvg(c.lay,"lg")}</div><div class="tx"><span class="lbl">${flagOf(c.cc)} ${esc(hcc(c.cc))} · ${esc(c.place)}</span><h2>${esc(c.n)}</h2>
+    <div>${esc(c.full)}</div><div style="margin-top:6px">${c.cal.includes(HIST.now)?`<span class="tag sig" style="margin:0 6px 0 0">${HIST.now} calendar</span>`:""}${c.cal.includes(HIST.now+1)?`<span class="tag" style="margin:0">${HIST.now+1} calendar</span>`:""}</div></div></div>
+  <div class="mb">
+   <div><div class="mh"><h3>Circuit</h3><span class="lbl">World Championship races</span></div><div class="facts hstats">${S.map(([l,v,s])=>`<div><span class="lbl">${l}</span><b>${typeof v==="number"?hn(v):esc(v)}</b>${s?`<small>${esc(s)}</small>`:""}</div>`).join("")}</div></div>
+   ${c.rec?`<div><div class="mh"><h3>Lap record</h3><span class="lbl">Fastest race lap, current layout</span></div><div class="crec"><b class="t">${c.rec[1]}</b><span>${hdl(c.rec[2])} ${c.rec[3]!=null?`· ${tcl(c.rec[3])}`:""} · ${c.rec[4]}</span>${c.rec[5]?`<small>${spd(c.rec[5],1)} average</small>`:""}</div></div>`:""}
+   ${c.wins.length?`<div><div class="mh"><h3>Most wins</h3></div><div class="hchips">${chips(c.wins,(i,n)=>`<button class="hchip" data-hd="${i}">${flagOf(D(i).cc)} ${esc(D(i).n||"")} <b>${n}</b></button>`)}</div></div>`:""}
+   ${c.cwins.length?`<div><div class="mh"><h3>Most successful teams</h3></div><div class="hchips">${chips(c.cwins,(i,n)=>`<button class="hchip" data-ht="${i}">${esc(T(i).n2||T(i).n||"")} <b>${n}</b></button>`)}</div></div>`:""}
+   ${c.poles.length?`<div><div class="mh"><h3>Most poles</h3></div><div class="hchips">${chips(c.poles,(i,n)=>`<button class="hchip" data-hd="${i}">${flagOf(D(i).cc)} ${esc(D(i).n||"")} <b>${n}</b></button>`)}</div></div>`:""}
+   ${c.layouts.length>1?`<div><div class="mh"><h3>Layouts</h3><span class="lbl">${c.layouts.length} versions</span></div><div class="clays">${c.layouts.map(([id,a,b,ln,tn,n])=>`<div class="clay">${cmapSvg(id,"sm")}<b>${a===b?a:a+"–"+b}</b><small>${klen(ln)}${tn?` · ${tn} corners`:""} · ${n} race${n>1?"s":""}</small></div>`).join("")}</div></div>`:""}
+   ${c.facts.length?`<div><div class="mh"><h3>Facts</h3></div><ul class="hfacts">${c.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>`:""}
+   ${c.races.length?`<div><div class="mh"><h3>Every race here</h3><span class="lbl">${c.races.length}</span></div><div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Year</th><th>Grand Prix</th><th>Winner</th><th>Team</th><th>Pole</th></tr></thead><tbody>
+     ${[...c.races].reverse().map(([y,g,w,t,p])=>`<tr><td class="n">${y}</td><td>${esc(g)}</td><td>${w!=null?hdl(w):"—"}</td><td>${t!=null?tcl(t):"—"}</td><td>${p!=null?`<span style="color:var(--ink-2)">${esc(D(p).n||"")}</span>`:"—"}</td></tr>`).join("")}</tbody></table></div></div>`:""}
+  </div>`;
+  modalShell("hcirc",inner,"var(--signal)",pv,nx);setKey("hcirc-"+c.id);document.title=pageTitle("hcirc-"+c.id);loadMaps().then(()=>document.querySelectorAll(".modal svg.cmap").forEach(fillMap));}
 function viewPage(k){const p=PAGES[k];return `<article class="doc"><span class="lbl">${SITE.name}</span><h1>${p.t}</h1>${p.b}</article>`;}
 /* cookie consent (replace with a Google-certified CMP when AdSense is live in EEA/UK) */
 function consentBanner(force){let c=null;try{c=localStorage.getItem("ta-consent");}catch(e){}
@@ -2447,13 +2575,17 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
   else if(h==="notfound"){$("#app").innerHTML=viewNotFound();$("#sheetname").textContent="NOT FOUND";setNav("");}
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}
+  else if(h==="hcirc"||h.startsWith("hcirc-")){const ck=h.startsWith("hcirc-")?h.slice(6):null,keep=!!$('.hist[data-mode="r"] .hjump');
+    if(!keep||!HIST)$("#app").innerHTML=HIST?viewCirc():viewHistory().replace(/<h2 class="h1">Drivers<\/h2>/,'<h2 class="h1">Circuits</h2>');$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hcirc");
+    loadHist().then(()=>{if(curKey()!==h)return;histIndexCirc();if(!$('.hist[data-mode="r"] .hjump')){$("#app").innerHTML=viewCirc();pinSizes();}loadMaps();
+      if(ck&&HIST.cbyid[ck])openHCirc(HIST.cbyid[ck].i);document.title=pageTitle(h);}).catch(()=>{});}
   else if(h==="hcons"||h.startsWith("hcons-")||h.startsWith("heng-")){const tk=h.startsWith("hcons-")?h.slice(6):null,ek=h.startsWith("heng-")?h.slice(5):null,keep=!!$('.hist[data-mode="c"] .hjump');
     if(!keep||!HIST)$("#app").innerHTML=HIST?viewCons():viewHistory().replace(/<h2 class="h1">Drivers<\/h2>/,'<h2 class="h1">Constructors</h2>');$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hcons");
     loadHist().then(()=>{if(curKey()!==h)return;histIndexTeams();if(!$('.hist[data-mode="c"] .hjump')){$("#app").innerHTML=viewCons();pinSizes();}
       if(tk&&HIST.tbyid[tk])openHTeam(HIST.tbyid[tk].i);else if(ek&&HIST.ebyid[ek])openHEngine(HIST.ebyid[ek].i);document.title=pageTitle(h);}).catch(()=>{});}
-  else if(h==="history"||h.startsWith("history-")){const dk=h.startsWith("history-")?h.slice(8):null,keep=!!$('.hist:not([data-mode="c"]) .hjump');
+  else if(h==="history"||h.startsWith("history-")){const dk=h.startsWith("history-")?h.slice(8):null,keep=!!$('.hist:not([data-mode]) .hjump');
     if(!keep||!HIST){$("#app").innerHTML=viewHistory();}$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("history");
-    const after=()=>{if(curKey()!==h)return;if(!$('.hist:not([data-mode="c"]) .hjump')){$("#app").innerHTML=viewHistory();pinSizes();}if(dk&&HIST.byid[dk])openHDriver(HIST.byid[dk].i);};
+    const after=()=>{if(curKey()!==h)return;if(!$('.hist:not([data-mode]) .hjump')){$("#app").innerHTML=viewHistory();pinSizes();}if(dk&&HIST.byid[dk])openHDriver(HIST.byid[dk].i);};
     loadHist().then(after).catch(()=>{});}
   else if(h==="archive-1946-1949"){$("#app").innerHTML=viewPrewar();centreYrail(yrX);$("#sheetname").textContent="SEASON ARCHIVE";setNav("archive");}
   else if(h.startsWith("archive")){const y=+h.split("-")[1];const ay=ARCHIVE[y]?y:2025;$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ay);centreYrail(yrX);if((ARCHIVE[ay]||{}).next)initRoute();
@@ -2500,6 +2632,13 @@ document.addEventListener("click",e=>{
     if(e.target.closest("#rsvg")&&RT.phase==="idle"&&RT.pin!=null){RT.unpick();return;}}
   if($(".hist")||$(".modal")){
     const hd=e.target.closest("[data-hd]");if(hd&&HIST){e.preventDefault();openHDriver(+hd.dataset.hd);return;}
+    const hc_=e.target.closest("[data-hc]");if(hc_&&HIST){e.preventDefault();openHCirc(+hc_.dataset.hc);return;}
+    const rrm=e.target.closest("[data-rrm]");if(rrm){RS["rm"+rrm.dataset.rrm]=!RS["rm"+rrm.dataset.rrm];$("#r-recs").innerHTML=circRecords();loadMaps();return;}
+    const rso=e.target.closest("[data-rsort]");if(rso){const k=rso.dataset.rsort;if(RS.sort===k)RS.dir=-RS.dir;else{RS.sort=k;RS.dir=(k==="n"||k==="place"||k==="type"||k==="y")?1:-1;}circRefresh();return;}
+    const rsh=e.target.closest("[data-rshow]");if(rsh){RS.show=rsh.dataset.rshow;document.querySelectorAll("[data-rshow]").forEach(b=>b.setAttribute("aria-pressed",String(b===rsh)));circRefresh();return;}
+    const rl=e.target.closest("[data-rlimit]");if(rl){RS.limit=+rl.dataset.rlimit;circRefresh();return;}
+    if(e.target.closest("[data-rreset]")){Object.assign(RS,{q:"",cc:"",type:"",era:"",show:"all"});["rq","rcc","rtype","rera"].forEach(id=>{const x=$("#"+id);if(x)x.value="";});document.querySelectorAll("[data-rshow]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rshow==="all")));circRefresh();return;}
+    const rct=e.target.closest("[data-rcty]");if(rct){RS.cc=rct.dataset.rcty;$("#rcc").value=RS.cc;circRefresh();$("#r-all").scrollIntoView({behavior:"smooth",block:"start"});return;}
     const ht=e.target.closest("[data-ht]");if(ht&&HIST){e.preventDefault();openHTeam(+ht.dataset.ht);return;}
     const he=e.target.closest("[data-he]");if(he&&HIST){e.preventDefault();openHEngine(+he.dataset.he);return;}
     const ccx=e.target.closest("[data-ccx]");if(ccx){const x=ccx.previousElementSibling;x.hidden=!x.hidden;ccx.textContent=x.hidden?`+${x.children.length} more`:"Show fewer";return;}
@@ -2534,7 +2673,7 @@ document.addEventListener("click",e=>{
   if(b.hasAttribute("data-standall")){const st=b.closest(".stand"),on=!st.classList.contains("all");st.classList.toggle("all",on);b.setAttribute("aria-expanded",String(on));
     b.textContent=on?"Show top 10":`Show all ${st.querySelectorAll("tbody")[0].rows.length} drivers`;return;}
   if(b.dataset.themeSet){setTheme(b.dataset.themeSet);const y=window.scrollY;route();window.scrollTo(0,y);return;}
-  if(b.dataset.unit){UNIT=b.dataset.unit==="mi"?"mi":"km";try{localStorage.setItem("ta-unit",UNIT)}catch(err){}const y=window.scrollY;route();window.scrollTo(0,y);return;}
+  if(b.dataset.unit){UNIT=b.dataset.unit==="mi"?"mi":"km";try{localStorage.setItem("ta-unit",UNIT)}catch(err){}const y=window.scrollY;if($(".hist"))$("#app").innerHTML="";route();window.scrollTo(0,y);return;}
   if(b.dataset.clock){CLOCK=b.dataset.clock;try{localStorage.setItem("ta-clock",CLOCK)}catch(err){}const y=window.scrollY,open=$(".drawer")?location.hash:null;route();window.scrollTo(0,y);return;}
   if(b.dataset.consent){try{localStorage.setItem("ta-consent",b.dataset.consent)}catch(err){}if(window.taConsent)window.taConsent(b.dataset.consent);document.querySelectorAll(".consent").forEach(x=>x.remove());return;}
   if(b.dataset.cookies){consentBanner(true);return;}
@@ -2553,8 +2692,9 @@ document.addEventListener("click",e=>{
   if(b.dataset.quick){const n=+b.dataset.quick;setKey("race-"+n);if(!$(".home")){route();}else openRace(n);}
 });
 /* history page: search as you type, filter selects */
-{let qt=0;document.addEventListener("input",e=>{if(e.target.id==="cq"){clearTimeout(qt);qt=setTimeout(()=>{CS.q=e.target.value;CS.limit=60;consRefresh();},120);return;}if(e.target.id==="hq"){clearTimeout(qt);qt=setTimeout(()=>{HS.q=e.target.value;HS.limit=60;histRefresh();},120);}});
+{let qt=0;document.addEventListener("input",e=>{if(e.target.id==="rq"){clearTimeout(qt);qt=setTimeout(()=>{RS.q=e.target.value;circRefresh();},120);return;}if(e.target.id==="cq"){clearTimeout(qt);qt=setTimeout(()=>{CS.q=e.target.value;CS.limit=60;consRefresh();},120);return;}if(e.target.id==="hq"){clearTimeout(qt);qt=setTimeout(()=>{HS.q=e.target.value;HS.limit=60;histRefresh();},120);}});
  document.addEventListener("change",e=>{if(e.target.id==="hcc"){HS.cc=e.target.value;HS.limit=60;histRefresh();}else if(e.target.id==="hera"){HS.era=e.target.value;HS.limit=60;histRefresh();}
+   else if(e.target.id==="rcc"){RS.cc=e.target.value;circRefresh();}else if(e.target.id==="rtype"){RS.type=e.target.value;circRefresh();}else if(e.target.id==="rera"){RS.era=e.target.value;circRefresh();}
    else if(e.target.id==="ccc"){CS.cc=e.target.value;CS.limit=60;consRefresh();}else if(e.target.id==="cera"){CS.era=e.target.value;CS.limit=60;consRefresh();}});}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$(".moremenu")&&!$(".moremenu").hidden){$(".moremenu").hidden=true;$(".morebtn").setAttribute("aria-expanded","false");$(".morebtn").focus();return;}if(e.key==="Escape"&&$(".modal")){closeModal(pageBase());return;}if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches(".tower li[role=button],[data-sess]")){e.preventDefault();e.target.click();return;}if(e.key==="Escape"&&$(".fsbox.full")){toggleFS($(".fsbox.full").id,false);return;}if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("article[role=button]")){e.preventDefault();e.target.click();return;}if(e.key==="Escape"&&$(".drawer")){setKey("season");closeDrawer();}});
 if(PATHMODE){window.addEventListener("popstate",()=>{NAVD=true;route();});window.addEventListener("hashchange",()=>{if(location.pathname==="/"&&isLegacy(location.hash.slice(1)))route();});}else window.addEventListener("hashchange",route);

@@ -29,6 +29,7 @@
   "/races/2026/qatar/",
   "/races/2026/abu-dhabi/",
   "/history/",
+  "/history/circuits/",
   "/history/constructors/",
   "/archive/",
   "/archive/2027/",
@@ -232,6 +233,10 @@
   },
   "/history/": {
    "hash": "43bf8e41f59dc7157fb35ffd1558b1f928a25d8b",
+   "lastmod": "2026-10-20"
+  },
+  "/history/circuits/": {
+   "hash": "ddf01ee35c3a5b5d35bbd8796e20c76886cc0ad6",
    "lastmod": "2026-10-20"
   },
   "/history/constructors/": {
@@ -575,11 +580,11 @@
    "lastmod": "2026-10-11"
   },
   "/disclaimer/": {
-   "hash": "6efa123eb0412fa8c84cd89b645f4885a1cddfca",
+   "hash": "ef2f7a992ce649845c6a6d5a3bc99dc2a119a4c9",
    "lastmod": "2026-10-20"
   },
   "/site-map/": {
-   "hash": "46a428b50b565876c091ec00f6c3654f42f2ac86",
+   "hash": "dcf84046a673d34b6137be7ade74edfade8ce55f",
    "lastmod": "2026-10-20"
   }
  }

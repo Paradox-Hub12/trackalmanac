@@ -739,10 +739,50 @@ a.dcard,a.tcard{text-decoration:none;color:inherit}
 .rstops button small{font-family:var(--f-data);color:var(--ink-3)}
 .rstops button[aria-pressed="true"]{border-color:var(--signal);background:color-mix(in srgb,var(--signal) 12%,var(--panel));color:var(--ink)}
 /* history */
+/* circuits */
+svg.cmap{display:block;fill:none}
+svg.cmap path{fill:none;stroke:var(--ink);stroke-width:18;stroke-linejoin:round;stroke-linecap:round}
+svg.cmap.xs{width:34px;height:34px}svg.cmap.xs path{stroke-width:26}
+svg.cmap.sm{width:100%;height:auto;aspect-ratio:1}
+svg.cmap.lg{width:100%;height:auto;aspect-ratio:1}svg.cmap.lg path{stroke-width:14}
+.ccards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ccard{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--panel);border:1.5px solid var(--rule-2);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
+.ccard:hover{border-color:var(--signal)}.ccard:hover svg.cmap path{stroke:var(--signal)}
+.ccard svg.cmap{padding:6px 10px}
+.ccard .cn{font-size:14px}.ccard small{font-size:11.5px;color:var(--ink-3);font-family:var(--f-data)}
+.cchg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.cyear{border:1.5px solid var(--rule-2);background:var(--panel);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.cyear h3{margin:0;font-size:17px}
+.cio{display:flex;flex-direction:column;gap:6px}
+.cio .lbl.in{color:#4ad07e}.cio .lbl.out{color:var(--signal)}
+.cio .none{color:var(--ink-3);font-size:13px}
+.cchip{display:flex;align-items:center;gap:10px;text-align:left;background:none;border:1px solid var(--rule);padding:6px 8px;cursor:pointer;color:var(--ink);font:inherit}
+.cchip:hover{border-color:var(--signal)}
+.cchip small{display:block;color:var(--ink-3);font-size:11.5px;margin-top:1px}
+.cfut{grid-column:1/-1}
+.cplan{border-top:1px solid var(--rule);padding-top:10px}
+.cplan:first-of-type{border-top:0;padding-top:0}
+.cplan .ph{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cplan small{color:var(--ink-3);font-family:var(--f-data);font-size:11.5px}
+.cplan p{margin:6px 0 4px;font-size:13.5px;color:var(--ink-2);max-width:90ch}
+.cplan a{font-size:12px;color:var(--ink-3)}
+.hcirc td.cm,.hcirc th.cm{width:44px;padding:4px 6px}
+.chero{grid-template-columns:minmax(0,260px) minmax(0,1fr)!important}
+.chero .cbig{padding:18px;background:color-mix(in srgb,var(--ink) 5%,var(--panel));border-right:1px solid var(--rule)}
+.crec{display:flex;flex-direction:column;gap:2px}
+.crec .t{font-family:var(--f-data);font-size:26px}
+.crec small{color:var(--ink-3)}
+.clays{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.clay{border:1px solid var(--rule);padding:8px;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.clay svg.cmap path{stroke-width:22}
+.clay small{color:var(--ink-3);font-size:11px}
+@media (max-width:640px){.chero{grid-template-columns:1fr!important}.chero .cbig{border-right:0;border-bottom:1px solid var(--rule);max-width:260px;margin:0 auto;width:100%}.ccards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 .pagehead>div{min-width:0}
 .htabs{display:flex;gap:0;margin-top:14px;border:1.5px solid var(--rule-2);width:max-content;max-width:100%}
 .htabs a{font-family:var(--f-data);font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;color:var(--ink-2);text-decoration:none;background:var(--panel)}
 .htabs a+a{border-left:1px solid var(--rule-2)}
+@media (max-width:420px){.htabs{width:100%}.htabs a{flex:1 1 auto;text-align:center;padding:9px 6px;letter-spacing:.05em;font-size:11px}}
 .htabs a[aria-selected="true"]{background:var(--ink);color:var(--sheet)}
 .htabs a:hover:not([aria-selected="true"]){color:var(--ink)}
 .hdl .sw,.hcons .sw{display:inline-block;width:4px;height:14px;vertical-align:-2px;margin-right:7px}

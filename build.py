@@ -221,6 +221,7 @@ class Site:
         if key.startswith("archive-"): return "/archive/%s/" % key[8:]
         if key == "sitemap": return "/site-map/"
         if key == "hcons": return "/history/constructors/"
+        if key == "hcirc": return "/history/circuits/"
         return "/%s/" % key
     def a(self, key, text): return '<a href="%s">%s</a>' % (self.path(key), text)
     def dlink(self, name):
@@ -524,6 +525,23 @@ def history_cons_page(S):
     return "".join(out)
 
 
+def history_circ_page(S, D):
+    H = S.HIST; cb = {c["i"]: c for c in H["circuits"]}; dv = {d["i"]: d for d in H["drivers"]}
+    raced = [c for c in H["circuits"] if c["r"]]
+    lead = ("Every circuit to host a Formula 1 World Championship race since 1950: %d circuits in %d countries, with track maps, lap records, "
+            "most wins and every race held there, plus calendar changes and planned future circuits." % (len(raced), len({c["cc"] for c in raced})))
+    out = [pagehead("Formula 1 history: circuits", lead, "Formula 1 history")]
+    ch = "".join("<h3>%s season</h3><p>In: %s. Out: %s.</p>" % (y, ", ".join(esc(cb[i]["n"]) for i in v["add"]) or "none", ", ".join(esc(cb[i]["n"]) for i in v["drop"]) or "none") for y, v in sorted(H["calchanges"].items()))
+    fut = "".join("<h3>%s (%s)</h3><p>%s: %s</p>" % (esc(f["n"]), esc(f["status"]), esc(f["when"]), esc(f["note"])) for f in D.get("FUTURECIRC", []))
+    out.append(sec("Calendar changes", ch + fut))
+    for it in H["crecords"][0]["items"]:
+        out.append(sec(esc(it["t"]), "<ol>%s</ol>" % "".join("<li>%s: %s%s</li>" % (esc(cb[r[0]]["n"]), fmtn(r[1]) if not isinstance(r[1], str) else esc(r[1]), (" (%s)" % esc(r[2])) if r[2] else "") for r in it["rows"][:5])))
+    rows = [[esc(c["n"]), esc(c["place"]), esc(H["ccn"].get(c["cc"], c["cc"])), ("%d–%d" % tuple(c["y"])) if c["y"] else "", c["r"], ("%.3f km" % c["len"]) if c["len"] else "",
+             ("%s (%s, %d)" % (c["rec"][1], esc(dv[c["rec"][2]]["n"]) if c["rec"][2] in dv else "", c["rec"][4])) if c["rec"] else ""] for c in sorted(H["circuits"], key=lambda c: -c["r"])]
+    out.append(sec("All Formula 1 circuits", table(["Circuit", "Location", "Country", "Years", "Grands Prix", "Length", "Lap record"], rows)))
+    return "".join(out)
+
+
 def fmtn(x):
     if isinstance(x, float) and x.is_integer(): x = int(x)
     return "{:,}".format(x) if isinstance(x, int) else ("%g" % x)
@@ -639,7 +657,7 @@ def head(p, assets, fonts):
 """
 
 
-NAVKEY = {"/": "season", "/championship/": "championship", "/drivers/": "drivers", "/teams/": "teams", "/history/": "history", "/history/constructors/": "history"}
+NAVKEY = {"/": "season", "/championship/": "championship", "/drivers/": "drivers", "/teams/": "teams", "/history/": "history", "/history/constructors/": "history", "/history/circuits/": "history"}
 
 
 def page_html(p, body_tpl, assets, fonts):
@@ -671,6 +689,11 @@ def build(out, data_path=DATA):
     htxt = json.dumps(HIST, ensure_ascii=False, separators=(",", ":"))
     open(os.path.join(out, "data", "history.json"), "w", encoding="utf-8").write(htxt)
     data += "const HISTV=%s;\n" % json.dumps(vhash(htxt))
+    # circuit outlines for the circuits page, loaded only there
+    cm = os.path.join(ROOT, "src", "circuitmaps.json")
+    ctxt = open(cm, encoding="utf-8").read().strip() if os.path.exists(cm) else "{}"
+    open(os.path.join(out, "data", "circuitmaps.json"), "w", encoding="utf-8").write(ctxt)
+    data += "const CMAPV=%s;\n" % json.dumps(vhash(ctxt))
     # world map for the 2027 calendar page, loaded only on that page
     wtxt = json.dumps(load_data(WORLD), separators=(",", ":"))
     open(os.path.join(out, "data", "world.json"), "w", encoding="utf-8").write(wtxt)
@@ -722,6 +745,9 @@ def build(out, data_path=DATA):
         add("history", "F1 History: Every Driver, World Champion & All-Time Record | Track Almanac",
             "Every Formula 1 driver since 1950 (%d drivers) with career stats, world champions by year, all-time records like most wins and consecutive titles, and stats by country." % len(S.HIST["drivers"]),
             "Formula 1 history: drivers", history_page(S), "F1 HISTORY", home + [("History", "/history/")])
+        add("hcirc", "F1 Circuits: Every Track, Lap Records & Calendar Changes | Track Almanac",
+            "Every Formula 1 circuit since 1950 (%d tracks) with track maps, lap records, most wins and every race held there, plus 2026 and 2027 calendar changes and planned future circuits." % len([c for c in S.HIST["circuits"] if c["r"]]),
+            "Formula 1 history: circuits", history_circ_page(S, D), "F1 HISTORY", home + [("History", "/history/"), ("Circuits", "/history/circuits/")])
         add("hcons", "F1 Constructors History: Every Team, Champion, Engine & Record | Track Almanac",
             "Every Formula 1 constructor since 1950 (%d teams, %d engine makers): constructors' champions by year, team and engine records like most wins and consecutive titles, and team histories." % (len(S.HIST["teams"]), len(S.HIST["engines"])),
             "Formula 1 history: constructors", history_cons_page(S), "F1 HISTORY", home + [("History", "/history/"), ("Constructors", "/history/constructors/")])

@@ -22839,5 +22839,34 @@
     ]
    }
   }
- }
+ },
+ "FUTURECIRC": [
+  {
+   "n": "Bugesera circuit",
+   "place": "Bugesera, near Kigali",
+   "cc": "RW",
+   "when": "Early 2030s",
+   "status": "Confirmed",
+   "note": "A new purpose-built circuit about 40 km south of Kigali, next to the new Kigali International Airport. Formula 1 announced a 10-year agreement for an African Grand Prix on 13 October 2026, F1's first race in Africa since Kyalami in 1993. The first race follows the circuit's completion; no date yet.",
+   "src": ["Formula 1, 13 October 2026", "https://www.formula1.com/en/latest/article/formula-1-returns-to-africa-with-10-year-agreement-to-race-in-rwanda.13xs9VMK7cGFiBd2IplyES"]
+  },
+  {
+   "n": "Bangkok street circuit",
+   "place": "Chatuchak, Bangkok",
+   "cc": "TH",
+   "when": "2028 (planned)",
+   "status": "Bid",
+   "note": "Thailand's government has approved a bid for a 5.7 km, 18-corner street circuit around Chatuchak in northern Bangkok, aiming for a first race in 2028 on an initial five-year deal. As of July 2026 there was no signed race agreement.",
+   "src": ["ESPN; Explera, 12 July 2026", "https://www.explera.co.th/blog/2026-07-12-bangkok-f1-grand-prix-2028-bid-agent-guide/"]
+  },
+  {
+   "n": "Catalunya",
+   "place": "Montmeló, Barcelona",
+   "cc": "ES",
+   "when": "2028",
+   "status": "Returning",
+   "note": "Off the 2027 calendar. Barcelona is due back in 2028, sharing a slot with Spa-Francorchamps, the two alternating year by year.",
+   "src": ["Spanienpress, 16 September 2026", "https://spanienpress.com/formula-1-2027-madrid-stays-barcelona-has-to-pause-spain-loses-a-race-for-now/?lang=en"]
+  }
+ ]
 }
