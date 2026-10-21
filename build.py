@@ -223,6 +223,7 @@ class Site:
         if key == "hcons": return "/history/constructors/"
         if key == "hcirc": return "/history/circuits/"
         if key == "hregs": return "/history/regulations/"
+        if key.startswith("game-"): return {"game-picks": "/game/picks/", "game-lb": "/game/leaderboard/", "game-leagues": "/game/leagues/", "game-account": "/game/account/"}[key]
         return "/%s/" % key
     def a(self, key, text): return '<a href="%s">%s</a>' % (self.path(key), text)
     def dlink(self, name):
@@ -464,7 +465,7 @@ def static_page(S, key):
     t, b = m.group(1), m.group(2)
     info = S.SITEINFO
     b = re.sub(r"\$\{SITE\.(\w+)\}", lambda mm: esc(info.get(mm.group(1), "")), b)
-    b = re.sub(r'\$\{H\("(\w+)"\)\}', lambda mm: S.path(mm.group(1)), b)
+    b = re.sub(r'\$\{H\("([\w-]+)"\)\}', lambda mm: S.path(mm.group(1)), b)
     b = b.replace("${new Date().getFullYear()}", str(datetime.date.today().year))
     b = re.sub(r"\$\{[^}]*\}", "", b)
     return t, '<article class="doc"><span class="lbl">Track Almanac</span><h1>%s</h1>%s</article>' % (esc(t), b)
@@ -546,6 +547,26 @@ def history_circ_page(S, D):
 def fmtn(x):
     if isinstance(x, float) and x.is_integer(): x = int(x)
     return "{:,}".format(x) if isinstance(x, int) else ("%g" % x)
+
+
+def game_page(S):
+    out = [pagehead("Track Almanac Predictor", "A free Formula 1 prediction game: pick the top five finishers and the pole sitter for every Grand Prix.", "Predictor")]
+    out.append(sec("Points", "<ul><li>P1 exactly right: 5</li><li>P2: 3</li><li>P3: 2</li><li>P4: 1</li><li>P5: 1</li><li>Pole sitter right: 3</li><li>Perfect weekend: 15</li></ul>"))
+    out.append(sec("Rules", "<ul><li>Picks lock at the scheduled start of qualifying and can be changed freely until then.</li><li>Pole is P1 in the qualifying classification, before grid penalties.</li>"
+                   "<li>Races are scored against the official classification; if it changes, the round is scored again.</li><li>No picks means 0 points for that round.</li>"
+                   "<li>Ties: most correct winners, then most exact positions, then the earliest final submission.</li><li>Free to play. No prizes and no money.</li><li>Minimum age 13 (16 in the EEA and the UK).</li></ul>"))
+    return "".join(out)
+
+
+def game_lb_page(S):
+    f = os.path.join(ROOT, "data", "game", "leaderboard-%d.json" % YEAR)
+    out = [pagehead("Predictor leaderboard", "Season standings of the Track Almanac Predictor, the free F1 prediction game.", "Predictor")]
+    if os.path.exists(f):
+        j = json.load(open(f, encoding="utf-8"))
+        out.append(table(["Pos", "Player", "Points", "Correct winners", "Exact positions", "Races"], [[r["pos"], esc(r["name"]), r["points"], r["winners"], r["exact"], r["races"]] for r in j["top"]]))
+    else:
+        out.append("<p>No scores yet: the table starts after the first Grand Prix of the game.</p>")
+    return "".join(out)
 
 
 def regs_page(R):
@@ -729,6 +750,17 @@ def build(out, data_path=DATA):
     htxt = json.dumps(HIST, ensure_ascii=False, separators=(",", ":"))
     open(os.path.join(out, "data", "history.json"), "w", encoding="utf-8").write(htxt)
     data += "const HISTV=%s;\n" % json.dumps(vhash(htxt))
+    # Predictor game: public Firebase web config and the Firebase bundle (loaded only on /game/ pages)
+    gpath = os.path.join(ROOT, "src", "game.json")
+    data += "const GAMECFG=%s;\n" % json.dumps(load_data(gpath) if os.path.exists(gpath) else {}, separators=(",", ":"))
+    vpath = os.path.join(ROOT, "src", "vendor", "firebase-game.js")
+    if os.path.exists(vpath):
+        vtxt = open(vpath, encoding="utf-8").read()
+        os.makedirs(os.path.join(out, "js"), exist_ok=True)
+        open(os.path.join(out, "js", "firebase-game.js"), "w", encoding="utf-8").write(vtxt)
+        data += "const FBV=%s;\n" % json.dumps(vhash(vtxt))
+    else:
+        data += "const FBV='';\n"
     # F1 dictionary, loaded only on /dictionary/
     dpath = os.path.join(ROOT, "src", "dictionary.json")
     dtxt = json.dumps(load_data(dpath), ensure_ascii=False, separators=(",", ":")) if os.path.exists(dpath) else '{"cats":[],"terms":[]}'
@@ -773,9 +805,9 @@ def build(out, data_path=DATA):
 
     home = [("Home", "/")]
     pages = []
-    def add(key, title, desc, h1, main, sheet, bc, ld=None, path=None):
+    def add(key, title, desc, h1, main, sheet, bc, ld=None, path=None, noindex=False):
         pages.append({"key": key, "path": path or S.path(key), "title": title, "desc": desc, "h1": h1, "main": main, "sheet": sheet,
-                      "ld": (ld or []) + [crumbs(bc)]})
+                      "ld": (ld or []) + [crumbs(bc)], "noindex": noindex})
     nr = S.next
     add("season", "Track Almanac · Races. Drivers. Teams. Numbers.",
         "Formula 1 2026: calendar with session times, live standings, race results, qualifying, grids and lap-by-lap charts.%s" %
@@ -846,6 +878,16 @@ def build(out, data_path=DATA):
         add("dictionary", "F1 Dictionary: %d Formula 1 Terms, Slang & Radio Calls Explained | Track Almanac" % len(DI["terms"]),
             "A to Z of %d Formula 1 words: aerodynamics, power units, tyres, strategy, flags and penalties, team radio codes, commentary catchphrases and fan slang." % len(DI["terms"]),
             "F1 dictionary", dictionary_page(DI), "F1 DICTIONARY", home + [("F1 dictionary", "/dictionary/")])
+    # Predictor game: /game/ and /game/leaderboard/ are indexed; the signed-in pages are not
+    gb = home + [("Predictor", "/game/")]
+    add("game", "Track Almanac Predictor: Free F1 Prediction Game | Track Almanac",
+        "Free Formula 1 prediction game: pick the top five and the pole sitter for every 2026 Grand Prix, score points for exact hits and play in leagues with friends. No prizes, no money.",
+        "Track Almanac Predictor", game_page(S), "PREDICTOR", gb)
+    add("game-lb", "Predictor Leaderboard %d | Track Almanac" % YEAR, "Season standings and race-by-race tables of the Track Almanac Predictor, the free F1 prediction game.",
+        "Predictor leaderboard", game_lb_page(S), "PREDICTOR", gb + [("Leaderboard", "/game/leaderboard/")], path="/game/leaderboard/")
+    for k, pth, t in (("game-picks", "/game/picks/", "My picks"), ("game-leagues", "/game/leagues/", "Leagues"), ("game-account", "/game/account/", "Account")):
+        add(k, "%s · Predictor | Track Almanac" % t, "Track Almanac Predictor: %s." % t.lower(), t, pagehead(t, "Sign in to the Track Almanac Predictor to use this page.", "Predictor"),
+            "PREDICTOR", gb + [(t, pth)], path=pth, noindex=True)
     for key in ("about", "contact", "privacy", "terms", "disclaimer"):
         t, main = static_page(S, key)
         add(key, "%s | Track Almanac" % t, "%s for Track Almanac, an unofficial Formula 1 results and statistics site." % t, t, main, t.upper(), home + [(t, S.path(key))])
@@ -871,7 +913,7 @@ def build(out, data_path=DATA):
         old = state.get("pages", {}).get(p["path"])
         lm[p["path"]] = {"hash": h, "lastmod": old["lastmod"] if old and old["hash"] == h else today}
     xml = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    for p in pages:
+    for p in [x for x in pages if not x.get("noindex")]:
         pr = "1.0" if p["path"] == "/" else "0.8" if p["path"] in ("/championship/", "/calendar/", "/drivers/", "/teams/") or p["path"].startswith("/races/") else "0.6"
         xml.append("  <url><loc>%s%s</loc><lastmod>%s</lastmod><priority>%s</priority></url>" % (SITE, p["path"], lm[p["path"]]["lastmod"], pr))
     xml.append("</urlset>")

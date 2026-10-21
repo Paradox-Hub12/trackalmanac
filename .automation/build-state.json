@@ -113,6 +113,11 @@
   "/archive/1950/",
   "/archive/1946-1949/",
   "/dictionary/",
+  "/game/",
+  "/game/leaderboard/",
+  "/game/picks/",
+  "/game/leagues/",
+  "/game/account/",
   "/about/",
   "/contact/",
   "/privacy/",
@@ -573,6 +578,26 @@
    "hash": "7ba6ec9445454c176ed2008d0afa0843d75ef0e2",
    "lastmod": "2026-10-21"
   },
+  "/game/": {
+   "hash": "22d12d425aa6453b85715faab8a3ba2bb53f3579",
+   "lastmod": "2026-10-21"
+  },
+  "/game/leaderboard/": {
+   "hash": "0f63fc8f162b2b2d45353564ce862fc823e60cd6",
+   "lastmod": "2026-10-21"
+  },
+  "/game/picks/": {
+   "hash": "b447b2fe979a37ccee0187cbfc7882aa0a1d805e",
+   "lastmod": "2026-10-21"
+  },
+  "/game/leagues/": {
+   "hash": "558a4aee39ed2acabcda852f7bd52224eb040140",
+   "lastmod": "2026-10-21"
+  },
+  "/game/account/": {
+   "hash": "d5c02a5628ec4099fad53eecb3f9a4c278dc4c32",
+   "lastmod": "2026-10-21"
+  },
   "/about/": {
    "hash": "ccce9b5f4bb6066f39a4fbdc9bcd06639455bf35",
    "lastmod": "2026-10-12"
@@ -582,8 +607,8 @@
    "lastmod": "2026-10-11"
   },
   "/privacy/": {
-   "hash": "38af57ed5cb1b948b55f6ef1b9270fab5e07c3f9",
-   "lastmod": "2026-10-18"
+   "hash": "6ba9bb409fc3f1565026dac958df01694c1f9785",
+   "lastmod": "2026-10-21"
   },
   "/terms/": {
    "hash": "df06762f40543cd6870f679234b3e6af3de320cf",

@@ -1,5 +1,6 @@
 # Adds new session results to src/data.json from Jolpica-F1 and OpenF1, rebuilds the
-# site with build.py and pushes. See README.md ("Automatic result updates").
+# site with build.py and pushes. Then scores the Predictor game (scripts/score.py) and
+# publishes its tables in data/game/. See README.md ("Automatic result updates", "Predictor").
 name: Update results
 
 on:
@@ -32,8 +33,13 @@ jobs:
     env:
       SELFTEST: ${{ inputs.selftest_round }}
       BACKFILL: ${{ inputs.backfill && '--backfill' || '' }}
+      HAS_FIREBASE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install the Predictor scorer
+        if: env.SELFTEST == '' && env.HAS_FIREBASE == 'true'
+        run: pip install --quiet --disable-pip-version-check firebase-admin
 
       - name: Self-test (manual runs only)
         if: env.SELFTEST != ''
@@ -43,16 +49,25 @@ jobs:
         if: env.SELFTEST == ''
         env:
           GH_TOKEN: ${{ github.token }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           msg="$RUNNER_TEMP/commit-msg.txt"
           status=0
+          score_status=0
           update() {
             set +e
             python3 scripts/update.py $BACKFILL --message-file "$msg"
             status=$?
+            # Predictor: score and publish data/game/ (skips itself until the secret is set)
+            python3 scripts/score.py
+            score_status=$?
             set -e
+            if [ -n "$(git status --porcelain data/game)" ]; then
+              python3 build.py > /dev/null        # the leaderboard page is prerendered from data/game/
+              [ -s "$msg" ] || echo "Predictor: update scores" > "$msg"
+            fi
             if [ -n "$(git status --porcelain)" ]; then
               node --check app.js
               node --check data.js
@@ -88,7 +103,12 @@ jobs:
             # ask GitHub Pages to publish now (pushes made by workflows may not trigger it)
             gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" >/dev/null && echo "Pages build requested" || echo "Pages build request not accepted (the push will still publish)"
           fi
+          if [ "$score_status" != 0 ]; then
+            echo "::error::Predictor scoring failed; no game tables were published. See the log above."
+          fi
           if [ "$status" != 0 ]; then
             echo "::error::Some results failed a check and were not published. See the log above."
+          fi
+          if [ "$status" != 0 ] || [ "$score_status" != 0 ]; then
             exit 1
           fi

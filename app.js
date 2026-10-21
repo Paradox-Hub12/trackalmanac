@@ -7,7 +7,7 @@ const PATHMODE=!!window.TA_PATHS;
 let NAVD=false;
 if(PATHMODE){try{const dsc=Object.getOwnPropertyDescriptor(Document.prototype,"title");Object.defineProperty(document,"title",{configurable:true,get(){return dsc.get.call(document);},set(v){if(NAVD)dsc.set.call(document,v);}});}catch(e){}}
 const SLUG=r=>r.short.replace(" (Sepang)","").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-const STATIC_KEYS=["season","championship","drivers","teams","calendar","archive","history","dictionary","about","contact","privacy","terms","disclaimer","sitemap"];
+const STATIC_KEYS=["season","championship","drivers","teams","calendar","archive","history","dictionary","game","about","contact","privacy","terms","disclaimer","sitemap"];
 function keyToPath(k){let m;if(!k||k==="season")return "/";
   if(m=k.match(/^detail-(\d+)(?:-(\w+))?$/)){const r=RACES.find(x=>x.r===+m[1]);return r?`/races/2026/${SLUG(r)}/${m[2]?"#"+m[2]:""}`:"/";}
   if(m=k.match(/^race-(\d+)$/))return "/?race="+m[1];
@@ -22,6 +22,7 @@ function keyToPath(k){let m;if(!k||k==="season")return "/";
   if(m=k.match(/^hcirc-([\w-]+)$/))return "/history/circuits/?circuit="+m[1];
   if(m=k.match(/^hcons-([\w-]+)$/))return "/history/constructors/?team="+m[1];
   if(m=k.match(/^heng-([\w-]+)$/))return "/history/constructors/?engine="+m[1];
+  if(k==="game-picks")return "/game/picks/";if(k==="game-lb")return "/game/leaderboard/";if(k==="game-leagues")return "/game/leagues/";if(k==="game-account")return "/game/account/";
   if(k==="sitemap")return "/site-map/";
   return "/"+k+"/";}
 const H=k=>PATHMODE?keyToPath(k):"#"+k;
@@ -38,6 +39,7 @@ function pathToKey(){const p=location.pathname.replace(/index\.html$/,""),q=new 
   if(/^\/history\/circuits\/?$/.test(p))return q.get("circuit")?"hcirc-"+q.get("circuit"):"hcirc";
   if(/^\/history\/constructors\/?$/.test(p))return q.get("team")?"hcons-"+q.get("team"):q.get("engine")?"heng-"+q.get("engine"):"hcons";
   if(/^\/site-map\/?$/.test(p))return "sitemap";
+  if(/^\/game\/?$/.test(p))return "game";if(/^\/game\/picks\/?$/.test(p))return "game-picks";if(/^\/game\/leaderboard\/?$/.test(p))return "game-lb";if(/^\/game\/leagues\/?$/.test(p))return "game-leagues";if(/^\/game\/account\/?$/.test(p))return "game-account";
   m=p.match(/^\/([a-z]+)\/?$/);return m&&STATIC_KEYS.includes(m[1])?m[1]:"notfound";}
 function curKey(){if(!PATHMODE)return (location.hash||"#season").slice(1)||"season";
   const k=pathToKey();if(k&&k.legacy){const L=k.legacy.replace(/^race-(\d+)$/,"detail-$1");history.replaceState(null,"",keyToPath(L));NAVD=true;return L;}return k;}
@@ -52,6 +54,7 @@ function pageTitle(k){const T=" | Track Almanac";let m;
   if(k.startsWith("hcirc-")&&HIST&&HIST.cbyid&&HIST.cbyid[k.slice(6)])return `${HIST.cbyid[k.slice(6)].n}: F1 Circuit History, Records & Lap Record${T}`;
   if(k==="hcirc"||k.startsWith("hcirc-"))return `F1 Circuits: Every Track, Lap Records & Calendar Changes${T}`;
   if(k==="hregs")return `History of F1 Regulations 1946–2026 and Beyond, Explained${T}`;
+  if(k==="game")return `Track Almanac Predictor: Free F1 Prediction Game${T}`;if(k==="game-picks")return `My Picks · Predictor${T}`;if(k==="game-lb")return `Predictor Leaderboard 2026${T}`;if(k==="game-leagues")return `Predictor Leagues${T}`;if(k==="game-account")return `Predictor Account${T}`;
   if(k==="hcons"||k.startsWith("hcons-")||k.startsWith("heng-"))return `F1 Constructors History: Every Team, Champion, Engine & Record${T}`;
   if(k.startsWith("history-")&&HIST&&HIST.byid[k.slice(8)])return `${HIST.byid[k.slice(8)].n}: F1 Career Stats & Records${T}`;
   if(k==="history"||k.startsWith("history-"))return `F1 History: Every Driver, World Champion & All-Time Record${T}`;
@@ -1265,7 +1268,7 @@ about:{t:"About Track Almanac",b:`
 <h3>Independence</h3>
 <p>Track Almanac is not affiliated with, endorsed by or connected to Formula 1, the FIA, Formula One Management or any team. See our <a href="${H("disclaimer")}" data-go="disclaimer">disclaimer</a> for details.</p>`},
 privacy:{t:"Privacy Policy",b:`
-<p class="meta">Last updated: 18 October 2026</p>
+<p class="meta">Last updated: 21 October 2026</p>
 <p>This policy explains what information ${SITE.name} ("we", "us") collects when you visit ${SITE.domain} (the "Site"), how it is used and the choices you have.</p>
 <h3>1. Information we collect</h3>
 <ul><li><b>Information you give us.</b> If you email us, we receive your email address and whatever you include in your message. We use it only to reply.</li>
@@ -1284,6 +1287,17 @@ privacy:{t:"Privacy Policy",b:`
 <li><b>Consent.</b> In the European Economic Area, the United Kingdom and Switzerland, analytics cookies are only set if you choose <b>Accept all</b>. Until then, or if you choose <b>Essential only</b>, no analytics cookies are stored; Google may receive limited signals without cookies or identifiers (for example, that a page was viewed), which it uses only in aggregate. Elsewhere, analytics cookies are used by default and you can turn them off by choosing <b>Essential only</b>.</li>
 <li><b>Changing your choice.</b> Use the <b>Cookie settings</b> link in the footer of any page at any time.</li>
 <li><b>More information and opting out.</b> See <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a> and <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">how Google uses information from sites that use its services</a>. You can also block Google Analytics on every website with the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics opt-out browser add-on</a>.</li></ul>
+<h3>3a. Predictor game</h3>
+<p>The <a href="${H("game")}">Track Almanac Predictor</a> is an optional, free prediction game. Only if you sign in to play, we store:</p>
+<ul><li><b>Sign-in details.</b> Your email address (and, if you use Google sign-in, your Google account's name and ID, as provided by Google), so you can sign in.</li>
+<li><b>Your game profile.</b> The display name you choose, an optional country, your age confirmation and when you joined.</li>
+<li><b>Your picks and scores</b>, and the leagues you create or join.</li></ul>
+<p><b>Who stores it.</b> Sign-in and game data are stored with Google Firebase (Firebase Authentication and Cloud Firestore), operated by Google as our service provider; see <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Privacy and Security in Firebase</a>. Firebase may process data outside your country.</p>
+<p><b>Why.</b> To run the game: to save your picks, score them, and show leaderboards and league tables. This is necessary to provide the game you asked to play. We don't use game data for advertising and we don't sell it.</p>
+<p><b>What others can see.</b> Your display name, points and rank are public on the leaderboards. League members see each other's display names and scores. After a round's deadline, other signed-in players may see your picks for that round. Your email address is never shown.</p>
+<p><b>How long.</b> We keep your game data while your account exists. You can delete your account at any time on the <a href="${H("game-account")}">Account</a> page: this removes your profile, display name, picks and league memberships at once, and your scores disappear from the published tables at the next update. Tables already published for past rounds are replaced when they are next rebuilt.</p>
+<p><b>Sign-in storage.</b> Signing in keeps a sign-in token in your browser's storage. It is essential for the game and is not used for analytics or advertising; your cookie choice for analytics and ads is unaffected.</p>
+<p><b>Age.</b> You must be 13 or older to play (16 or older in the EEA or the UK).</p>
 <h3>4. How we use information</h3>
 <p>To operate and improve the Site, keep it secure, show advertising that funds it, and respond to messages. We do not sell your personal information.</p>
 <h3>5. Your rights</h3>
@@ -1543,6 +1557,217 @@ function openHEngine(i){histIndexTeams();const e=HIST.eby[i];if(!e)return;
    ${e.facts.length?`<div><div class="mh"><h3>Achievements & facts</h3></div><ul class="hfacts">${e.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>`:""}
   </div>`;
   modalShell("hcons",inner,"var(--ink-3)",pv,nx);setKey("heng-"+e.id);document.title=pageTitle("heng-"+e.id);}
+/* ---------- PREDICTOR GAME: /game/ pages. Firebase Auth + Firestore (lite) loaded on demand from /js/firebase-game.js.
+   Scoring is done by scripts/score.py in the results workflow; season and race tables are static JSON in /data/game/. ---------- */
+const GPTS=[5,3,2,1,1],GPOLE=3;
+const GS={fb:null,loading:null,user:undefined,profile:undefined,round:null,pick:null,sel:0,dirty:false,msg:"",tick:0,lb:null,lbr:{},leagues:null,league:null};
+const gameOn=()=>!!(typeof GAMECFG!=="undefined"&&GAMECFG.firebase&&GAMECFG.firebase.apiKey);
+function gFB(){if(GS.fb)return Promise.resolve(GS.fb);if(!gameOn())return Promise.reject(new Error("not configured"));
+  if(!GS.loading)GS.loading=import(`/js/firebase-game.js?v=${FBV}`).then(m=>{const app=m.initializeApp(GAMECFG.firebase),auth=m.getAuth(app),db=m.getFirestore(app);
+    if(GAMECFG.emulator&&/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){m.connectAuthEmulator(auth,"http://127.0.0.1:9099",{disableWarnings:true});m.connectFirestoreEmulator(db,"127.0.0.1",8080);}
+    GS.fb={m,auth,db};
+    m.onAuthStateChanged(auth,async u=>{GS.user=u||null;GS.profile=undefined;if(u){try{const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.exists()?s.data():null;}catch(e){GS.profile=null;}}else GS.profile=null;gRerender();});
+    /* finishing an email sign-in link */
+    if(m.isSignInWithEmailLink(auth,location.href)){let email=null;try{email=localStorage.getItem("ta-signin-email");}catch(e){}
+      if(!email)email=prompt("Confirm the email address you used to sign in");
+      if(email)m.signInWithEmailLink(auth,email,location.href).then(()=>{try{localStorage.removeItem("ta-signin-email");}catch(e){}history.replaceState(null,"",location.pathname);}).catch(e=>{GS.msg=gErr(e);gRerender();});}
+    return GS.fb;}).catch(e=>{GS.loading=null;throw e;});
+  return GS.loading;}
+function gErr(e){const c=(e&&e.code)||"";return ({"auth/popup-closed-by-user":"Sign-in was cancelled.","auth/invalid-email":"That email address doesn't look right.","auth/invalid-action-code":"That sign-in link has expired or was already used. Ask for a new one.",
+  "permission-denied":"Not allowed. If the picks deadline has passed, picks can no longer be changed.","auth/requires-recent-login":"For your safety, sign in again and then repeat this.","auth/unauthorized-domain":"Sign-in is not enabled on this address."})[c]||("Something went wrong"+(c?` (${c})`:"")+". Please try again.");}
+const gKeys=["game","game-picks","game-lb","game-leagues","game-account"];
+function gRerender(){const k=curKey();if(gKeys.includes(k))gameRoute(k,true);}
+/* ---- rounds, deadlines, drivers ---- */
+function gLock(r){const s=SCHED[String(r)];if(!s)return null;const q=s[1].find(x=>x[0]==="Qualifying");return q?new Date(q[1]):null;}
+function gRounds(){return RACES.map(r=>({r:r.r,gp:r.gp.replace(" (Sepang)",""),short:r.short,days:r.days,lock:gLock(r.r),done:!!(SEASON[String(r.r)]&&(SEASON[String(r.r)].race||[]).length)})).filter(x=>x.lock);}
+function gNext(){const now=Date.now();return gRounds().find(x=>x.lock.getTime()>now)||null;}
+function gCars(){const m={};Object.values(BIO).forEach(b=>{if(b.num!=null){const d=DRIVERS.find(x=>sur(x[0]).toLowerCase()===String(b.last).toLowerCase());m[b.num]={n:b.num,name:d?d[0]:b.name,last:b.last,team:d?d[2]:"",iso:b.iso2,pos:d?DRIVERS.indexOf(d):99};}});
+  return Object.values(m).sort((a,b)=>a.pos-b.pos||a.n-b.n);}
+function gCar(n){return gCars().find(c=>c.n===n)||{n,name:"#"+n,last:"#"+n,team:""};}
+const gTime=d=>d.toLocaleString(undefined,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",hour12:CLOCK==="12"});
+function gLeft(d){let s=Math.max(0,Math.floor((d.getTime()-Date.now())/1000));const dd=Math.floor(s/86400);s%=86400;const h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60),x=s%60;
+  return dd?`${dd}d ${h}h ${m}m`:h?`${h}h ${m}m ${String(x).padStart(2,"0")}s`:`${m}m ${String(x).padStart(2,"0")}s`;}
+function gTick(){clearInterval(GS.tick);GS.tick=setInterval(()=>{document.querySelectorAll("[data-lockcd]").forEach(el=>{const d=new Date(+el.dataset.lockcd);if(d.getTime()<=Date.now()){el.textContent="Locked";if(!el._re){el._re=1;setTimeout(gRerender,600);}}else el.textContent=gLeft(d);});},1000);}
+/* ---- shared page parts ---- */
+const gTabs=k=>`<nav class="gtabs" aria-label="Predictor">${[["game","How it works"],["game-picks","My picks"],["game-lb","Leaderboard"],["game-leagues","Leagues"],["game-account","Account"]].map(([x,n])=>`<a href="${H(x)}" data-go="${x}" ${x===k?'aria-current="page"':""}>${n}</a>`).join("")}</nav>`;
+function gHead(k,title,sub){return `<div class="game"><div class="ghero"><span class="lbl">Track Almanac Predictor · free to play</span><h1 class="gtitle">${title}</h1>${sub?`<p class="gsub">${sub}</p>`:""}${gTabs(k)}</div>`;}
+function gSignin(why){if(!gameOn())return `<div class="gcard gwarn"><b>The Predictor is being set up.</b><p>Sign-in opens soon. The rules are below.</p></div>`;
+  if(GS.user===undefined)return `<div class="gcard"><p>Loading…</p></div>`;
+  return `<div class="gcard gsign"><h3>Sign in to play</h3><p>${why||"Your picks and scores are saved to your account."} Free, no prizes, no money.</p>
+    <button class="gbtn gpri" data-gsign="google"><span aria-hidden="true">G</span> Continue with Google</button>
+    <form class="gmail" data-gform="email"><label><span class="lbl">Or get a sign-in link by email</span><input type="email" name="email" required placeholder="you@example.com" autocomplete="email"></label><button class="gbtn" type="submit">Email me a link</button></form>
+    ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}<p class="note2">By signing in you agree to the game rules and the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>.</p></div>`;}
+const GCC="AE AR AT AU AZ BE BH BR CA CH CL CN CO CZ DE DK EG ES FI FR GB GR HK HU ID IE IL IN IT JP KR KW KZ LB LU MA MC MX MY NG NL NO NZ OM PE PH PK PL PT QA RO RS RU SA SE SG SI SK TH TR TW UA US UY VN ZA".split(" ");
+function gProfileForm(p){const dn=(()=>{try{return new Intl.DisplayNames([navigator.language||"en"],{type:"region"});}catch(e){return null;}})();
+  return `<form class="gcard gprof" data-gform="${p?"rename":"profile"}"><h3>${p?"Your display name":"Choose your display name"}</h3>
+   <p>Shown on leaderboards and in leagues. 3 to 20 letters, numbers, spaces, dots, dashes or underscores. No email addresses or links.</p>
+   <label><span class="lbl">Display name</span><input name="name" required minlength="3" maxlength="20" pattern="[A-Za-z0-9 _.\\-]{3,20}" value="${esc(p?p.displayName:"")}" autocomplete="nickname"></label>
+   <label><span class="lbl">Country (optional)</span><select name="country"><option value="">Not shown</option>${GCC.map(c=>`<option value="${c}"${p&&p.country===c?" selected":""}>${esc(dn?dn.of(c):c)}</option>`).join("")}</select></label>
+   ${p?"":`<label class="gtick"><input type="checkbox" name="age" required> I am 13 or older (16 or older if I live in the EEA or the UK).</label>`}
+   <button class="gbtn gpri" type="submit">${p?"Save":"Start playing"}</button>${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}</form>`;}
+const GBLOCK=["fuck","shit","cunt","bitch","nigg","fag","rape","nazi","hitler","whore","slut","porn","dick","pussy","wank","twat","retard","kys","admin","moderator","official","trackalmanac"];
+function gNameOk(n){if(!/^[A-Za-z0-9 _.\-]{3,20}$/.test(n))return "Use 3 to 20 letters, numbers, spaces, dots, dashes or underscores.";
+  if(/(www|https?|\.com|\.net|\.org|\.io)/i.test(n))return "No links, please.";const low=n.toLowerCase().replace(/[^a-z0-9]/g,"");if(GBLOCK.some(w=>low.includes(w)))return "Please choose a different name.";
+  if(n.trim()!==n||/\s{2}/.test(n))return "No spaces at the start or end, and no double spaces.";return "";}
+/* ---- pages ---- */
+function gHow(){const R=gRounds(),nx=gNext();const last=[...R].reverse().find(x=>x.done);
+  return `${gHead("game","Predictor",`Pick the top five and the pole sitter for every Grand Prix. Score points for every exact hit, and see how you stack up against everyone else.`)}
+  <div class="ggrid">
+   <div class="gcard gnext">${nx?`<span class="lbl">Next deadline · round ${nx.r}</span><h3>${esc(nx.gp)}</h3><p>Picks lock at the start of qualifying: <b>${esc(gTime(nx.lock))}</b> <small>(your time)</small></p>
+     <div class="gcd"><b data-lockcd="${nx.lock.getTime()}">${gLeft(nx.lock)}</b><span>left to pick</span></div><a class="gbtn gpri" href="${H("game-picks")}" data-go="game-picks">Make your picks</a>`
+     :`<h3>The season is over</h3><p>See the final <a href="${H("game-lb")}" data-go="game-lb">leaderboard</a>.</p>`}</div>
+   <div class="gcard"><h3>How it works</h3><ol class="gsteps"><li><b>Sign in</b> with Google or an email link and choose a display name.</li><li><b>Pick</b> who finishes 1st to 5th in the Grand Prix, in order, and who takes pole. Change your mind as often as you like until qualifying starts.</li><li><b>Score</b> once the race result is official. Tables update on their own, even if the stewards change the result later.</li></ol></div>
+   <div class="gcard"><h3>Points</h3><table class="gpts"><tbody>${["P1","P2","P3","P4","P5"].map((p,i)=>`<tr><td>${p} exactly right</td><td><b>${GPTS[i]}</b></td></tr>`).join("")}<tr><td>Pole sitter right</td><td><b>${GPOLE}</b></td></tr><tr class="gtot"><td>Perfect weekend</td><td><b>15</b></td></tr></tbody></table><p class="note2">Exact matches only: a driver in the wrong position scores nothing for that slot.</p></div>
+  </div>
+  <div class="gcard grules"><h3>Rules</h3><ul>
+   <li>One set of picks per Grand Prix (sprints are not part of the game): the top five finishers in order (P1 to P5) and the pole sitter.</li>
+   <li>Picks lock when qualifying is scheduled to start. Until then you can edit them freely; after that they are read-only. If a session is moved, the deadline moves with it.</li>
+   <li>Pole means P1 in the qualifying classification, before any grid penalties.</li>
+   <li>The race result is the official classification as published on this site. If it changes later (stewards' penalties, corrections), that round is scored again automatically.</li>
+   <li>No picks before the deadline means 0 points for that round. Use <b>Copy my last picks</b> to start from your previous ones.</li>
+   <li>A picked driver who doesn't start simply scores 0 for that slot.</li>
+   <li>Ties, for the season and for each race, are split by: most correct race winners, then most exact positions, then the earliest final submission (for the season: earliest on average before each deadline).</li>
+   <li>Free to play. There are no prizes and no money involved.</li>
+   <li>You must be 13 or older (16 or older in the EEA or the UK). Display names must be decent: offensive names, emails and links are not allowed and may be renamed or removed.</li>
+   <li>Your data: see the Predictor section of the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>. You can delete your account at any time from <a href="${H("game-account")}" data-go="game-account">Account</a>.</li></ul></div>
+  <div id="glbmini" class="gcard"><h3>Season leaders</h3><p class="note2">Loading…</p></div>${last?`<p class="note2">Last scored round: ${esc(last.gp)}. <a href="${H("game-lb")}" data-go="game-lb">Full tables</a></p>`:""}</div>`;}
+function gPickRound(){const R=gRounds(),q=new URLSearchParams(location.search).get("round");const pick=q?R.find(x=>x.r===+q):null;return pick||gNext()||R[R.length-1];}
+function gPicksView(){const head=gHead("game-picks","My picks","");if(!GS.user||!GS.profile)return head+(GS.user&&GS.profile===null?gProfileForm(null):gSignin("Sign in to make your picks."))+"</div>";
+  const R=gRounds(),rd=GS.round;if(!rd)return head+`<div class="gcard"><p>No rounds left this season.</p></div></div>`;
+  const locked=rd.lock.getTime()<=Date.now(),P=GS.pick||{top5:[null,null,null,null,null],pole:null};
+  const cars=gCars(),used=new Set([...P.top5.filter(Boolean)]);
+  const slot=(i,n,lab)=>{const c=n?gCar(n):null;return `<button type="button" class="gslot${GS.sel===i?" sel":""}${c?" full":""}" data-gslot="${i}" ${locked?"disabled":""} aria-label="${lab}${c?": "+esc(c.name):", empty"}" style="${c?`--tc:${tcol(c.team)}`:""}"><span class="gp">${lab}</span>${c?`<span class="gnum">${c.n}</span><b>${esc(c.last)}</b><small>${esc(c.team)}</small>`:`<em>${locked?"No pick":"Tap a driver"}</em>`}</button>`;};
+  const opts=R.filter(x=>x.lock.getTime()>Date.now()||x.r===rd.r||x.done).slice(-12);
+  return `${head}<div class="gpick${locked?" locked":""}">
+   <div class="gcard gpickh"><div><label class="lbl" for="grsel">Grand Prix</label><select id="grsel">${opts.map(x=>`<option value="${x.r}"${x.r===rd.r?" selected":""}>R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div>
+     <div class="gdl">${locked?`<b>Picks locked</b><small>Qualifying started ${esc(gTime(rd.lock))}</small>`:`<span class="lbl">Locks in</span><b data-lockcd="${rd.lock.getTime()}">${gLeft(rd.lock)}</b><small>${esc(gTime(rd.lock))} · your time</small>`}</div></div>
+   <div class="gslots" role="group" aria-label="Your picks">${P.top5.map((n,i)=>slot(i,n,"P"+(i+1))).join("")}<span class="gsep"></span>${slot(5,P.pole,"Pole")}</div>
+   ${locked?`<div class="gcard" id="gmyscore"><p class="note2">${GS.pick?"":"You didn't make picks for this round, so it scores 0."}</p></div>`:`
+   <div class="gacts"><button class="gbtn gpri" data-gsave ${GS.dirty?"":"disabled"}>${GS.pick&&GS.pick._saved&&!GS.dirty?"Saved":"Save picks"}</button><button class="gbtn" data-gcopy>Copy my last picks</button><button class="gbtn gghost" data-gclear>Clear</button>
+     <span class="gmsg" role="status">${esc(GS.msg||(GS.pick&&GS.pick._saved?"Saved "+(GS.pick._savedAt||""):""))}</span></div>
+   <p class="note2 ghint">${GS.sel===5?"Now choose the pole sitter.":`Choose your P${GS.sel+1}.`} Tap a driver, or drag one onto a slot. Tap a filled slot to select it, tap again to clear it.</p>
+   <div class="gdrivers" role="list">${cars.map(c=>`<button type="button" class="gdrv${used.has(c.n)?" used":""}${P.pole===c.n?" ispole":""}" role="listitem" data-gcar="${c.n}" style="--tc:${tcol(c.team)}"><span class="gnum">${c.n}</span><b>${esc(c.last)}</b><small>${esc(c.team)}</small>${used.has(c.n)?`<i class="gin">P${P.top5.indexOf(c.n)+1}</i>`:""}${P.pole===c.n?`<i class="gpl">Pole</i>`:""}</button>`).join("")}</div>`}
+  </div></div>`;}
+function gLbView(){return `${gHead("game-lb","Leaderboard","Season standings and every race. Tables update after each Grand Prix.")}<div class="gcard"><div class="glbsel"><label class="lbl" for="glbr">Table</label><select id="glbr"><option value="">Season ${GAMECFG.season||2026}</option>${gRounds().filter(x=>x.done).reverse().map(x=>`<option value="${x.r}">R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div><div id="glbt"><p class="note2">Loading…</p></div></div>
+  <p class="note2">Names that break the rules can be reported: use the flag next to a name, or write to ${esc(SITE.email)}.</p></div>`;}
+function gLeaguesView(){const head=gHead("game-leagues","Leagues","Play against friends, colleagues or your group chat. Up to 50 players per league.");
+  if(!GS.user||!GS.profile)return head+(GS.user&&GS.profile===null?gProfileForm(null):gSignin("Sign in to create or join a league."))+"</div>";
+  return `${head}<div class="ggrid"><form class="gcard" data-gform="lcreate"><h3>Create a league</h3><label><span class="lbl">League name</span><input name="name" required minlength="3" maxlength="20" pattern="[A-Za-z0-9 _.\\-]{3,20}"></label><button class="gbtn gpri" type="submit">Create</button></form>
+   <form class="gcard" data-gform="ljoin"><h3>Join a league</h3><label><span class="lbl">Join code (8 characters)</span><input name="code" required minlength="8" maxlength="8" autocapitalize="characters" autocomplete="off" spellcheck="false" style="text-transform:uppercase"></label><button class="gbtn gpri" type="submit">Join</button></form></div>
+   ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}<div id="gleagues"><p class="note2">Loading your leagues…</p></div></div>`;}
+function gAccountView(){const head=gHead("game-account","Account","");if(!GS.user)return head+gSignin()+"</div>";if(GS.profile===null)return head+gProfileForm(null)+"</div>";if(!GS.profile)return head+`<div class="gcard"><p>Loading…</p></div></div>`;
+  return `${head}<div class="ggrid">${gProfileForm(GS.profile)}<div class="gcard"><h3>Signed in</h3><p>${esc(GS.user.email||"")}</p><button class="gbtn" data-gout>Sign out</button></div>
+   <form class="gcard gdanger" data-gform="delete"><h3>Delete account</h3><p>Removes your profile, display name, all your picks and your league memberships (leagues you own are deleted), then your sign-in. Your scores disappear from the tables at the next update. This can't be undone.</p><label><span class="lbl">Type DELETE to confirm</span><input name="confirm" required pattern="DELETE" autocomplete="off"></label><button class="gbtn gred" type="submit">Delete my account</button></form></div></div>`;}
+/* ---- route ---- */
+function gameRoute(k,re){clearInterval(GS.tick);
+  if(!re){GS.msg="";if(k==="game-picks"){GS.round=gPickRound();GS.pick=null;GS.sel=0;GS.dirty=false;}}
+  const v={"game":gHow,"game-picks":gPicksView,"game-lb":gLbView,"game-leagues":gLeaguesView,"game-account":gAccountView}[k];
+  if(k==="game-picks"&&re&&$(".gpick")&&GS.user&&GS.profile){gPaintPicks();}else $("#app").innerHTML=v();
+  $("#sheetname").textContent="PREDICTOR";setNav("game");document.title=pageTitle(k);gTick();
+  if(k==="game")gMini();if(k==="game-lb")gLb($("#glbr")?$("#glbr").value:"");
+  if(gameOn())gFB().then(()=>{if(k==="game-picks"&&GS.user&&GS.profile&&!GS.pick&&!GS._loadingPick)gLoadPick();if(k==="game-leagues"&&GS.user&&GS.profile)gLeagues();}).catch(()=>{});}
+function gPaintPicks(){const y=scrollY;$("#app").innerHTML=gPicksView();window.scrollTo(0,y);if(GS.round&&GS.round.lock.getTime()<=Date.now())gMyScore();}
+async function gLoadPick(){const {m,db}=GS.fb,rd=GS.round;GS._loadingPick=1;try{const s=await m.getDoc(m.doc(db,"picks",`${rd.r}_${GS.user.uid}`));
+  GS.pick=s.exists()?Object.assign({},s.data(),{_saved:1}):null;GS.sel=GS.pick?5:0;}catch(e){GS.pick=null;}GS._loadingPick=0;if(curKey()==="game-picks")gPaintPicks();}
+async function gMyScore(){const el=$("#gmyscore");if(!el||!GS.fb||!GS.user)return;const {m,db}=GS.fb;try{const s=await m.getDoc(m.doc(db,"scores",`${GS.round.r}_${GS.user.uid}`));
+  if(s.exists()){const d=s.data();el.innerHTML=`<div class="gscore"><b>${d.points}</b><span>points · P${d.pos} of the round</span></div><p class="note2">Exact positions: ${d.exact} of 5 · pole ${d.pole?"right":"wrong"}.</p>`;}
+  else if(GS.pick)el.innerHTML=`<p class="note2">${GS.round.done?"Scores are added at the next update.":"Your picks are locked in. Scores appear after the race."}</p>`;}catch(e){}}
+function gPlace(n){const P=GS.pick=GS.pick||{top5:[null,null,null,null,null],pole:null};if(GS.sel===5){P.pole=P.pole===n?null:n;}
+  else{const was=P.top5.indexOf(n);if(was>=0&&was!==GS.sel){P.top5[was]=P.top5[GS.sel];}P.top5[GS.sel]=n;const nx=P.top5.findIndex(x=>!x);GS.sel=nx>=0?nx:(P.pole?GS.sel:5);}
+  GS.dirty=true;GS.msg="";gPaintPicks();}
+async function gSave(){const P=GS.pick,rd=GS.round;if(!P||P.top5.some(x=>!x)||!P.pole){GS.msg="Fill all five places and the pole sitter first.";return gPaintPicks();}
+  const {m,db}=GS.fb;try{await m.setDoc(m.doc(db,"picks",`${rd.r}_${GS.user.uid}`),{uid:GS.user.uid,round:rd.r,top5:P.top5.map(Number),pole:Number(P.pole),updatedAt:m.serverTimestamp()});
+    P._saved=1;P._savedAt=new Date().toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:CLOCK==="12"});GS.dirty=false;GS.msg="";}catch(e){GS.msg=gErr(e);}gPaintPicks();}
+async function gCopy(){const {m,db}=GS.fb;try{const q=await m.getDocs(m.query(m.collection(db,"picks"),m.where("uid","==",GS.user.uid)));
+  const L=q.docs.map(d=>d.data()).filter(d=>d.round!==GS.round.r).sort((a,b)=>b.round-a.round);if(!L.length){GS.msg="You have no earlier picks to copy.";return gPaintPicks();}
+  const allowed=new Set(gCars().map(c=>c.n));const src=L[0];GS.pick={top5:src.top5.map(n=>allowed.has(n)?n:null),pole:allowed.has(src.pole)?src.pole:null};GS.dirty=true;GS.sel=Math.max(0,GS.pick.top5.findIndex(x=>!x));if(GS.sel<0||GS.pick.top5.every(Boolean))GS.sel=GS.pick.pole?0:5;GS.msg=`Copied from round ${src.round}. Remember to save.`;}catch(e){GS.msg=gErr(e);}gPaintPicks();}
+/* drag a driver (or a filled slot) onto a slot. Mouse: drag after a few pixels. Touch: press and hold briefly, then drag. */
+function gDragInit(){let D=null,timer=0;
+  const start=(e,src)=>{D={src,x:e.clientX,y:e.clientY,on:false,id:e.pointerId,touch:e.pointerType!=="mouse"};if(D.touch)timer=setTimeout(()=>{if(D){D.on=true;ghost(e);}},220);};
+  const ghost=e=>{const n=+(D.src.dataset.gcar||(GS.pick&&(D.src.dataset.gslot==="5"?GS.pick.pole:GS.pick.top5[+D.src.dataset.gslot])));if(!n){D=null;return;}D.n=n;const c=gCar(n);
+    const g=document.createElement("div");g.className="gghostd";g.style.setProperty("--tc",tcol(c.team));g.innerHTML=`<span class="gnum">${c.n}</span><b>${esc(c.last)}</b>`;document.body.appendChild(g);D.g=g;move(e);document.body.classList.add("gdragging");};
+  const move=e=>{if(!D||!D.g)return;D.g.style.transform=`translate(${e.clientX-40}px,${e.clientY-24}px)`;const t=document.elementFromPoint(e.clientX,e.clientY);document.querySelectorAll(".gslot.over").forEach(s=>s.classList.remove("over"));const s=t&&t.closest(".gslot");if(s)s.classList.add("over");};
+  document.addEventListener("pointerdown",e=>{if(!$(".gpick:not(.locked)"))return;const src=e.target.closest(".gdrv,.gslot.full");if(!src)return;start(e,src);});
+  document.addEventListener("pointermove",e=>{if(!D||e.pointerId!==D.id)return;const dx=e.clientX-D.x,dy=e.clientY-D.y;
+    if(!D.on){if(Math.hypot(dx,dy)>8){if(D.touch){clearTimeout(timer);D=null;return;}D.on=true;ghost(e);}return;}e.preventDefault();move(e);},{passive:false});
+  const end=e=>{clearTimeout(timer);if(!D)return;const d=D;D=null;if(!d.on||!d.g)return;d.g.remove();document.body.classList.remove("gdragging");document.querySelectorAll(".gslot.over").forEach(s=>s.classList.remove("over"));
+    const t=document.elementFromPoint(e.clientX,e.clientY),s=t&&t.closest(".gslot");GS._nodrop=Date.now();if(!s)return;const to=+s.dataset.gslot;
+    const P=GS.pick=GS.pick||{top5:[null,null,null,null,null],pole:null};
+    if(d.src.dataset.gslot!=null){const from=+d.src.dataset.gslot;if(from<5&&to<5){[P.top5[from],P.top5[to]]=[P.top5[to],P.top5[from]];}else if(to===5){P.pole=d.n;}else{GS.sel=to;gPlace(d.n);return;}GS.dirty=true;gPaintPicks();return;}
+    GS.sel=to;gPlace(d.n);};
+  document.addEventListener("pointerup",end);document.addEventListener("pointercancel",e=>{clearTimeout(timer);if(D&&D.g){D.g.remove();document.body.classList.remove("gdragging");}D=null;});
+  document.addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest(".gdrv,.gslot"))e.preventDefault();});}
+gDragInit();
+/* ---- leaderboards (static JSON) ---- */
+async function gJSON(u){const r=await fetch(u,{cache:"no-cache"});if(!r.ok)throw new Error(r.status);return r.json();}
+function gTable(rows,round){if(!rows.length)return `<p class="note2">No scores yet.</p>`;const me=GS.profile&&GS.profile.displayName;
+  return `<div class="tw"><table class="t gtab"><thead><tr><th class="n">Pos</th><th>Player</th><th class="n">Pts</th><th class="n" title="Correct winners">Wins</th><th class="n" title="Exact positions">Exact</th>${round?`<th class="n">Pole</th>`:`<th class="n">Races</th>`}<th></th></tr></thead><tbody>
+   ${rows.map(r=>`<tr${me&&r.name===me?' class="gme"':""}><td class="n">${r.pos}</td><td><b>${esc(r.name)}</b></td><td class="n"><b>${r.points}</b></td><td class="n">${r.winners}</td><td class="n">${r.exact}</td><td class="n">${round?(r.pole?"✓":"–"):r.races}</td><td><a class="grep" href="mailto:${esc(SITE.email)}?subject=${encodeURIComponent("Report Predictor name: "+r.name)}" title="Report this name" aria-label="Report the name ${esc(r.name)}">⚑</a></td></tr>`).join("")}</tbody></table></div>`;}
+async function gLb(r){const box=$("#glbt");if(!box)return;try{if(!r){const j=GS.lb||(GS.lb=await gJSON(`/data/game/leaderboard-${GAMECFG.season||2026}.json`));box.innerHTML=`<p class="note2">${j.players} players · ${j.rounds.length} race${j.rounds.length===1?"":"s"} scored · top 100</p>`+gTable(j.top,false);}
+  else{const j=GS.lbr[r]||(GS.lbr[r]=await gJSON(`/data/game/round-${r}.json`));const o=j.official;box.innerHTML=`<p class="note2">Official result: ${o.top5.map((n,i)=>`P${i+1} ${esc(gCar(n).last)}`).join(" · ")} · pole ${esc(gCar(o.pole).last)} · ${j.players} players</p>`+gTable(j.top,true);}}
+  catch(e){box.innerHTML=`<p class="note2">No scores yet. Tables appear after the first scored Grand Prix.</p>`;}}
+async function gMini(){const el=$("#glbmini");if(!el)return;try{const j=GS.lb||(GS.lb=await gJSON(`/data/game/leaderboard-${GAMECFG.season||2026}.json`));el.innerHTML=`<h3>Season leaders</h3>${gTable(j.top.slice(0,10),false)}<a href="${H("game-lb")}" data-go="game-lb">Full leaderboard →</a>`;}catch(e){el.innerHTML=`<h3>Season leaders</h3><p class="note2">No scores yet: the table starts after the first Grand Prix of the game.</p>`;}}
+/* ---- leagues ---- */
+const GCODE="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function gCodeNew(){const a=new Uint32Array(8);crypto.getRandomValues(a);return [...a].map(x=>GCODE[x%GCODE.length]).join("");}
+async function gLeagues(){const el=$("#gleagues");if(!el)return;const {m,db}=GS.fb;try{const q=await m.getDocs(m.query(m.collection(db,"leagues"),m.where("members","array-contains",GS.user.uid)));
+  GS.leagues=q.docs.map(d=>Object.assign({id:d.id},d.data()));if(!GS.leagues.length){el.innerHTML=`<p class="note2">You're not in any league yet.</p>`;return;}
+  el.innerHTML=GS.leagues.map(L=>`<section class="gcard glg" data-glg="${L.id}"><div class="glgh"><h3>${esc(L.name)}</h3><span class="lbl">${L.members.length} of 50 · code <b class="gcode">${esc(L.joinCode)}</b> <button class="gbtn gsm" data-gcopycode="${esc(L.joinCode)}">Copy</button></span></div><div class="glgt"><p class="note2">Loading table…</p></div>
+    <div class="gacts">${L.ownerUid===GS.user.uid?`<button class="gbtn gsm" data-glrename="${L.id}">Rename</button><button class="gbtn gsm gred" data-gldel="${L.id}">Delete league</button>`:`<button class="gbtn gsm" data-glleave="${L.id}">Leave</button>`}</div></section>`).join("");
+  GS.leagues.forEach(gLeagueTable);}catch(e){el.innerHTML=`<p class="gmsg">${esc(gErr(e))}</p>`;}}
+async function gLeagueTable(L){const box=document.querySelector(`[data-glg="${L.id}"] .glgt`);if(!box)return;const {m,db}=GS.fb;try{
+  const names={};await Promise.all(L.members.map(async u=>{try{const s=await m.getDoc(m.doc(db,"pub",u));names[u]=s.exists()?s.data().name:"(left)";}catch(e){names[u]="—";}}));
+  const T={};L.members.forEach(u=>T[u]={uid:u,name:names[u],points:0,winners:0,exact:0,races:0,lead:0});
+  for(let i=0;i<L.members.length;i+=30){const q=await m.getDocs(m.query(m.collection(db,"scores"),m.where("uid","in",L.members.slice(i,i+30))));q.docs.forEach(d=>{const s=d.data(),t=T[s.uid];if(!t)return;t.points+=s.points;t.winners+=s.winners;t.exact+=s.exact;t.races++;t.lead+=s.lead||0;});}
+  const rows=Object.values(T).map(t=>Object.assign(t,{lead:t.races?t.lead/t.races:0})).sort((a,b)=>b.points-a.points||b.winners-a.winners||b.exact-a.exact||b.lead-a.lead||a.name.localeCompare(b.name));
+  let pos=0,prev=null;rows.forEach((r,i)=>{const k=[r.points,r.winners,r.exact,r.lead].join();if(k!==prev){pos=i+1;prev=k;}r.pos=pos;});
+  const own=L.ownerUid===GS.user.uid;
+  box.innerHTML=`<div class="tw"><table class="t gtab"><thead><tr><th class="n">Pos</th><th>Player</th><th class="n">Pts</th><th class="n">Wins</th><th class="n">Exact</th><th class="n">Races</th>${own?"<th></th>":""}</tr></thead><tbody>${rows.map(r=>`<tr${r.uid===GS.user.uid?' class="gme"':""}><td class="n">${r.pos}</td><td><b>${esc(r.name)}</b>${r.uid===L.ownerUid?' <small class="lbl">owner</small>':""}</td><td class="n"><b>${r.points}</b></td><td class="n">${r.winners}</td><td class="n">${r.exact}</td><td class="n">${r.races}</td>${own?`<td>${r.uid!==L.ownerUid?`<button class="gbtn gsm" data-glkick="${L.id}|${r.uid}">Remove</button>`:""}</td>`:""}</tr>`).join("")}</tbody></table></div>`;}catch(e){box.innerHTML=`<p class="gmsg">${esc(gErr(e))}</p>`;}}
+/* ---- actions ---- */
+async function gSignGoogle(){const {m,auth}=await gFB();try{await m.signInWithPopup(auth,new m.GoogleAuthProvider());}catch(e){if(e&&e.code==="auth/popup-blocked"){return m.signInWithRedirect(auth,new m.GoogleAuthProvider());}GS.msg=gErr(e);gRerender();}}
+async function gSignEmail(email){const {m,auth}=await gFB();try{await m.sendSignInLinkToEmail(auth,email,{url:location.origin+location.pathname,handleCodeInApp:true});try{localStorage.setItem("ta-signin-email",email);}catch(e){}GS.msg=`Check ${email} for a sign-in link. You can close this page.`;}catch(e){GS.msg=gErr(e);}gRerender();}
+async function gSaveProfile(f,isNew){const {m,db}=GS.fb,u=GS.user,name=f.name.value.trim(),country=f.country.value;const bad=gNameOk(name);if(bad){GS.msg=bad;return gRerender();}
+  if(isNew&&!f.age.checked){GS.msg="Please confirm your age.";return gRerender();}
+  try{const low=name.toLowerCase(),old=GS.profile&&GS.profile.displayName,taken=await m.getDoc(m.doc(db,"names",low));
+    if(taken.exists()&&taken.data().uid!==u.uid){GS.msg="That name is taken. Try another.";return gRerender();}
+    const b=m.writeBatch(db);if(!taken.exists())b.set(m.doc(db,"names",low),{uid:u.uid});
+    if(old&&old.toLowerCase()!==low)b.delete(m.doc(db,"names",old.toLowerCase()));
+    const prof=isNew?{displayName:name,createdAt:m.serverTimestamp(),ageOk:true}:{displayName:name};if(country)prof.country=country;
+    if(isNew)b.set(m.doc(db,"users",u.uid),prof);else b.update(m.doc(db,"users",u.uid),Object.assign({country:country||""},prof));
+    b.set(m.doc(db,"pub",u.uid),{name});await b.commit();const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.data();GS.msg=isNew?"":"Saved.";}catch(e){GS.msg=gErr(e);}gRerender();}
+async function gDelete(){const {m,db,auth}=GS.fb,u=GS.user;GS.msg="Deleting…";gRerender();try{
+  const picks=await m.getDocs(m.query(m.collection(db,"picks"),m.where("uid","==",u.uid)));for(const d of picks.docs)await m.deleteDoc(d.ref);
+  const lg=await m.getDocs(m.query(m.collection(db,"leagues"),m.where("members","array-contains",u.uid)));
+  for(const d of lg.docs){if(d.data().ownerUid===u.uid)await m.deleteDoc(d.ref);else await m.updateDoc(d.ref,{members:m.arrayRemove(u.uid)});}
+  const b=m.writeBatch(db);if(GS.profile&&GS.profile.displayName)b.delete(m.doc(db,"names",GS.profile.displayName.toLowerCase()));b.delete(m.doc(db,"pub",u.uid));b.delete(m.doc(db,"users",u.uid));await b.commit();
+  try{await m.deleteUser(u);}catch(e){if(e.code==="auth/requires-recent-login"){const pid=(u.providerData[0]||{}).providerId;if(pid==="google.com"){await m.reauthenticateWithPopup(u,new m.GoogleAuthProvider());await m.deleteUser(u);}else{await m.signOut(auth);GS.msg="Your game data is deleted. To remove your sign-in too, sign in again with an email link and delete the account once more.";return gRerender();}}else throw e;}
+  GS.msg="Your account and game data are deleted.";go("game");}catch(e){GS.msg=gErr(e);gRerender();}}
+document.addEventListener("submit",e=>{const f=e.target.closest("form[data-gform]");if(!f)return;e.preventDefault();const k=f.dataset.gform;
+  if(k==="email")return gSignEmail(f.email.value.trim());if(!GS.fb)return;
+  if(k==="profile")return gSaveProfile(f,true);if(k==="rename")return gSaveProfile(f,false);if(k==="delete")return f.confirm.value==="DELETE"&&gDelete();
+  const {m,db}=GS.fb;
+  if(k==="lcreate"){const name=f.name.value.trim(),bad=gNameOk(name);if(bad){GS.msg=bad;return gRerender();}
+    (async()=>{for(let i=0;i<4;i++){const code=gCodeNew();try{await m.setDoc(m.doc(db,"leagues",code),{name,ownerUid:GS.user.uid,joinCode:code,members:[GS.user.uid],createdAt:m.serverTimestamp()});GS.msg=`League created. Share the code ${code} with your friends.`;break;}catch(e){if(i===3)GS.msg=gErr(e);}}gRerender();})();}
+  if(k==="ljoin"){const code=f.code.value.trim().toUpperCase();if(!/^[A-HJ-NP-Z2-9]{8}$/.test(code)){GS.msg="That code isn't valid: 8 letters and numbers.";return gRerender();}
+    m.updateDoc(m.doc(db,"leagues",code),{members:m.arrayUnion(GS.user.uid)}).then(()=>{GS.msg="You've joined the league.";gRerender();}).catch(e=>{GS.msg=e.code==="not-found"?"No league has that code.":e.code==="permission-denied"?"You can't join that league: you may already be in it, or it is full.":gErr(e);gRerender();});}});
+document.addEventListener("change",e=>{if(e.target.id==="grsel"){const r=gRounds().find(x=>x.r===+e.target.value);GS.round=r;GS.pick=null;GS.sel=0;GS.dirty=false;GS.msg="";history.replaceState(null,"",PATHMODE?keyToPath("game-picks")+"?round="+r.r:location.hash);gPaintPicks();if(GS.fb&&GS.user)gLoadPick();}
+  if(e.target.id==="glbr")gLb(e.target.value);});
+function gClick(e){if(!$(".game"))return false;
+  const gs=e.target.closest("[data-gsign]");if(gs){gSignGoogle();return true;}
+  if(e.target.closest("[data-gout]")){GS.fb&&GS.fb.m.signOut(GS.fb.auth);return true;}
+  const sl=e.target.closest("[data-gslot]");if(sl&&!sl.disabled){if(GS._nodrop&&Date.now()-GS._nodrop<350)return true;const i=+sl.dataset.gslot,P=GS.pick;
+    if(GS.sel===i&&P&&(i===5?P.pole:P.top5[i])){if(i===5)P.pole=null;else P.top5[i]=null;GS.dirty=true;}GS.sel=i;gPaintPicks();return true;}
+  const dc=e.target.closest("[data-gcar]");if(dc){if(GS._nodrop&&Date.now()-GS._nodrop<350)return true;gPlace(+dc.dataset.gcar);return true;}
+  if(e.target.closest("[data-gsave]")){gSave();return true;}
+  if(e.target.closest("[data-gcopy]")){gCopy();return true;}
+  if(e.target.closest("[data-gclear]")){GS.pick={top5:[null,null,null,null,null],pole:null};GS.sel=0;GS.dirty=true;gPaintPicks();return true;}
+  const cc=e.target.closest("[data-gcopycode]");if(cc){navigator.clipboard&&navigator.clipboard.writeText(cc.dataset.gcopycode).then(()=>{cc.textContent="Copied";});return true;}
+  if(!GS.fb)return false;const {m,db}=GS.fb;
+  const lr=e.target.closest("[data-glrename]");if(lr){const L=GS.leagues.find(x=>x.id===lr.dataset.glrename);const n=prompt("New league name",L.name);if(n&&!gNameOk(n.trim()))m.updateDoc(m.doc(db,"leagues",L.id),{name:n.trim()}).then(gLeagues).catch(err=>alert(gErr(err)));else if(n)alert(gNameOk(n.trim()));return true;}
+  const ld=e.target.closest("[data-gldel]");if(ld){if(confirm("Delete this league for everyone?"))m.deleteDoc(m.doc(db,"leagues",ld.dataset.gldel)).then(gLeagues).catch(err=>alert(gErr(err)));return true;}
+  const ll=e.target.closest("[data-glleave]");if(ll){if(confirm("Leave this league?"))m.updateDoc(m.doc(db,"leagues",ll.dataset.glleave),{members:m.arrayRemove(GS.user.uid)}).then(gLeagues).catch(err=>alert(gErr(err)));return true;}
+  const lk=e.target.closest("[data-glkick]");if(lk){const [id,u]=lk.dataset.glkick.split("|");if(confirm("Remove this player from the league?"))m.updateDoc(m.doc(db,"leagues",id),{members:m.arrayRemove(u)}).then(gLeagues).catch(err=>alert(gErr(err)));return true;}
+  return false;}
 /* ---------- HISTORY · REGULATIONS: every rules era 1946→future, with stats from the results (data/regulations.json) ---------- */
 let REGS=null,REGLOAD=null;
 function loadRegs(){if(REGS)return Promise.resolve(REGS);if(!REGLOAD)REGLOAD=fetch(`/data/regulations.json?v=${REGV}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>(REGS=j)).catch(e=>{REGLOAD=null;throw e;});return REGLOAD;}
@@ -1889,7 +2114,7 @@ function consentBanner(force){let c=null;try{c=localStorage.getItem("ta-consent"
 
 /* ---------- ROUTER ---------- */
 let t=null;
-function setNav(k){["season","championship","drivers","teams","archive","history"].forEach(x=>{const b=$("#n-"+x);if(x===k)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
+function setNav(k){["season","championship","drivers","teams","archive","history","game"].forEach(x=>{const b=$("#n-"+x);if(!b)return;if(x===k)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
 /* the race bar and section tabs stay pinned: the tabs sit just under the bar */
 /* wide tables and charts: a copy of the horizontal scrollbar stays at the bottom of the screen while the table is in view */
 const HSEL=".tw,.mx,.tyrechart";
@@ -1983,7 +2208,8 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   document.querySelectorAll("[data-theme-set]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.themeSet===THEME));
   clearInterval(t); closeDrawer();
   const h=curKey();
-  if(h==="hregs"){if(!$(".regs"))$("#app").innerHTML=`<div class="hist regs" data-mode="g"><div class="pagehead"><div><span class="lbl">Formula 1 history</span><h2 class="h1">Regulations</h2><p class="dload">Loading…</p>${htabs("g")}</div></div></div>`;$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hregs");
+  if(gKeys.includes(h)){gameRoute(h);}
+  else if(h==="hregs"){if(!$(".regs"))$("#app").innerHTML=`<div class="hist regs" data-mode="g"><div class="pagehead"><div><span class="lbl">Formula 1 history</span><h2 class="h1">Regulations</h2><p class="dload">Loading…</p>${htabs("g")}</div></div></div>`;$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hregs");
     Promise.all([loadHist(),loadRegs(),loadDict()]).then(()=>{if(curKey()!=="hregs"||$(".regs .rgera"))return;histIndexTeams();$("#app").innerHTML=viewRegs();pinSizes();regsInit();}).catch(()=>{const n=$(".dload");if(n)n.textContent="This page could not be loaded. Check your connection and reload.";});}
   else if(h==="dictionary"){if(!$(".dict")){const q0=new URLSearchParams(location.search).get("q");if(q0)DS.q=q0;}if(!$(".dict"))$("#app").innerHTML=DICT?viewDict():`<div class="dict"><div class="pagehead"><div><span class="lbl">Formula 1 A to Z</span><h2 class="h1">F1 dictionary</h2><p class="dload">Loading…</p></div></div></div>`;$("#sheetname").textContent="F1 DICTIONARY";setNav("");document.title=pageTitle("dictionary");
     loadDict().then(()=>{if(curKey()==="dictionary"&&!$(".dict .dsearch")){$("#app").innerHTML=viewDict();pinSizes();}}).catch(()=>{});}
@@ -2035,6 +2261,7 @@ function countdown(){const box=$("#cdx");if(!box)return;const S=SCHED[nextRace.r
     document.querySelectorAll(".nxs .nr[data-t]").forEach(r=>{const a=+r.dataset.t,e=a+(+r.dataset.d)*60000;r.classList.toggle("past",now>=e);r.classList.toggle("live",now>=a&&now<e);r.classList.toggle("nextup",!!nxt&&!live&&a===Date.parse(nxt[1]));});};
   tick();t=setInterval(tick,1000);}
 document.addEventListener("click",e=>{
+  if(gClick(e))return;
   {const A=e.target.closest("a[data-go],a[data-detail],a[data-year],a[data-driver],a[data-team]");if(A){if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||e.button>0)return;e.preventDefault();}}
   const mm=$(".moremenu");if(mm&&!mm.hidden&&!e.target.closest(".more")){mm.hidden=true;$(".morebtn").setAttribute("aria-expanded","false");}
   if(e.target.closest("[data-more]")){const open=mm.hidden;mm.hidden=!open;$(".morebtn").setAttribute("aria-expanded",String(open));return;}

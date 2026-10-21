@@ -1,0 +1,105 @@
+rules_version = '2';
+// Track Almanac Predictor. Deploy with: firebase deploy --only firestore:rules
+// rounds/, scores/, bans/, tables/ and system/ are written only by scripts/score.py (Admin SDK, which bypasses these rules).
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+    function keysOnly(allowed) { return request.resource.data.keys().hasOnly(allowed) && request.resource.data.keys().hasAll(allowed); }
+    function changedOnly(fields) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields); }
+    function validName(n) { return n is string && n.matches('^[A-Za-z0-9 _.-]{3,20}$'); }
+    function ownsName(n) {
+      return existsAfter(/databases/$(db)/documents/names/$(n.lower())) &&
+             getAfter(/databases/$(db)/documents/names/$(n.lower())).data.uid == uid();
+    }
+
+    // private profile: only the owner
+    match /users/{u} {
+      allow read: if signedIn() && uid() == u;
+      allow create: if signedIn() && uid() == u
+        && request.resource.data.keys().hasOnly(['displayName', 'createdAt', 'country', 'ageOk'])
+        && validName(request.resource.data.displayName) && ownsName(request.resource.data.displayName)
+        && request.resource.data.createdAt == request.time && request.resource.data.ageOk == true
+        && (!('country' in request.resource.data) || (request.resource.data.country is string && request.resource.data.country.size() <= 2));
+      allow update: if signedIn() && uid() == u && changedOnly(['displayName', 'country'])
+        && validName(request.resource.data.displayName) && ownsName(request.resource.data.displayName)
+        && (!('country' in request.resource.data) || (request.resource.data.country is string && request.resource.data.country.size() <= 2));
+      allow delete: if signedIn() && uid() == u;
+    }
+
+    // display-name register, keeps names unique (document id = name in lower case)
+    match /names/{n} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() && keysOnly(['uid']) && request.resource.data.uid == uid() && n.matches('^[a-z0-9 _.-]{3,20}$');
+      allow delete: if signedIn() && resource.data.uid == uid();
+      allow update: if false;
+    }
+
+    // public display name, used on league tables
+    match /pub/{u} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && uid() == u && keysOnly(['name']) && validName(request.resource.data.name) && ownsName(request.resource.data.name);
+      allow delete: if signedIn() && uid() == u;
+    }
+
+    // server-written
+    match /rounds/{r} { allow read: if true; allow write: if false; }
+    match /scores/{s} { allow read: if true; allow write: if false; }
+    match /bans/{u}   { allow read, write: if false; }
+    match /tables/{r} { allow read, write: if false; }   // full per-round tables, scorer only
+    match /system/{d} { allow read, write: if false; }   // scorer state
+
+    // picks/{round}_{uid}
+    match /picks/{id} {
+      function roundDoc(r) { return get(/databases/$(db)/documents/rounds/$(string(r))).data; }
+      function allowedCar(n, cars) { return n is int && n in cars; }
+      function validPick() {
+        let d = request.resource.data;
+        let R = roundDoc(d.round);
+        let t = d.top5;
+        return keysOnly(['uid', 'round', 'top5', 'pole', 'updatedAt'])
+          && d.uid == uid() && d.round is int && id == string(d.round) + '_' + uid()
+          && exists(/databases/$(db)/documents/rounds/$(string(d.round)))
+          && request.time < R.lockAt
+          && t is list && t.size() == 5
+          && allowedCar(t[0], R.cars) && allowedCar(t[1], R.cars) && allowedCar(t[2], R.cars) && allowedCar(t[3], R.cars) && allowedCar(t[4], R.cars)
+          && t[0] != t[1] && t[0] != t[2] && t[0] != t[3] && t[0] != t[4]
+          && t[1] != t[2] && t[1] != t[3] && t[1] != t[4]
+          && t[2] != t[3] && t[2] != t[4] && t[3] != t[4]
+          && allowedCar(d.pole, R.cars)
+          && d.updatedAt == request.time;
+      }
+      // your own picks any time; anyone else's only once that round has locked (so nobody can copy)
+      allow get: if signedIn() && (resource.data.uid == uid() || request.time >= roundDoc(resource.data.round).lockAt);
+      allow list: if signedIn() && resource.data.uid == uid();
+      allow create: if signedIn() && validPick();
+      allow update: if signedIn() && resource.data.uid == uid() && request.resource.data.round == resource.data.round && validPick();
+      allow delete: if signedIn() && resource.data.uid == uid();
+    }
+
+    // leagues/{joinCode}: the document id is the join code, so you can only join if you know it
+    match /leagues/{code} {
+      function members() { return request.resource.data.members; }
+      allow get, list: if signedIn() && uid() in resource.data.members;
+      allow create: if signedIn() && code.matches('^[A-HJ-NP-Z2-9]{8}$')
+        && keysOnly(['name', 'ownerUid', 'joinCode', 'members', 'createdAt'])
+        && request.resource.data.ownerUid == uid() && request.resource.data.joinCode == code
+        && members() == [uid()] && validName(request.resource.data.name) && request.resource.data.createdAt == request.time;
+      allow update: if signedIn() && (
+          // the owner may rename the league and remove members (never himself)
+          (uid() == resource.data.ownerUid && changedOnly(['name', 'members']) && validName(request.resource.data.name)
+             && resource.data.members.hasAll(members()) && uid() in members())
+          // anyone who knows the code may add himself, up to 50 members
+          || (changedOnly(['members']) && members().hasAll(resource.data.members)
+             && members().removeAll(resource.data.members) == [uid()] && members().size() == resource.data.members.size() + 1
+             && members().size() <= 50)
+          // a member (not the owner) may leave
+          || (changedOnly(['members']) && uid() != resource.data.ownerUid && uid() in resource.data.members
+             && resource.data.members.removeAll(members()) == [uid()] && members().size() == resource.data.members.size() - 1)
+        );
+      allow delete: if signedIn() && uid() == resource.data.ownerUid;
+    }
+  }
+}
