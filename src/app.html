@@ -2806,7 +2806,7 @@ const gProv=u=>((u&&u.providerData)||[]).map(p=>p.providerId);
 const gNeedsVerify=u=>!!(u&&!u.isAnonymous&&!u.emailVerified&&gProv(u).includes("password")&&!gProv(u).includes("google.com"));
 const GWARN="Playing as a guest: your picks are saved on this device only. Clearing your browser or switching devices will lose them. Save your account to keep them.";
 function gGuestBox(here){return `<div class="gcard gguest" role="note"><p><b>${GWARN}</b></p>${here?"":`<a class="gbtn gpri" href="${H("game-account")}" data-go="game-account">Save my account</a>`}</div>`;}
-function gVerifyBox(){return `<div class="gcard gguest" role="note"><p><b>Confirm your email address to appear on the leaderboard.</b> We sent a link to ${esc(GS.user.email||"your inbox")}. Your picks are saved and scored in the meantime.</p>
+function gVerifyBox(){return `<div class="gcard gguest" role="note"><p><b>Confirm your email address to appear on the leaderboard.</b> We sent a link to ${esc(GS.user.email||"your inbox")}. Can't find it? Check the spam or junk folder. Your picks are saved and scored in the meantime.</p>
   <div class="gacts"><button class="gbtn gsm" data-gverify>Send the email again</button><button class="gbtn gsm" data-greload>I've confirmed it</button></div></div>`;}
 /* picks made before signing in are kept here until the player has an account, then saved */
 function gPendKeep(){try{sessionStorage.setItem("ta-pend",JSON.stringify({r:GS.round.r,p:{top5:GS.pick.top5,pole:GS.pick.pole}}));}catch(e){}}
@@ -2993,16 +2993,16 @@ async function gLeagueTable(L){const box=document.querySelector(`[data-glg="${L.
 async function gSignGoogle(){const {m,auth}=await gFB();try{await m.signInWithPopup(auth,new m.GoogleAuthProvider());}catch(e){if(e&&e.code==="auth/popup-blocked"){return m.signInWithRedirect(auth,new m.GoogleAuthProvider());}GS.msg=gErr(e);gRerender();}}
 async function gSignGuest(){const {m,auth}=await gFB();try{await m.signInAnonymously(auth);GS.msg="";}catch(e){GS.msg=gErr(e);gRerender();}}
 async function gEmail(f,up){const email=f.email.value.trim(),pw=f.password.value;GS.email=email;const {m,auth}=await gFB();GS.msg="";
-  try{if(up){const c=await m.createUserWithEmailAndPassword(auth,email,pw);try{await m.sendEmailVerification(c.user);}catch(e){}GS.msg="Account created. We've emailed you a link: confirm your address to appear on the leaderboard.";}
+  try{if(up){const c=await m.createUserWithEmailAndPassword(auth,email,pw);try{await m.sendEmailVerification(c.user);}catch(e){}GS.msg="Account created. We've emailed you a link: confirm your address to appear on the leaderboard. If it isn't in your inbox, check the spam or junk folder.";}
     else await m.signInWithEmailAndPassword(auth,email,pw);}catch(e){GS.msg=gErr(e);}gRerender();}
 async function gForgot(){const i=document.querySelector("#gsign input[name=email]"),email=(i&&i.value.trim())||GS.email||"";GS.email=email;if(!email){GS.msg="Type your email address above, then choose Forgot password.";return gRerender();}
-  const {m,auth}=await gFB();try{await m.sendPasswordResetEmail(auth,email);GS.msg=`If there is an account for ${email}, we've sent it a link to reset the password.`;}catch(e){GS.msg=gErr(e);}gRerender();}
+  const {m,auth}=await gFB();try{await m.sendPasswordResetEmail(auth,email);GS.msg=`If there is an account for ${email}, we've sent it a link to reset the password. Check the spam folder if it doesn't arrive.`;}catch(e){GS.msg=gErr(e);}gRerender();}
 async function gPubSync(){const {m,db}=GS.fb,u=GS.fb.auth.currentUser;if(!u||!GS.profile)return;await u.getIdToken(true);await m.setDoc(m.doc(db,"pub",u.uid),{name:GS.profile.displayName,guest:gIsGuest(u)});}
 /* "Save my account": link the guest to Google or email + password, so the same account (picks, points, leagues) carries on */
 async function gLink(kind,f){const {m,auth}=GS.fb,u=auth.currentUser;GS.msg="";GS.linkMsg="";GS.linkAlt=null;const email=f?f.email.value.trim():"",pw=f?f.password.value:"";
   try{if(kind==="google")await m.linkWithPopup(u,new m.GoogleAuthProvider());else await m.linkWithCredential(u,m.EmailAuthProvider.credential(email,pw));
     GS.user=auth.currentUser;await gPubSync();
-    if(kind==="email"){try{await m.sendEmailVerification(auth.currentUser);}catch(e){}GS.msg="Account saved. We've emailed you a link: confirm your address to appear on the leaderboard. Sign in with your email and password on any device.";}
+    if(kind==="email"){try{await m.sendEmailVerification(auth.currentUser);}catch(e){}GS.msg="Account saved. We've emailed you a link (check the spam folder if you can't see it): confirm your address to appear on the leaderboard. Sign in with your email and password on any device.";}
     else GS.msg="Account saved. Sign in with Google on any device to carry on.";}
   catch(e){const c=(e&&e.code)||"";
     if(["auth/credential-already-in-use","auth/email-already-in-use","auth/account-exists-with-different-credential","auth/provider-already-linked"].includes(c)){
