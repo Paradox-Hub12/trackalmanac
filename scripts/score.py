@@ -77,6 +77,9 @@ def write_files(files):
     if not files: return []
     os.makedirs(OUT, exist_ok=True)
     changed = []
+    for f in os.listdir(OUT):                       # a round nobody plays any more (all accounts deleted)
+        if f.startswith("round-") and f.endswith(".json") and f not in files:
+            os.remove(os.path.join(OUT, f)); changed.append(f + " (removed)")
     for name, txt in files.items():
         f = os.path.join(OUT, name)
         if not os.path.exists(f) or open(f, encoding="utf-8").read() != txt:
@@ -89,17 +92,38 @@ NAMES_MAX_AGE = datetime.timedelta(hours=6)
 
 
 def row_pack(r):
-    return [r["uid"], r["points"], r["winners"], r["exact"], int(bool(r["pole"])), sum(1 << i for i, ok in enumerate(r["slots"]) if ok), r["lead"], r["pos"]]
+    """One table row as a short string (Firestore has no nested arrays): uid|points|winners|exact|pole|slot bits|lead|pos"""
+    return "|".join(str(x) for x in [r["uid"], r["points"], r["winners"], r["exact"], int(bool(r["pole"])),
+                                      sum(1 << i for i, ok in enumerate(r["slots"]) if ok), r["lead"], r["pos"]])
 
 
 def row_unpack(a):
-    uid, pts, w, ex, pole, sl, lead, pos = a
-    return {"uid": uid, "points": pts, "winners": w, "exact": ex, "pole": bool(pole), "slots": [bool(sl >> i & 1) for i in range(5)], "lead": lead, "pos": pos}
+    uid, pts, w, ex, pole, sl, lead, pos = a.split("|")
+    sl = int(sl)
+    return {"uid": uid, "points": int(pts), "winners": int(w), "exact": int(ex), "pole": pole == "1",
+            "slots": [bool(sl >> i & 1) for i in range(5)], "lead": int(lead), "pos": int(pos)}
 
 
 def score_doc(rnd, r):
     return {"uid": r["uid"], "round": rnd, "points": r["points"], "winners": r["winners"], "exact": r["exact"],
             "pole": r["pole"], "slots": r["slots"], "lead": r["lead"], "pos": r["pos"]}
+
+
+_DB = None
+def get_db(sa=None):
+    """Firestore client: the service account in production, the emulator (no credentials) in tests."""
+    global _DB
+    if _DB is None:
+        sa = sa if sa is not None else os.environ.get("FIREBASE_SERVICE_ACCOUNT", "").strip()
+        if sa:
+            import firebase_admin
+            from firebase_admin import credentials, firestore
+            _DB = firestore.client(firebase_admin.initialize_app(credentials.Certificate(json.loads(sa))))
+        else:
+            from google.cloud import firestore as gfs
+            from google.auth.credentials import AnonymousCredentials
+            _DB = gfs.Client(project=os.environ.get("GCLOUD_PROJECT", "demo-trackalmanac"), credentials=AnonymousCredentials())
+    return _DB
 
 
 def run_firebase(D, now=None):
@@ -111,15 +135,7 @@ def run_firebase(D, now=None):
     if not sa and not emu:
         print("Predictor: FIREBASE_SERVICE_ACCOUNT is not set; skipping scoring.")
         return 0
-    import firebase_admin
-    from firebase_admin import credentials, firestore
-    if firebase_admin._apps:
-        app = firebase_admin.get_app()
-    elif sa:
-        app = firebase_admin.initialize_app(credentials.Certificate(json.loads(sa)))
-    else:
-        app = firebase_admin.initialize_app(options={"projectId": os.environ.get("GCLOUD_PROJECT", "demo-trackalmanac")})
-    db = firestore.client(app)
+    db = get_db(sa)
     now = now or datetime.datetime.now(UTC)
     writes = []                                   # (collection, id, doc or None), written only once everything is computed
 
@@ -140,7 +156,7 @@ def run_firebase(D, now=None):
     tables, fresh = {}, {}
     for R in D["RACES"]:
         rnd = R["r"]; off = G.official(D, rnd)
-        if not off: continue
+        if not off or not G.lock_at(D, rnd): continue          # rounds before the game existed have no lock time
         h = G.result_hash(off, {"top5": [], "pole": None})
         t = db.collection("tables").document(str(rnd)).get(); t = t.to_dict() if t.exists else None
         tables[rnd] = t
@@ -170,14 +186,14 @@ def run_firebase(D, now=None):
     table_writes, score_writes = [], []
     for rnd, t in tables.items():
         off = G.official(D, rnd)
-        old = {a[0]: row_unpack(a) for a in (t or {}).get("rows", [])}
+        old = {r["uid"]: r for r in map(row_unpack, (t or {}).get("rows", []))}
         if rnd in fresh:
             h, picks = fresh[rnd]
             _, rows = table_for_round(D, rnd, [p for p in picks if p["uid"] in names], names, set())
         else:
             h = t["resultHash"]
             rows = G.rank([dict(r, name=names[u]) for u, r in old.items() if u in names])
-        per_round[str(rnd)], offs[str(rnd)] = rows, off
+        if rows: per_round[str(rnd)], offs[str(rnd)] = rows, off      # nobody played: no table to publish
         new = {r["uid"]: r for r in rows}
         for u, r in new.items():
             if rnd in fresh or old.get(u) is None or row_pack(old[u]) != row_pack(r):
