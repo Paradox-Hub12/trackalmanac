@@ -8,7 +8,12 @@ service cloud.firestore {
     function uid() { return request.auth.uid; }
     function keysOnly(allowed) { return request.resource.data.keys().hasOnly(allowed) && request.resource.data.keys().hasAll(allowed); }
     function changedOnly(fields) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields); }
-    function validName(n) { return n is string && n.matches('^[A-Za-z0-9 _.-]{3,20}$'); }
+    // display names, nicknames and league names: 3-20 characters, no links, a basic word filter (same list as the site)
+    function validName(n) {
+      return n is string && n.matches('^[A-Za-z0-9 _.-]{3,20}$')
+        && !n.lower().matches('.*(www|https?|[.](com|net|org|io)).*')
+        && !n.lower().replace('[^a-z0-9]', '').matches('.*(fuck|shit|cunt|bitch|nigg|fag|rape|nazi|hitler|whore|slut|porn|dick|pussy|wank|twat|retard|kys|admin|moderator|official|trackalmanac).*');
+    }
     function ownsName(n) {
       return existsAfter(/databases/$(db)/documents/names/$(n.lower())) &&
              getAfter(/databases/$(db)/documents/names/$(n.lower())).data.uid == uid();

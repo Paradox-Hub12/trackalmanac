@@ -557,8 +557,14 @@ def game_page(S):
     out.append(sec("Points", "<ul><li>P1 exactly right: 5</li><li>P2: 3</li><li>P3: 2</li><li>P4: 1</li><li>P5: 1</li><li>Pole sitter right: 3</li><li>Perfect weekend: 15</li></ul>"))
     out.append(sec("Rules", "<ul><li>Picks lock at the scheduled start of qualifying and can be changed freely until then.</li><li>Pole is P1 in the qualifying classification, before grid penalties.</li>"
                    "<li>Races are scored against the official classification; if it changes, the round is scored again.</li><li>No picks means 0 points for that round.</li>"
-                   "<li>Ties: most correct winners, then most exact positions, then the earliest final submission.</li><li>Free to play. No prizes and no money.</li><li>Minimum age 13 (16 in the EEA and the UK).</li></ul>"))
+                   "<li>Ties: most correct winners, then most exact positions, then the earliest final submission.</li><li>Free to play. No prizes and no money.</li><li>Minimum age 13 (16 in the EEA and the UK).</li>"
+                   "<li>Questions about the game: <a href=\"mailto:%s\">%s</a>.</li></ul>" % ((game_contact(),) * 2)))
     return "".join(out)
+
+
+def game_contact():
+    p = os.path.join(ROOT, "src", "game.json")
+    return esc((json.load(open(p, encoding="utf-8")).get("contact") if os.path.exists(p) else "") or "contact@trackalmanac.com")
 
 
 def game_lb_page(S):

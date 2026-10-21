@@ -1,12 +1,13 @@
 {
-  "season": 2026,
-  "firebase": {
-    "apiKey": "",
-    "authDomain": "",
-    "projectId": "",
-    "storageBucket": "",
-    "messagingSenderId": "",
-    "appId": ""
-  },
-  "emulator": false
+ "season": 2026,
+ "firebase": {
+  "apiKey": "",
+  "authDomain": "track-almanac-ae45f.firebaseapp.com",
+  "projectId": "track-almanac-ae45f",
+  "storageBucket": "",
+  "messagingSenderId": "",
+  "appId": ""
+ },
+ "emulator": false,
+ "contact": "predictor@trackalmanac.com"
 }

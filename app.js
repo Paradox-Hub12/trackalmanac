@@ -1576,6 +1576,7 @@ function openHEngine(i){histIndexTeams();const e=HIST.eby[i];if(!e)return;
    Scoring is done by scripts/score.py in the results workflow; season and race tables are static JSON in /data/game/. ---------- */
 const GPTS=[5,3,2,1,1],GPOLE=3;
 const GS={fb:null,loading:null,user:undefined,profile:undefined,pend:0,ask:0,amode:"in",linkMsg:"",linkAlt:null,round:null,pick:null,sel:0,dirty:false,msg:"",tick:0,lb:null,lbr:{},leagues:null,league:null};
+const GMAIL=()=>(typeof GAMECFG!=="undefined"&&GAMECFG.contact)||SITE.email;
 const gameOn=()=>!!(typeof GAMECFG!=="undefined"&&GAMECFG.firebase&&GAMECFG.firebase.apiKey);
 function gFB(){if(GS.fb)return Promise.resolve(GS.fb);if(!gameOn())return Promise.reject(new Error("not configured"));
   if(!GS.loading)GS.loading=import(`/js/firebase-game.js?v=${FBV}`).then(m=>{const app=m.initializeApp(GAMECFG.firebase),auth=m.getAuth(app),db=m.getFirestore(app);
@@ -1665,6 +1666,7 @@ function gHow(){const R=gRounds(),nx=gNext();const last=[...R].reverse().find(x=
    <li>A picked driver who doesn't start simply scores 0 for that slot.</li>
    <li>Ties, for the season and for each race, are split by: most correct race winners, then most exact positions, then the earliest final submission (for the season: earliest on average before each deadline).</li>
    <li>Free to play. There are no prizes and no money involved.</li>
+   <li>Questions about the game: <a href="mailto:${esc(GMAIL())}">${esc(GMAIL())}</a>.</li>
    <li>You must be 13 or older (16 or older in the EEA or the UK). Display names must be decent: offensive names, emails and links are not allowed and may be renamed or removed.</li>
    <li>Your data: see the Predictor section of the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>. You can delete your account at any time from <a href="${H("game-account")}" data-go="game-account">Account</a>.</li></ul></div>
   <div id="glbmini" class="gcard"><h3>Season leaders</h3><p class="note2">Loading…</p></div>${last?`<p class="note2">Last scored round: ${esc(last.gp)}. <a href="${H("game-lb")}" data-go="game-lb">Full tables</a></p>`:""}</div>`;}
@@ -1690,7 +1692,7 @@ function gPicksView(){const head=gHead("game-picks","My picks","");
    <div class="gdrivers" role="list">${cars.map(c=>`<button type="button" class="gdrv${used.has(c.n)?" used":""}${P.pole===c.n?" ispole":""}" role="listitem" data-gcar="${c.n}" style="--tc:${tcol(c.team)}"><span class="gnum">${c.n}</span><b>${esc(c.last)}</b><small>${esc(c.team)}</small>${used.has(c.n)?`<i class="gin">P${P.top5.indexOf(c.n)+1}</i>`:""}${P.pole===c.n?`<i class="gpl">Pole</i>`:""}</button>`).join("")}</div>`}
   </div></div>`;}
 function gLbView(){return `${gHead("game-lb","Leaderboard","Season standings and every race. Tables update after each Grand Prix.")}<div class="gcard"><div class="glbsel"><label class="lbl" for="glbr">Table</label><select id="glbr"><option value="">Season ${GAMECFG.season||2026}</option>${gRounds().filter(x=>x.done).reverse().map(x=>`<option value="${x.r}">R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div><div id="glbt"><p class="note2">Loading…</p></div></div>
-  <p class="note2">Names that break the rules can be reported: use the flag next to a name, or write to ${esc(SITE.email)}.</p></div>`;}
+  <p class="note2">Names that break the rules can be reported: use the flag next to a name, or write to <a href="mailto:${esc(GMAIL())}">${esc(GMAIL())}</a>.</p></div>`;}
 function gLeaguesView(){const head=gHead("game-leagues","Leagues","Play against friends, colleagues or your group chat. Up to 50 players per league.");
   if(!GS.user||!GS.profile)return head+(GS.user&&GS.profile===null?gProfileForm(null):gSignin("Sign in to create or join a league."))+"</div>";
   return `${head}<div class="ggrid"><form class="gcard" data-gform="lcreate"><h3>Create a league</h3><label><span class="lbl">League name</span><input name="name" required minlength="3" maxlength="20" pattern="[A-Za-z0-9 _.\\-]{3,20}"></label><button class="gbtn gpri" type="submit">Create</button></form>
@@ -1753,7 +1755,7 @@ gDragInit();
 async function gJSON(u){const r=await fetch(u,{cache:"no-cache"});if(!r.ok)throw new Error(r.status);return r.json();}
 function gTable(rows,round){if(!rows.length)return `<p class="note2">No scores yet.</p>`;const me=GS.profile&&GS.profile.displayName;
   return `<div class="tw"><table class="t gtab"><thead><tr><th class="n">Pos</th><th>Player</th><th class="n">Pts</th><th class="n" title="Correct winners">Wins</th><th class="n" title="Exact positions">Exact</th>${round?`<th class="n">Pole</th>`:`<th class="n">Races</th>`}<th></th></tr></thead><tbody>
-   ${rows.map(r=>`<tr${me&&r.name===me?' class="gme"':""}><td class="n">${r.pos}</td><td><b>${esc(r.name)}</b>${r.guest?' <small class="gguesttag">Guest</small>':""}</td><td class="n"><b>${r.points}</b></td><td class="n">${r.winners}</td><td class="n">${r.exact}</td><td class="n">${round?(r.pole?"✓":"–"):r.races}</td><td><a class="grep" href="mailto:${esc(SITE.email)}?subject=${encodeURIComponent("Report Predictor name: "+r.name)}" title="Report this name" aria-label="Report the name ${esc(r.name)}">⚑</a></td></tr>`).join("")}</tbody></table></div>`;}
+   ${rows.map(r=>`<tr${me&&r.name===me?' class="gme"':""}><td class="n">${r.pos}</td><td><b>${esc(r.name)}</b>${r.guest?' <small class="gguesttag">Guest</small>':""}</td><td class="n"><b>${r.points}</b></td><td class="n">${r.winners}</td><td class="n">${r.exact}</td><td class="n">${round?(r.pole?"✓":"–"):r.races}</td><td><a class="grep" href="mailto:${esc(GMAIL())}?subject=${encodeURIComponent("Report Predictor name: "+r.name)}" title="Report this name" aria-label="Report the name ${esc(r.name)}">⚑</a></td></tr>`).join("")}</tbody></table></div>`;}
 async function gLb(r){const box=$("#glbt");if(!box)return;try{if(!r){const j=GS.lb||(GS.lb=await gJSON(`/data/game/leaderboard-${GAMECFG.season||2026}.json`));box.innerHTML=`<p class="note2">${j.players} players · ${j.rounds.length} race${j.rounds.length===1?"":"s"} scored · top 100</p>`+gTable(j.top,false);}
   else{const j=GS.lbr[r]||(GS.lbr[r]=await gJSON(`/data/game/round-${r}.json`));const o=j.official;box.innerHTML=`<p class="note2">Official result: ${o.top5.map((n,i)=>`P${i+1} ${esc(gCar(n).last)}`).join(" · ")} · pole ${esc(gCar(o.pole).last)} · ${j.players} players</p>`+gTable(j.top,true);}}
   catch(e){box.innerHTML=`<p class="note2">No scores yet. Tables appear after the first scored Grand Prix.</p>`;}}
