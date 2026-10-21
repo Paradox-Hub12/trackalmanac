@@ -37,10 +37,14 @@ service cloud.firestore {
       allow update: if false;
     }
 
-    // public display name, used on league tables
+    // guests use Firebase anonymous sign-in: their token has no email address. Google and email/password accounts have one.
+    function isGuest() { return !('email' in request.auth.token) || request.auth.token.email == null; }
+
+    // public display name, used on league tables; `guest` must match how the player signed in
     match /pub/{u} {
       allow read: if signedIn();
-      allow create, update: if signedIn() && uid() == u && keysOnly(['name']) && validName(request.resource.data.name) && ownsName(request.resource.data.name);
+      allow create, update: if signedIn() && uid() == u && keysOnly(['name', 'guest']) && validName(request.resource.data.name) && ownsName(request.resource.data.name)
+        && request.resource.data.guest == isGuest();
       allow delete: if signedIn() && uid() == u;
     }
 
@@ -51,7 +55,7 @@ service cloud.firestore {
     match /tables/{r} { allow read, write: if false; }   // full per-round tables, scorer only
     match /system/{d} { allow read, write: if false; }   // scorer state
 
-    // picks/{round}_{uid}
+    // picks/{round}_{uid}: one set per account per round (the id), written only by that account, only before the lock
     match /picks/{id} {
       function roundDoc(r) { return get(/databases/$(db)/documents/rounds/$(string(r))).data; }
       function allowedCar(n, cars) { return n is int && n in cars; }

@@ -1300,15 +1300,17 @@ privacy:{t:"Privacy Policy",b:`
 <li><b>Changing your choice.</b> Use the <b>Cookie settings</b> link in the footer of any page at any time.</li>
 <li><b>More information and opting out.</b> See <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a> and <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">how Google uses information from sites that use its services</a>. You can also block Google Analytics on every website with the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics opt-out browser add-on</a>.</li></ul>
 <h3>3a. Predictor game</h3>
-<p>The <a href="${H("game")}">Track Almanac Predictor</a> is an optional, free prediction game. Only if you sign in to play, we store:</p>
-<ul><li><b>Sign-in details.</b> Your email address (and, if you use Google sign-in, your Google account's name and ID, as provided by Google), so you can sign in.</li>
+<p>The <a href="${H("game")}">Track Almanac Predictor</a> is an optional, free prediction game. You can read the rules and the leaderboards without an account. Only when you save picks do you sign in, in one of three ways, and we store:</p>
+<ul><li><b>Sign-in details.</b> With Google: your email address and your Google account's name and ID, as provided by Google. With email and password: your email address; the password is handled by Firebase Authentication and we never see it. As a guest: no email address, only a random account ID kept in your browser.</li>
 <li><b>Your game profile.</b> The display name you choose, an optional country, your age confirmation and when you joined.</li>
 <li><b>Your picks and scores</b>, and the leagues you create or join.</li></ul>
 <p><b>Who stores it.</b> Sign-in and game data are stored with Google Firebase (Firebase Authentication and Cloud Firestore), operated by Google as our service provider; see <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Privacy and Security in Firebase</a>. Firebase may process data outside your country.</p>
 <p><b>Why.</b> To run the game: to save your picks, score them, and show leaderboards and league tables. This is necessary to provide the game you asked to play. We don't use game data for advertising and we don't sell it.</p>
+<p><b>Guests.</b> A guest account lives in your browser only. If you clear your browser's data, sign out or switch devices, you lose access to it and its picks. Use <b>Save my account</b> on the Account page to link it to Google or an email address and keep everything. Guests appear on the leaderboards with a "Guest" tag.</p>
+<p><b>Email confirmation.</b> If you sign up with email and password, we send you one email to confirm the address, and you appear on the leaderboards once it is confirmed. We also send a password reset email when you ask for one. We send no other emails.</p>
 <p><b>What others can see.</b> Your display name, points and rank are public on the leaderboards. League members see each other's display names and scores. After a round's deadline, other signed-in players may see your picks for that round. Your email address is never shown.</p>
 <p><b>How long.</b> We keep your game data while your account exists. You can delete your account at any time on the <a href="${H("game-account")}">Account</a> page: this removes your profile, display name, picks and league memberships at once, and your scores disappear from the published tables at the next update. Tables already published for past rounds are replaced when they are next rebuilt.</p>
-<p><b>Sign-in storage.</b> Signing in keeps a sign-in token in your browser's storage. It is essential for the game and is not used for analytics or advertising; your cookie choice for analytics and ads is unaffected.</p>
+<p><b>Sign-in storage.</b> Signing in (also as a guest) keeps a sign-in token in your browser's storage. It is essential for the game and is not used for analytics or advertising; your cookie choice for analytics and ads is unaffected.</p>
 <p><b>Age.</b> You must be 13 or older to play (16 or older in the EEA or the UK).</p>
 <h3>4. How we use information</h3>
 <p>To operate and improve the Site, keep it secure, show advertising that funds it, and respond to messages. We do not sell your personal information.</p>
@@ -1573,20 +1575,35 @@ function openHEngine(i){histIndexTeams();const e=HIST.eby[i];if(!e)return;
 /* ---------- PREDICTOR GAME: /game/ pages. Firebase Auth + Firestore (lite) loaded on demand from /js/firebase-game.js.
    Scoring is done by scripts/score.py in the results workflow; season and race tables are static JSON in /data/game/. ---------- */
 const GPTS=[5,3,2,1,1],GPOLE=3;
-const GS={fb:null,loading:null,user:undefined,profile:undefined,round:null,pick:null,sel:0,dirty:false,msg:"",tick:0,lb:null,lbr:{},leagues:null,league:null};
+const GS={fb:null,loading:null,user:undefined,profile:undefined,pend:0,ask:0,amode:"in",linkMsg:"",linkAlt:null,round:null,pick:null,sel:0,dirty:false,msg:"",tick:0,lb:null,lbr:{},leagues:null,league:null};
 const gameOn=()=>!!(typeof GAMECFG!=="undefined"&&GAMECFG.firebase&&GAMECFG.firebase.apiKey);
 function gFB(){if(GS.fb)return Promise.resolve(GS.fb);if(!gameOn())return Promise.reject(new Error("not configured"));
   if(!GS.loading)GS.loading=import(`/js/firebase-game.js?v=${FBV}`).then(m=>{const app=m.initializeApp(GAMECFG.firebase),auth=m.getAuth(app),db=m.getFirestore(app);
     if(GAMECFG.emulator&&/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){m.connectAuthEmulator(auth,"http://127.0.0.1:9099",{disableWarnings:true});m.connectFirestoreEmulator(db,"127.0.0.1",8080);}
     GS.fb={m,auth,db};
-    m.onAuthStateChanged(auth,async u=>{GS.user=u||null;GS.profile=undefined;if(u){try{const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.exists()?s.data():null;}catch(e){GS.profile=null;}}else GS.profile=null;gRerender();});
-    /* finishing an email sign-in link */
-    if(m.isSignInWithEmailLink(auth,location.href)){let email=null;try{email=localStorage.getItem("ta-signin-email");}catch(e){}
-      if(!email)email=prompt("Confirm the email address you used to sign in");
-      if(email)m.signInWithEmailLink(auth,email,location.href).then(()=>{try{localStorage.removeItem("ta-signin-email");}catch(e){}history.replaceState(null,"",location.pathname);}).catch(e=>{GS.msg=gErr(e);gRerender();});}
+    m.onAuthStateChanged(auth,async u=>{GS.user=u||null;GS.profile=undefined;if(u){try{const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.exists()?s.data():null;}catch(e){GS.profile=null;}}else GS.profile=null;
+      gRerender();if(u&&GS.profile)gAfterReady();});
+    m.getRedirectResult(auth).catch(e=>{GS.msg=gErr(e);gRerender();});
     return GS.fb;}).catch(e=>{GS.loading=null;throw e;});
   return GS.loading;}
-function gErr(e){const c=(e&&e.code)||"";return ({"auth/popup-closed-by-user":"Sign-in was cancelled.","auth/invalid-email":"That email address doesn't look right.","auth/invalid-action-code":"That sign-in link has expired or was already used. Ask for a new one.",
+/* account kinds: guest (Firebase anonymous sign-in), Google, email + password (must confirm the address to appear on the leaderboard) */
+const gIsGuest=u=>!!(u&&u.isAnonymous);
+const gProv=u=>((u&&u.providerData)||[]).map(p=>p.providerId);
+const gNeedsVerify=u=>!!(u&&!u.isAnonymous&&!u.emailVerified&&gProv(u).includes("password")&&!gProv(u).includes("google.com"));
+const GWARN="Playing as a guest: your picks are saved on this device only. Clearing your browser or switching devices will lose them. Save your account to keep them.";
+function gGuestBox(here){return `<div class="gcard gguest" role="note"><p><b>${GWARN}</b></p>${here?"":`<a class="gbtn gpri" href="${H("game-account")}" data-go="game-account">Save my account</a>`}</div>`;}
+function gVerifyBox(){return `<div class="gcard gguest" role="note"><p><b>Confirm your email address to appear on the leaderboard.</b> We sent a link to ${esc(GS.user.email||"your inbox")}. Your picks are saved and scored in the meantime.</p>
+  <div class="gacts"><button class="gbtn gsm" data-gverify>Send the email again</button><button class="gbtn gsm" data-greload>I've confirmed it</button></div></div>`;}
+/* picks made before signing in are kept here until the player has an account, then saved */
+function gPendKeep(){try{sessionStorage.setItem("ta-pend",JSON.stringify({r:GS.round.r,p:{top5:GS.pick.top5,pole:GS.pick.pole}}));}catch(e){}}
+function gPendTake(r){try{const j=JSON.parse(sessionStorage.getItem("ta-pend")||"null");if(j&&j.r===r)return j.p;}catch(e){}return null;}
+function gPendClear(){try{sessionStorage.removeItem("ta-pend");}catch(e){}}
+function gAfterReady(){if(GS.pend&&curKey()==="game-picks"&&GS.pick){GS.pend=0;GS.ask=0;gSave();}}
+function gErr(e){const c=(e&&e.code)||"";return ({"auth/popup-closed-by-user":"Sign-in was cancelled.","auth/cancelled-popup-request":"Sign-in was cancelled.","auth/invalid-email":"That email address doesn't look right.",
+  "auth/invalid-credential":"Wrong email or password.","auth/wrong-password":"Wrong email or password.","auth/user-not-found":"Wrong email or password.","auth/invalid-login-credentials":"Wrong email or password.",
+  "auth/email-already-in-use":"There is already an account with that email. Sign in instead, or reset the password.","auth/weak-password":"Choose a longer password: at least 8 characters.",
+  "auth/missing-password":"Enter your password.","auth/too-many-requests":"Too many attempts. Wait a few minutes and try again.","auth/network-request-failed":"No connection. Check your internet and try again.",
+  "auth/operation-not-allowed":"That sign-in option isn't switched on yet.","auth/user-disabled":"This account has been disabled.",
   "permission-denied":"Not allowed. If the picks deadline has passed, picks can no longer be changed.","auth/requires-recent-login":"For your safety, sign in again and then repeat this.","auth/unauthorized-domain":"Sign-in is not enabled on this address."})[c]||("Something went wrong"+(c?` (${c})`:"")+". Please try again.");}
 const gKeys=["game","game-picks","game-lb","game-leagues","game-account"];
 function gRerender(){const k=curKey();if(gKeys.includes(k))gameRoute(k,true);}
@@ -1605,19 +1622,26 @@ function gTick(){clearInterval(GS.tick);GS.tick=setInterval(()=>{document.queryS
 const gTabs=k=>`<nav class="gtabs" aria-label="Predictor">${[["game","How it works"],["game-picks","My picks"],["game-lb","Leaderboard"],["game-leagues","Leagues"],["game-account","Account"]].map(([x,n])=>`<a href="${H(x)}" data-go="${x}" ${x===k?'aria-current="page"':""}>${n}</a>`).join("")}</nav>`;
 function gHead(k,title,sub){return `<div class="game"><div class="ghero"><span class="lbl">Track Almanac Predictor · free to play</span><h1 class="gtitle">${title}</h1>${sub?`<p class="gsub">${sub}</p>`:""}${gTabs(k)}</div>`;}
 function gSignin(why){if(!gameOn())return `<div class="gcard gwarn"><b>The Predictor is being set up.</b><p>Sign-in opens soon. The rules are below.</p></div>`;
-  if(GS.user===undefined)return `<div class="gcard"><p>Loading…</p></div>`;
-  return `<div class="gcard gsign"><h3>Sign in to play</h3><p>${why||"Your picks and scores are saved to your account."} Free, no prizes, no money.</p>
-    <button class="gbtn gpri" data-gsign="google"><span aria-hidden="true">G</span> Continue with Google</button>
-    <form class="gmail" data-gform="email"><label><span class="lbl">Or get a sign-in link by email</span><input type="email" name="email" required placeholder="you@example.com" autocomplete="email"></label><button class="gbtn" type="submit">Email me a link</button></form>
-    ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}<p class="note2">By signing in you agree to the game rules and the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>.</p></div>`;}
+  if(GS.user===undefined&&GS.fb)return `<div class="gcard"><p>Loading…</p></div>`;
+  const up=GS.amode==="up";
+  return `<div class="gcard gsign" id="gsign"><h3>${why||"Sign in to play"}</h3><p>Free, no prizes, no money.</p>
+    <div class="gsopts"><button class="gbtn gpri" data-gsign="google"><span aria-hidden="true">G</span> Continue with Google</button>
+    <button class="gbtn" data-gsign="guest">Play as a guest</button></div>
+    <p class="note2">Guest: pick a nickname and play straight away. Guest picks are kept on this device only; you can save the account later.</p>
+    <form class="gmail" data-gform="${up?"emailup":"emailin"}"><span class="lbl">${up?"Create an account with email":"Or sign in with email"}</span>
+      <label><span class="lbl">Email</span><input type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="${esc(GS.email||"")}"></label>
+      <label><span class="lbl">Password</span><input type="password" name="password" required minlength="${up?8:1}" autocomplete="${up?"new-password":"current-password"}"></label>
+      <div class="gacts"><button class="gbtn" type="submit">${up?"Create account":"Sign in"}</button>
+      ${up?`<button class="gbtn gghost" type="button" data-gmode="in">I have an account</button>`:`<button class="gbtn gghost" type="button" data-gmode="up">Create an account</button><button class="gbtn gghost" type="button" data-gforgot>Forgot password?</button>`}</div></form>
+    ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}<p class="note2">By continuing you agree to the game rules and the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>.</p></div>`;}
 const GCC="AE AR AT AU AZ BE BH BR CA CH CL CN CO CZ DE DK EG ES FI FR GB GR HK HU ID IE IL IN IT JP KR KW KZ LB LU MA MC MX MY NG NL NO NZ OM PE PH PK PL PT QA RO RS RU SA SE SG SI SK TH TR TW UA US UY VN ZA".split(" ");
-function gProfileForm(p){const dn=(()=>{try{return new Intl.DisplayNames([navigator.language||"en"],{type:"region"});}catch(e){return null;}})();
-  return `<form class="gcard gprof" data-gform="${p?"rename":"profile"}"><h3>${p?"Your display name":"Choose your display name"}</h3>
-   <p>Shown on leaderboards and in leagues. 3 to 20 letters, numbers, spaces, dots, dashes or underscores. No email addresses or links.</p>
-   <label><span class="lbl">Display name</span><input name="name" required minlength="3" maxlength="20" pattern="[A-Za-z0-9 _.\\-]{3,20}" value="${esc(p?p.displayName:"")}" autocomplete="nickname"></label>
+function gProfileForm(p){const dn=(()=>{try{return new Intl.DisplayNames([navigator.language||"en"],{type:"region"});}catch(e){return null;}})();const g=gIsGuest(GS.user);
+  return `${!p&&g?gGuestBox(true):""}<form class="gcard gprof" data-gform="${p?"rename":"profile"}"><h3>${p?(g?"Your nickname":"Your display name"):(g?"Choose a nickname":"Choose your display name")}</h3>
+   <p>Shown on leaderboards and in leagues${g?", with a small Guest tag":""}. 3 to 20 letters, numbers, spaces, dots, dashes or underscores. No email addresses or links.</p>
+   <label><span class="lbl">${g?"Nickname":"Display name"}</span><input name="name" required minlength="3" maxlength="20" pattern="[A-Za-z0-9 _.\\-]{3,20}" value="${esc(p?p.displayName:"")}" autocomplete="nickname"></label>
    <label><span class="lbl">Country (optional)</span><select name="country"><option value="">Not shown</option>${GCC.map(c=>`<option value="${c}"${p&&p.country===c?" selected":""}>${esc(dn?dn.of(c):c)}</option>`).join("")}</select></label>
    ${p?"":`<label class="gtick"><input type="checkbox" name="age" required> I am 13 or older (16 or older if I live in the EEA or the UK).</label>`}
-   <button class="gbtn gpri" type="submit">${p?"Save":"Start playing"}</button>${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}</form>`;}
+   <button class="gbtn gpri" type="submit">${p?"Save":GS.pend?"Start playing and save my picks":"Start playing"}</button>${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}</form>`;}
 const GBLOCK=["fuck","shit","cunt","bitch","nigg","fag","rape","nazi","hitler","whore","slut","porn","dick","pussy","wank","twat","retard","kys","admin","moderator","official","trackalmanac"];
 function gNameOk(n){if(!/^[A-Za-z0-9 _.\-]{3,20}$/.test(n))return "Use 3 to 20 letters, numbers, spaces, dots, dashes or underscores.";
   if(/(www|https?|\.com|\.net|\.org|\.io)/i.test(n))return "No links, please.";const low=n.toLowerCase().replace(/[^a-z0-9]/g,"");if(GBLOCK.some(w=>low.includes(w)))return "Please choose a different name.";
@@ -1629,7 +1653,7 @@ function gHow(){const R=gRounds(),nx=gNext();const last=[...R].reverse().find(x=
    <div class="gcard gnext">${nx?`<span class="lbl">Next deadline · round ${nx.r}</span><h3>${esc(nx.gp)}</h3><p>Picks lock at the start of qualifying: <b>${esc(gTime(nx.lock))}</b> <small>(your time)</small></p>
      <div class="gcd"><b data-lockcd="${nx.lock.getTime()}">${gLeft(nx.lock)}</b><span>left to pick</span></div><a class="gbtn gpri" href="${H("game-picks")}" data-go="game-picks">Make your picks</a>`
      :`<h3>The season is over</h3><p>See the final <a href="${H("game-lb")}" data-go="game-lb">leaderboard</a>.</p>`}</div>
-   <div class="gcard"><h3>How it works</h3><ol class="gsteps"><li><b>Sign in</b> with Google or an email link and choose a display name.</li><li><b>Pick</b> who finishes 1st to 5th in the Grand Prix, in order, and who takes pole. Change your mind as often as you like until qualifying starts.</li><li><b>Score</b> once the race result is official. Tables update on their own, even if the stewards change the result later.</li></ol></div>
+   <div class="gcard"><h3>How it works</h3><ol class="gsteps"><li><b>Sign in</b> with Google or email, or play as a guest straight away, and choose a display name. You only need to sign in when you save picks.</li><li><b>Pick</b> who finishes 1st to 5th in the Grand Prix, in order, and who takes pole. Change your mind as often as you like until qualifying starts.</li><li><b>Score</b> once the race result is official. Tables update on their own, even if the stewards change the result later.</li></ol></div>
    <div class="gcard"><h3>Points</h3><table class="gpts"><tbody>${["P1","P2","P3","P4","P5"].map((p,i)=>`<tr><td>${p} exactly right</td><td><b>${GPTS[i]}</b></td></tr>`).join("")}<tr><td>Pole sitter right</td><td><b>${GPOLE}</b></td></tr><tr class="gtot"><td>Perfect weekend</td><td><b>15</b></td></tr></tbody></table><p class="note2">Exact matches only: a driver in the wrong position scores nothing for that slot.</p></div>
   </div>
   <div class="gcard grules"><h3>Rules</h3><ul>
@@ -1645,20 +1669,24 @@ function gHow(){const R=gRounds(),nx=gNext();const last=[...R].reverse().find(x=
    <li>Your data: see the Predictor section of the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>. You can delete your account at any time from <a href="${H("game-account")}" data-go="game-account">Account</a>.</li></ul></div>
   <div id="glbmini" class="gcard"><h3>Season leaders</h3><p class="note2">Loading…</p></div>${last?`<p class="note2">Last scored round: ${esc(last.gp)}. <a href="${H("game-lb")}" data-go="game-lb">Full tables</a></p>`:""}</div>`;}
 function gPickRound(){const R=gRounds(),q=new URLSearchParams(location.search).get("round");const pick=q?R.find(x=>x.r===+q):null;return pick||gNext()||R[R.length-1];}
-function gPicksView(){const head=gHead("game-picks","My picks","");if(!GS.user||!GS.profile)return head+(GS.user&&GS.profile===null?gProfileForm(null):gSignin("Sign in to make your picks."))+"</div>";
+function gPicksView(){const head=gHead("game-picks","My picks","");
+  if(GS.user&&GS.profile===null)return head+gProfileForm(null)+"</div>";
   const R=gRounds(),rd=GS.round;if(!rd)return head+`<div class="gcard"><p>No rounds left this season.</p></div></div>`;
+  const ready=!!(GS.user&&GS.profile),note=ready?(gIsGuest(GS.user)?gGuestBox():gNeedsVerify(GS.user)?gVerifyBox():""):"";
   const locked=rd.lock.getTime()<=Date.now(),P=GS.pick||{top5:[null,null,null,null,null],pole:null};
   const cars=gCars(),used=new Set([...P.top5.filter(Boolean)]);
   const slot=(i,n,lab)=>{const c=n?gCar(n):null;return `<button type="button" class="gslot${GS.sel===i?" sel":""}${c?" full":""}" data-gslot="${i}" ${locked?"disabled":""} aria-label="${lab}${c?": "+esc(c.name):", empty"}" style="${c?`--tc:${tcol(c.team)}`:""}"><span class="gp">${lab}</span>${c?`<span class="gnum">${c.n}</span><b>${esc(c.last)}</b><small>${esc(c.team)}</small>`:`<em>${locked?"No pick":"Tap a driver"}</em>`}</button>`;};
   const opts=R.filter(x=>x.lock.getTime()>Date.now()||x.r===rd.r||x.done).slice(-12);
-  return `${head}<div class="gpick${locked?" locked":""}">
+  const saveLbl=GS.pick&&GS.pick._saved&&!GS.dirty?"Saved":"Save picks";
+  return `${head}${note}<div class="gpick${locked?" locked":""}">
    <div class="gcard gpickh"><div><label class="lbl" for="grsel">Grand Prix</label><select id="grsel">${opts.map(x=>`<option value="${x.r}"${x.r===rd.r?" selected":""}>R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div>
      <div class="gdl">${locked?`<b>Picks locked</b><small>Qualifying started ${esc(gTime(rd.lock))}</small>`:`<span class="lbl">Locks in</span><b data-lockcd="${rd.lock.getTime()}">${gLeft(rd.lock)}</b><small>${esc(gTime(rd.lock))} · your time</small>`}</div></div>
    <div class="gslots" role="group" aria-label="Your picks">${P.top5.map((n,i)=>slot(i,n,"P"+(i+1))).join("")}<span class="gsep"></span>${slot(5,P.pole,"Pole")}</div>
-   ${locked?`<div class="gcard" id="gmyscore"><p class="note2">${GS.pick?"":"You didn't make picks for this round, so it scores 0."}</p></div>`:`
-   <div class="gacts"><button class="gbtn gpri" data-gsave ${GS.dirty?"":"disabled"}>${GS.pick&&GS.pick._saved&&!GS.dirty?"Saved":"Save picks"}</button><button class="gbtn" data-gcopy>Copy my last picks</button><button class="gbtn gghost" data-gclear>Clear</button>
-     <span class="gmsg" role="status">${esc(GS.msg||(GS.pick&&GS.pick._saved?"Saved "+(GS.pick._savedAt||""):""))}</span></div>
-   <p class="note2 ghint">${GS.sel===5?"Now choose the pole sitter.":`Choose your P${GS.sel+1}.`} Tap a driver, or drag one onto a slot. Tap a filled slot to select it, tap again to clear it.</p>
+   ${locked?`<div class="gcard" id="gmyscore"><p class="note2">${!ready?"Sign in to see your picks and score for this round.":GS.pick?"":"You didn't make picks for this round, so it scores 0."}</p></div>`:`
+   <div class="gacts"><button class="gbtn gpri" data-gsave ${GS.dirty?"":"disabled"}>${saveLbl}</button>${ready?`<button class="gbtn" data-gcopy>Copy my last picks</button>`:""}<button class="gbtn gghost" data-gclear>Clear</button>
+     <span class="gmsg" role="status">${esc(GS.ask?"":GS.msg||(GS.pick&&GS.pick._saved?"Saved "+(GS.pick._savedAt||""):""))}</span></div>
+   ${!ready&&GS.ask?gSignin("Sign in, or play as a guest, to save these picks"):""}
+   <p class="note2 ghint">${GS.sel===5?"Now choose the pole sitter.":`Choose your P${GS.sel+1}.`} Tap a driver, or drag one onto a slot. Tap a filled slot to select it, tap again to clear it.${ready?"":" You can make your picks now and sign in when you save them."}</p>
    <div class="gdrivers" role="list">${cars.map(c=>`<button type="button" class="gdrv${used.has(c.n)?" used":""}${P.pole===c.n?" ispole":""}" role="listitem" data-gcar="${c.n}" style="--tc:${tcol(c.team)}"><span class="gnum">${c.n}</span><b>${esc(c.last)}</b><small>${esc(c.team)}</small>${used.has(c.n)?`<i class="gin">P${P.top5.indexOf(c.n)+1}</i>`:""}${P.pole===c.n?`<i class="gpl">Pole</i>`:""}</button>`).join("")}</div>`}
   </div></div>`;}
 function gLbView(){return `${gHead("game-lb","Leaderboard","Season standings and every race. Tables update after each Grand Prix.")}<div class="gcard"><div class="glbsel"><label class="lbl" for="glbr">Table</label><select id="glbr"><option value="">Season ${GAMECFG.season||2026}</option>${gRounds().filter(x=>x.done).reverse().map(x=>`<option value="${x.r}">R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div><div id="glbt"><p class="note2">Loading…</p></div></div>
@@ -1669,28 +1697,38 @@ function gLeaguesView(){const head=gHead("game-leagues","Leagues","Play against 
    <form class="gcard" data-gform="ljoin"><h3>Join a league</h3><label><span class="lbl">Join code (8 characters)</span><input name="code" required minlength="8" maxlength="8" autocapitalize="characters" autocomplete="off" spellcheck="false" style="text-transform:uppercase"></label><button class="gbtn gpri" type="submit">Join</button></form></div>
    ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}<div id="gleagues"><p class="note2">Loading your leagues…</p></div></div>`;}
 function gAccountView(){const head=gHead("game-account","Account","");if(!GS.user)return head+gSignin()+"</div>";if(GS.profile===null)return head+gProfileForm(null)+"</div>";if(!GS.profile)return head+`<div class="gcard"><p>Loading…</p></div></div>`;
-  return `${head}<div class="ggrid">${gProfileForm(GS.profile)}<div class="gcard"><h3>Signed in</h3><p>${esc(GS.user.email||"")}</p><button class="gbtn" data-gout>Sign out</button></div>
-   <form class="gcard gdanger" data-gform="delete"><h3>Delete account</h3><p>Removes your profile, display name, all your picks and your league memberships (leagues you own are deleted), then your sign-in. Your scores disappear from the tables at the next update. This can't be undone.</p><label><span class="lbl">Type DELETE to confirm</span><input name="confirm" required pattern="DELETE" autocomplete="off"></label><button class="gbtn gred" type="submit">Delete my account</button></form></div></div>`;}
+  const u=GS.user,g=gIsGuest(u),pw=gProv(u).includes("password");
+  const save=g?`<section class="gcard gsave" id="save"><h3>Save my account</h3><p>${GWARN}</p><p>Saving keeps your nickname, picks, points and leagues, and lets you sign in on any device.</p>
+    <div class="gsopts"><button class="gbtn gpri" data-glink="google"><span aria-hidden="true">G</span> Save with Google</button></div>
+    <form class="gmail" data-gform="linkemail"><span class="lbl">Or save with email and a password</span><label><span class="lbl">Email</span><input type="email" name="email" required autocomplete="email"></label>
+      <label><span class="lbl">Password (8 characters or more)</span><input type="password" name="password" required minlength="8" autocomplete="new-password"></label><button class="gbtn" type="submit">Save with email</button></form>
+    ${GS.linkMsg?`<div class="gmsg gwarnmsg" role="alert"><p>${esc(GS.linkMsg)}</p><button class="gbtn gsm gred" data-gswitch="${GS.linkAlt}">Delete this guest account and switch</button></div>`:""}</section>`:"";
+  return `${head}${g?"":gNeedsVerify(u)?gVerifyBox():""}<div class="ggrid">${save}${gProfileForm(GS.profile)}<div class="gcard"><h3>Signed in</h3><p>${g?"As a guest (this device only)":esc(u.email||"")}${gProv(u).includes("google.com")?" · Google":pw?" · email and password":""}</p><button class="gbtn" data-gout>Sign out</button>${g?`<p class="note2">Signing out of a guest account loses it for good. Save it first.</p>`:""}</div>
+   <form class="gcard gdanger" data-gform="delete"><h3>Delete my account</h3><p>Removes your profile, display name, all your picks and your league memberships (leagues you own are deleted), then your sign-in. Your scores disappear from the tables at the next update. This can't be undone.</p>
+   ${pw&&!g?`<label><span class="lbl">Your password</span><input type="password" name="password" required autocomplete="current-password"></label>`:""}<label><span class="lbl">Type DELETE to confirm</span><input name="confirm" required pattern="DELETE" autocomplete="off"></label><button class="gbtn gred" type="submit">Delete my account</button></form></div>
+   ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}</div>`;}
 /* ---- route ---- */
 function gameRoute(k,re){clearInterval(GS.tick);
-  if(!re){GS.msg="";if(k==="game-picks"){GS.round=gPickRound();GS.pick=null;GS.sel=0;GS.dirty=false;}}
+  if(!re){GS.msg="";GS.linkMsg="";if(k==="game-picks"){GS.round=gPickRound();GS.pick=null;GS.sel=0;GS.dirty=false;GS.ask=0;
+    const pp=GS.round&&gPendTake(GS.round.r);if(pp){GS.pick=pp;GS.dirty=true;GS.pend=1;GS.sel=5;}}}
   const v={"game":gHow,"game-picks":gPicksView,"game-lb":gLbView,"game-leagues":gLeaguesView,"game-account":gAccountView}[k];
-  if(k==="game-picks"&&re&&$(".gpick")&&GS.user&&GS.profile){gPaintPicks();}else $("#app").innerHTML=v();
+  if(k==="game-picks"&&re)gPaintPicks();else $("#app").innerHTML=v();
   $("#sheetname").textContent="PREDICTOR";setNav("game");document.title=pageTitle(k);gTick();
   if(k==="game")gMini();if(k==="game-lb")gLb($("#glbr")?$("#glbr").value:"");
-  if(gameOn())gFB().then(()=>{if(k==="game-picks"&&GS.user&&GS.profile&&!GS.pick&&!GS._loadingPick)gLoadPick();if(k==="game-leagues"&&GS.user&&GS.profile)gLeagues();}).catch(()=>{});}
+  if(gameOn())gFB().then(()=>{if(k==="game-picks"&&GS.user&&GS.profile){if(GS.pend)gAfterReady();else if(!GS.pick&&!GS._loadingPick)gLoadPick();}if(k==="game-leagues"&&GS.user&&GS.profile)gLeagues();}).catch(()=>{});}
 function gPaintPicks(){const y=scrollY;$("#app").innerHTML=gPicksView();window.scrollTo(0,y);if(GS.round&&GS.round.lock.getTime()<=Date.now())gMyScore();}
 async function gLoadPick(){const {m,db}=GS.fb,rd=GS.round;GS._loadingPick=1;try{const s=await m.getDoc(m.doc(db,"picks",`${rd.r}_${GS.user.uid}`));
   GS.pick=s.exists()?Object.assign({},s.data(),{_saved:1}):null;GS.sel=GS.pick?5:0;}catch(e){GS.pick=null;}GS._loadingPick=0;if(curKey()==="game-picks")gPaintPicks();}
 async function gMyScore(){const el=$("#gmyscore");if(!el||!GS.fb||!GS.user)return;const {m,db}=GS.fb;try{const s=await m.getDoc(m.doc(db,"scores",`${GS.round.r}_${GS.user.uid}`));
-  if(s.exists()){const d=s.data();el.innerHTML=`<div class="gscore"><b>${d.points}</b><span>points · P${d.pos} of the round</span></div><p class="note2">Exact positions: ${d.exact} of 5 · pole ${d.pole?"right":"wrong"}.</p>`;}
+  if(s.exists()){const d=s.data();el.innerHTML=`<div class="gscore"><b>${d.points}</b><span>points · ${d.pos?`P${d.pos} of the round`:"confirm your email address to appear on the leaderboard"}</span></div><p class="note2">Exact positions: ${d.exact} of 5 · pole ${d.pole?"right":"wrong"}.</p>`;}
   else if(GS.pick)el.innerHTML=`<p class="note2">${GS.round.done?"Scores are added at the next update.":"Your picks are locked in. Scores appear after the race."}</p>`;}catch(e){}}
 function gPlace(n){const P=GS.pick=GS.pick||{top5:[null,null,null,null,null],pole:null};if(GS.sel===5){P.pole=P.pole===n?null:n;}
   else{const was=P.top5.indexOf(n);if(was>=0&&was!==GS.sel){P.top5[was]=P.top5[GS.sel];}P.top5[GS.sel]=n;const nx=P.top5.findIndex(x=>!x);GS.sel=nx>=0?nx:(P.pole?GS.sel:5);}
   GS.dirty=true;GS.msg="";gPaintPicks();}
 async function gSave(){const P=GS.pick,rd=GS.round;if(!P||P.top5.some(x=>!x)||!P.pole){GS.msg="Fill all five places and the pole sitter first.";return gPaintPicks();}
+  if(!GS.user||!GS.profile){GS.pend=1;GS.ask=1;gPendKeep();if(gameOn())gFB().catch(()=>{});gPaintPicks();const s=$("#gsign");if(s)s.scrollIntoView({block:"nearest",behavior:"smooth"});return;}
   const {m,db}=GS.fb;try{await m.setDoc(m.doc(db,"picks",`${rd.r}_${GS.user.uid}`),{uid:GS.user.uid,round:rd.r,top5:P.top5.map(Number),pole:Number(P.pole),updatedAt:m.serverTimestamp()});
-    P._saved=1;P._savedAt=new Date().toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:CLOCK==="12"});GS.dirty=false;GS.msg="";}catch(e){GS.msg=gErr(e);}gPaintPicks();}
+    P._saved=1;P._savedAt=new Date().toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:CLOCK==="12"});GS.dirty=false;GS.msg="";GS.pend=0;gPendClear();}catch(e){GS.msg=gErr(e);}gPaintPicks();}
 async function gCopy(){const {m,db}=GS.fb;try{const q=await m.getDocs(m.query(m.collection(db,"picks"),m.where("uid","==",GS.user.uid)));
   const L=q.docs.map(d=>d.data()).filter(d=>d.round!==GS.round.r).sort((a,b)=>b.round-a.round);if(!L.length){GS.msg="You have no earlier picks to copy.";return gPaintPicks();}
   const allowed=new Set(gCars().map(c=>c.n));const src=L[0];GS.pick={top5:src.top5.map(n=>allowed.has(n)?n:null),pole:allowed.has(src.pole)?src.pole:null};GS.dirty=true;GS.sel=Math.max(0,GS.pick.top5.findIndex(x=>!x));if(GS.sel<0||GS.pick.top5.every(Boolean))GS.sel=GS.pick.pole?0:5;GS.msg=`Copied from round ${src.round}. Remember to save.`;}catch(e){GS.msg=gErr(e);}gPaintPicks();}
@@ -1715,7 +1753,7 @@ gDragInit();
 async function gJSON(u){const r=await fetch(u,{cache:"no-cache"});if(!r.ok)throw new Error(r.status);return r.json();}
 function gTable(rows,round){if(!rows.length)return `<p class="note2">No scores yet.</p>`;const me=GS.profile&&GS.profile.displayName;
   return `<div class="tw"><table class="t gtab"><thead><tr><th class="n">Pos</th><th>Player</th><th class="n">Pts</th><th class="n" title="Correct winners">Wins</th><th class="n" title="Exact positions">Exact</th>${round?`<th class="n">Pole</th>`:`<th class="n">Races</th>`}<th></th></tr></thead><tbody>
-   ${rows.map(r=>`<tr${me&&r.name===me?' class="gme"':""}><td class="n">${r.pos}</td><td><b>${esc(r.name)}</b></td><td class="n"><b>${r.points}</b></td><td class="n">${r.winners}</td><td class="n">${r.exact}</td><td class="n">${round?(r.pole?"✓":"–"):r.races}</td><td><a class="grep" href="mailto:${esc(SITE.email)}?subject=${encodeURIComponent("Report Predictor name: "+r.name)}" title="Report this name" aria-label="Report the name ${esc(r.name)}">⚑</a></td></tr>`).join("")}</tbody></table></div>`;}
+   ${rows.map(r=>`<tr${me&&r.name===me?' class="gme"':""}><td class="n">${r.pos}</td><td><b>${esc(r.name)}</b>${r.guest?' <small class="gguesttag">Guest</small>':""}</td><td class="n"><b>${r.points}</b></td><td class="n">${r.winners}</td><td class="n">${r.exact}</td><td class="n">${round?(r.pole?"✓":"–"):r.races}</td><td><a class="grep" href="mailto:${esc(SITE.email)}?subject=${encodeURIComponent("Report Predictor name: "+r.name)}" title="Report this name" aria-label="Report the name ${esc(r.name)}">⚑</a></td></tr>`).join("")}</tbody></table></div>`;}
 async function gLb(r){const box=$("#glbt");if(!box)return;try{if(!r){const j=GS.lb||(GS.lb=await gJSON(`/data/game/leaderboard-${GAMECFG.season||2026}.json`));box.innerHTML=`<p class="note2">${j.players} players · ${j.rounds.length} race${j.rounds.length===1?"":"s"} scored · top 100</p>`+gTable(j.top,false);}
   else{const j=GS.lbr[r]||(GS.lbr[r]=await gJSON(`/data/game/round-${r}.json`));const o=j.official;box.innerHTML=`<p class="note2">Official result: ${o.top5.map((n,i)=>`P${i+1} ${esc(gCar(n).last)}`).join(" · ")} · pole ${esc(gCar(o.pole).last)} · ${j.players} players</p>`+gTable(j.top,true);}}
   catch(e){box.innerHTML=`<p class="note2">No scores yet. Tables appear after the first scored Grand Prix.</p>`;}}
@@ -1729,16 +1767,41 @@ async function gLeagues(){const el=$("#gleagues");if(!el)return;const {m,db}=GS.
     <div class="gacts">${L.ownerUid===GS.user.uid?`<button class="gbtn gsm" data-glrename="${L.id}">Rename</button><button class="gbtn gsm gred" data-gldel="${L.id}">Delete league</button>`:`<button class="gbtn gsm" data-glleave="${L.id}">Leave</button>`}</div></section>`).join("");
   GS.leagues.forEach(gLeagueTable);}catch(e){el.innerHTML=`<p class="gmsg">${esc(gErr(e))}</p>`;}}
 async function gLeagueTable(L){const box=document.querySelector(`[data-glg="${L.id}"] .glgt`);if(!box)return;const {m,db}=GS.fb;try{
-  const names={};await Promise.all(L.members.map(async u=>{try{const s=await m.getDoc(m.doc(db,"pub",u));names[u]=s.exists()?s.data().name:"(left)";}catch(e){names[u]="—";}}));
+  const names={},guest={};await Promise.all(L.members.map(async u=>{try{const s=await m.getDoc(m.doc(db,"pub",u));names[u]=s.exists()?s.data().name:"(left)";guest[u]=s.exists()&&!!s.data().guest;}catch(e){names[u]="—";}}));
   const T={};L.members.forEach(u=>T[u]={uid:u,name:names[u],points:0,winners:0,exact:0,races:0,lead:0});
   for(let i=0;i<L.members.length;i+=30){const q=await m.getDocs(m.query(m.collection(db,"scores"),m.where("uid","in",L.members.slice(i,i+30))));q.docs.forEach(d=>{const s=d.data(),t=T[s.uid];if(!t)return;t.points+=s.points;t.winners+=s.winners;t.exact+=s.exact;t.races++;t.lead+=s.lead||0;});}
   const rows=Object.values(T).map(t=>Object.assign(t,{lead:t.races?t.lead/t.races:0})).sort((a,b)=>b.points-a.points||b.winners-a.winners||b.exact-a.exact||b.lead-a.lead||a.name.localeCompare(b.name));
   let pos=0,prev=null;rows.forEach((r,i)=>{const k=[r.points,r.winners,r.exact,r.lead].join();if(k!==prev){pos=i+1;prev=k;}r.pos=pos;});
   const own=L.ownerUid===GS.user.uid;
-  box.innerHTML=`<div class="tw"><table class="t gtab"><thead><tr><th class="n">Pos</th><th>Player</th><th class="n">Pts</th><th class="n">Wins</th><th class="n">Exact</th><th class="n">Races</th>${own?"<th></th>":""}</tr></thead><tbody>${rows.map(r=>`<tr${r.uid===GS.user.uid?' class="gme"':""}><td class="n">${r.pos}</td><td><b>${esc(r.name)}</b>${r.uid===L.ownerUid?' <small class="lbl">owner</small>':""}</td><td class="n"><b>${r.points}</b></td><td class="n">${r.winners}</td><td class="n">${r.exact}</td><td class="n">${r.races}</td>${own?`<td>${r.uid!==L.ownerUid?`<button class="gbtn gsm" data-glkick="${L.id}|${r.uid}">Remove</button>`:""}</td>`:""}</tr>`).join("")}</tbody></table></div>`;}catch(e){box.innerHTML=`<p class="gmsg">${esc(gErr(e))}</p>`;}}
+  box.innerHTML=`<div class="tw"><table class="t gtab"><thead><tr><th class="n">Pos</th><th>Player</th><th class="n">Pts</th><th class="n">Wins</th><th class="n">Exact</th><th class="n">Races</th>${own?"<th></th>":""}</tr></thead><tbody>${rows.map(r=>`<tr${r.uid===GS.user.uid?' class="gme"':""}><td class="n">${r.pos}</td><td><b>${esc(r.name)}</b>${guest[r.uid]?' <small class="gguesttag">Guest</small>':""}${r.uid===L.ownerUid?' <small class="lbl">owner</small>':""}</td><td class="n"><b>${r.points}</b></td><td class="n">${r.winners}</td><td class="n">${r.exact}</td><td class="n">${r.races}</td>${own?`<td>${r.uid!==L.ownerUid?`<button class="gbtn gsm" data-glkick="${L.id}|${r.uid}">Remove</button>`:""}</td>`:""}</tr>`).join("")}</tbody></table></div>`;}catch(e){box.innerHTML=`<p class="gmsg">${esc(gErr(e))}</p>`;}}
 /* ---- actions ---- */
 async function gSignGoogle(){const {m,auth}=await gFB();try{await m.signInWithPopup(auth,new m.GoogleAuthProvider());}catch(e){if(e&&e.code==="auth/popup-blocked"){return m.signInWithRedirect(auth,new m.GoogleAuthProvider());}GS.msg=gErr(e);gRerender();}}
-async function gSignEmail(email){const {m,auth}=await gFB();try{await m.sendSignInLinkToEmail(auth,email,{url:location.origin+location.pathname,handleCodeInApp:true});try{localStorage.setItem("ta-signin-email",email);}catch(e){}GS.msg=`Check ${email} for a sign-in link. You can close this page.`;}catch(e){GS.msg=gErr(e);}gRerender();}
+async function gSignGuest(){const {m,auth}=await gFB();try{await m.signInAnonymously(auth);GS.msg="";}catch(e){GS.msg=gErr(e);gRerender();}}
+async function gEmail(f,up){const email=f.email.value.trim(),pw=f.password.value;GS.email=email;const {m,auth}=await gFB();GS.msg="";
+  try{if(up){const c=await m.createUserWithEmailAndPassword(auth,email,pw);try{await m.sendEmailVerification(c.user);}catch(e){}GS.msg="Account created. We've emailed you a link: confirm your address to appear on the leaderboard.";}
+    else await m.signInWithEmailAndPassword(auth,email,pw);}catch(e){GS.msg=gErr(e);}gRerender();}
+async function gForgot(){const i=document.querySelector("#gsign input[name=email]"),email=(i&&i.value.trim())||GS.email||"";GS.email=email;if(!email){GS.msg="Type your email address above, then choose Forgot password.";return gRerender();}
+  const {m,auth}=await gFB();try{await m.sendPasswordResetEmail(auth,email);GS.msg=`If there is an account for ${email}, we've sent it a link to reset the password.`;}catch(e){GS.msg=gErr(e);}gRerender();}
+async function gPubSync(){const {m,db}=GS.fb,u=GS.fb.auth.currentUser;if(!u||!GS.profile)return;await u.getIdToken(true);await m.setDoc(m.doc(db,"pub",u.uid),{name:GS.profile.displayName,guest:gIsGuest(u)});}
+/* "Save my account": link the guest to Google or email + password, so the same account (picks, points, leagues) carries on */
+async function gLink(kind,f){const {m,auth}=GS.fb,u=auth.currentUser;GS.msg="";GS.linkMsg="";GS.linkAlt=null;const email=f?f.email.value.trim():"",pw=f?f.password.value:"";
+  try{if(kind==="google")await m.linkWithPopup(u,new m.GoogleAuthProvider());else await m.linkWithCredential(u,m.EmailAuthProvider.credential(email,pw));
+    GS.user=auth.currentUser;await gPubSync();
+    if(kind==="email"){try{await m.sendEmailVerification(auth.currentUser);}catch(e){}GS.msg="Account saved. We've emailed you a link: confirm your address to appear on the leaderboard. Sign in with your email and password on any device.";}
+    else GS.msg="Account saved. Sign in with Google on any device to carry on.";}
+  catch(e){const c=(e&&e.code)||"";
+    if(["auth/credential-already-in-use","auth/email-already-in-use","auth/account-exists-with-different-credential","auth/provider-already-linked"].includes(c)){
+      const what=kind==="google"?"That Google account":"That email address";
+      GS.linkMsg=`${what} already belongs to another Track Almanac account, so nothing has been merged. Your guest picks are still here. You can save this guest account with a different ${kind==="google"?"Google account, or with email":"email address, or with Google"} instead. Or switch to the existing account: that deletes this guest account and its picks, and the existing account keeps its own.`;GS.linkAlt=kind;}
+    else GS.msg=gErr(e);}
+  gRerender();}
+async function gWipe(u){const {m,db}=GS.fb;
+  const picks=await m.getDocs(m.query(m.collection(db,"picks"),m.where("uid","==",u.uid)));for(const d of picks.docs)await m.deleteDoc(d.ref);
+  const lg=await m.getDocs(m.query(m.collection(db,"leagues"),m.where("members","array-contains",u.uid)));
+  for(const d of lg.docs){if(d.data().ownerUid===u.uid)await m.deleteDoc(d.ref);else await m.updateDoc(d.ref,{members:m.arrayRemove(u.uid)});}
+  const b=m.writeBatch(db);if(GS.profile&&GS.profile.displayName)b.delete(m.doc(db,"names",GS.profile.displayName.toLowerCase()));b.delete(m.doc(db,"pub",u.uid));b.delete(m.doc(db,"users",u.uid));await b.commit();}
+async function gSwitch(kind){if(!confirm("Delete this guest account and its picks, and switch to your existing account?"))return;const {m,auth}=GS.fb,u=auth.currentUser;
+  try{await gWipe(u);try{await m.deleteUser(u);}catch(e){await m.signOut(auth);}GS.linkMsg="";GS.amode="in";GS.msg="Guest account deleted. Sign in to your existing account.";if(kind==="google")await gSignGoogle();else gRerender();}catch(e){GS.msg=gErr(e);gRerender();}}
 async function gSaveProfile(f,isNew){const {m,db}=GS.fb,u=GS.user,name=f.name.value.trim(),country=f.country.value;const bad=gNameOk(name);if(bad){GS.msg=bad;return gRerender();}
   if(isNew&&!f.age.checked){GS.msg="Please confirm your age.";return gRerender();}
   try{const low=name.toLowerCase(),old=GS.profile&&GS.profile.displayName,taken=await m.getDoc(m.doc(db,"names",low));
@@ -1747,17 +1810,22 @@ async function gSaveProfile(f,isNew){const {m,db}=GS.fb,u=GS.user,name=f.name.va
     if(old&&old.toLowerCase()!==low)b.delete(m.doc(db,"names",old.toLowerCase()));
     const prof=isNew?{displayName:name,createdAt:m.serverTimestamp(),ageOk:true}:{displayName:name};if(country)prof.country=country;
     if(isNew)b.set(m.doc(db,"users",u.uid),prof);else b.update(m.doc(db,"users",u.uid),Object.assign({country:country||""},prof));
-    b.set(m.doc(db,"pub",u.uid),{name});await b.commit();const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.data();GS.msg=isNew?"":"Saved.";}catch(e){GS.msg=gErr(e);}gRerender();}
-async function gDelete(){const {m,db,auth}=GS.fb,u=GS.user;GS.msg="Deleting…";gRerender();try{
-  const picks=await m.getDocs(m.query(m.collection(db,"picks"),m.where("uid","==",u.uid)));for(const d of picks.docs)await m.deleteDoc(d.ref);
-  const lg=await m.getDocs(m.query(m.collection(db,"leagues"),m.where("members","array-contains",u.uid)));
-  for(const d of lg.docs){if(d.data().ownerUid===u.uid)await m.deleteDoc(d.ref);else await m.updateDoc(d.ref,{members:m.arrayRemove(u.uid)});}
-  const b=m.writeBatch(db);if(GS.profile&&GS.profile.displayName)b.delete(m.doc(db,"names",GS.profile.displayName.toLowerCase()));b.delete(m.doc(db,"pub",u.uid));b.delete(m.doc(db,"users",u.uid));await b.commit();
-  try{await m.deleteUser(u);}catch(e){if(e.code==="auth/requires-recent-login"){const pid=(u.providerData[0]||{}).providerId;if(pid==="google.com"){await m.reauthenticateWithPopup(u,new m.GoogleAuthProvider());await m.deleteUser(u);}else{await m.signOut(auth);GS.msg="Your game data is deleted. To remove your sign-in too, sign in again with an email link and delete the account once more.";return gRerender();}}else throw e;}
-  GS.msg="Your account and game data are deleted.";go("game");}catch(e){GS.msg=gErr(e);gRerender();}}
+    b.set(m.doc(db,"pub",u.uid),{name,guest:gIsGuest(u)});await b.commit();const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.data();GS.msg=isNew&&!gNeedsVerify(u)?"":isNew?GS.msg:"Saved.";}catch(e){GS.msg=gErr(e);}
+  gRerender();if(isNew&&GS.profile)gAfterReady();}
+async function gDelete(f){const {m,auth}=GS.fb,u=auth.currentUser,pv=gProv(u),pw=f.password?f.password.value:"";
+  try{/* confirm who it is first (while the click still counts as the user's action, so a Google window may open) */
+    if(!u.isAnonymous&&pv.includes("password")&&pw)await m.reauthenticateWithCredential(u,m.EmailAuthProvider.credential(u.email,pw));
+    else if(!u.isAnonymous&&pv.includes("google.com")&&Date.now()-Date.parse(u.metadata&&u.metadata.lastSignInTime||0)>240e3)await m.reauthenticateWithPopup(u,new m.GoogleAuthProvider());
+    GS.msg="Deleting…";gRerender();await gWipe(u);
+    try{await m.deleteUser(u);}catch(e){if(e.code==="auth/requires-recent-login"){await m.signOut(auth);GS.msg="Your game data is deleted. Your sign-in couldn't be removed this time: sign in again and delete the account once more.";return go("game");}throw e;}
+    gPendClear();GS.msg="Your account and game data are deleted.";go("game");}catch(e){GS.msg=gErr(e);gRerender();}}
+async function gVerifyAgain(){const {m,auth}=GS.fb;try{await m.sendEmailVerification(auth.currentUser);GS.msg="Sent. Check your inbox (and the spam folder).";}catch(e){GS.msg=gErr(e);}gRerender();}
+async function gVerifyCheck(){const {m,auth}=GS.fb;try{await m.reload(auth.currentUser);await auth.currentUser.getIdToken(true);GS.user=auth.currentUser;
+  GS.msg=GS.user.emailVerified?"Thanks, your email address is confirmed. You'll appear on the leaderboard from the next table update.":"Not confirmed yet. Open the link in the email first, then try again.";}catch(e){GS.msg=gErr(e);}gRerender();}
 document.addEventListener("submit",e=>{const f=e.target.closest("form[data-gform]");if(!f)return;e.preventDefault();const k=f.dataset.gform;
-  if(k==="email")return gSignEmail(f.email.value.trim());if(!GS.fb)return;
-  if(k==="profile")return gSaveProfile(f,true);if(k==="rename")return gSaveProfile(f,false);if(k==="delete")return f.confirm.value==="DELETE"&&gDelete();
+  if(k==="emailin"||k==="emailup")return gEmail(f,k==="emailup");if(!GS.fb)return;
+  if(k==="profile")return gSaveProfile(f,true);if(k==="rename")return gSaveProfile(f,false);if(k==="delete")return f.confirm.value==="DELETE"&&gDelete(f);
+  if(k==="linkemail")return gLink("email",f);
   const {m,db}=GS.fb;
   if(k==="lcreate"){const name=f.name.value.trim(),bad=gNameOk(name);if(bad){GS.msg=bad;return gRerender();}
     (async()=>{for(let i=0;i<4;i++){const code=gCodeNew();try{await m.setDoc(m.doc(db,"leagues",code),{name,ownerUid:GS.user.uid,joinCode:code,members:[GS.user.uid],createdAt:m.serverTimestamp()});GS.msg=`League created. Share the code ${code} with your friends.`;break;}catch(e){if(i===3)GS.msg=gErr(e);}}gRerender();})();}
@@ -1766,8 +1834,14 @@ document.addEventListener("submit",e=>{const f=e.target.closest("form[data-gform
 document.addEventListener("change",e=>{if(e.target.id==="grsel"){const r=gRounds().find(x=>x.r===+e.target.value);GS.round=r;GS.pick=null;GS.sel=0;GS.dirty=false;GS.msg="";history.replaceState(null,"",PATHMODE?keyToPath("game-picks")+"?round="+r.r:location.hash);gPaintPicks();if(GS.fb&&GS.user)gLoadPick();}
   if(e.target.id==="glbr")gLb(e.target.value);});
 function gClick(e){if(!$(".game"))return false;
-  const gs=e.target.closest("[data-gsign]");if(gs){gSignGoogle();return true;}
-  if(e.target.closest("[data-gout]")){GS.fb&&GS.fb.m.signOut(GS.fb.auth);return true;}
+  const gs=e.target.closest("[data-gsign]");if(gs){if(gs.dataset.gsign==="guest")gSignGuest();else gSignGoogle();return true;}
+  const gm=e.target.closest("[data-gmode]");if(gm){GS.amode=gm.dataset.gmode;GS.msg="";gRerender();return true;}
+  if(e.target.closest("[data-gforgot]")){gForgot();return true;}
+  if(e.target.closest("[data-gout]")){if(GS.fb&&(!gIsGuest(GS.user)||confirm("You're playing as a guest. If you sign out, this guest account and its picks can't be recovered. Sign out anyway?")))GS.fb.m.signOut(GS.fb.auth);return true;}
+  if(e.target.closest("[data-glink]")&&GS.fb){gLink("google");return true;}
+  const sw=e.target.closest("[data-gswitch]");if(sw&&GS.fb){gSwitch(sw.dataset.gswitch);return true;}
+  if(e.target.closest("[data-gverify]")&&GS.fb){gVerifyAgain();return true;}
+  if(e.target.closest("[data-greload]")&&GS.fb){gVerifyCheck();return true;}
   const sl=e.target.closest("[data-gslot]");if(sl&&!sl.disabled){if(GS._nodrop&&Date.now()-GS._nodrop<350)return true;const i=+sl.dataset.gslot,P=GS.pick;
     if(GS.sel===i&&P&&(i===5?P.pole:P.top5[i])){if(i===5)P.pole=null;else P.top5[i]=null;GS.dirty=true;}GS.sel=i;gPaintPicks();return true;}
   const dc=e.target.closest("[data-gcar]");if(dc){if(GS._nodrop&&Date.now()-GS._nodrop<350)return true;gPlace(+dc.dataset.gcar);return true;}

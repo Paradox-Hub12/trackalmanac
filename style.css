@@ -285,6 +285,10 @@ body.gdragging{cursor:grabbing;user-select:none}
 .gscore{display:flex;align-items:baseline;gap:10px}.gscore b{font-family:var(--f-display);font-weight:900;font-size:54px;color:var(--signal);line-height:1}
 .glbsel{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;max-width:340px}
 .gtab tr.gme td{background:color-mix(in srgb,var(--signal) 12%,var(--panel))!important}
+.gguest{border-left:3px solid var(--signal)}.gguest p{margin:0 0 10px}.gguest p:last-child{margin-bottom:0}
+.gguesttag{display:inline-block;margin-left:4px;padding:1px 6px;border:1px solid var(--rule-2);border-radius:999px;font-family:var(--f-data);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);vertical-align:1px}
+.gsopts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.gwarnmsg{margin-top:12px;padding:10px 12px;border:1px solid var(--rule-2);background:var(--panel-2)}.gwarnmsg p{margin:0 0 8px}
 table.t.gtab{min-width:0}.gtab td b{white-space:normal;overflow-wrap:anywhere}
 @media (max-width:520px){.gtab th,.gtab td{padding:7px 6px}.gtab th{letter-spacing:.04em}}
 .grep{color:var(--ink-3);text-decoration:none;font-size:14px}.grep:hover{color:var(--signal)}

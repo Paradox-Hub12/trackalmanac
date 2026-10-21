@@ -52,7 +52,7 @@ def season_table(per_round):
     tot = {}
     for rnd, rows in per_round.items():
         for r in rows:
-            t = tot.setdefault(r["uid"], {"uid": r["uid"], "name": r["name"], "points": 0, "winners": 0, "exact": 0, "races": 0, "leadSum": 0})
+            t = tot.setdefault(r["uid"], {"uid": r["uid"], "name": r["name"], "guest": r.get("guest", False), "points": 0, "winners": 0, "exact": 0, "races": 0, "leadSum": 0})
             t["points"] += r["points"]; t["winners"] += r["winners"]; t["exact"] += r["exact"]; t["races"] += 1; t["leadSum"] += r["lead"]; t["name"] = r["name"]
     rows = list(tot.values())
     for t in rows: t["lead"] = round(t["leadSum"] / t["races"]) if t["races"] else 0   # average time before the lock
@@ -62,13 +62,15 @@ def season_table(per_round):
 def publish_files(D, per_round, offs):
     """The static tables (top 100), as file name -> text."""
     files = {}
+    per_round = {r: [x for x in rows if x["pos"] > 0] for r, rows in per_round.items()}        # unconfirmed email accounts: not yet
+    per_round = {r: rows for r, rows in per_round.items() if rows}
     season = season_table(per_round)
     files["leaderboard-%d.json" % G.SEASON] = {"season": G.SEASON, "players": len(season), "rounds": sorted(int(r) for r in per_round),
-        "top": [{k: r[k] for k in ("pos", "name", "points", "winners", "exact", "races")} for r in season[:100]]}
+        "top": [dict({k: r[k] for k in ("pos", "name", "points", "winners", "exact", "races")}, **({"guest": True} if r.get("guest") else {})) for r in season[:100]]}
     for rnd, rows in per_round.items():
         R = next(x for x in D["RACES"] if x["r"] == int(rnd))
         files["round-%s.json" % rnd] = {"round": int(rnd), "gp": R["gp"], "official": offs[rnd], "players": len(rows),
-            "top": [{k: r[k] for k in ("pos", "name", "points", "winners", "exact", "pole", "slots")} for r in rows[:100]]}
+            "top": [dict({k: r[k] for k in ("pos", "name", "points", "winners", "exact", "pole", "slots")}, **({"guest": True} if r.get("guest") else {})) for r in rows[:100]]}
     return {k: json.dumps(v, ensure_ascii=False, separators=(",", ":")) + "\n" for k, v in files.items()}
 
 
@@ -109,21 +111,56 @@ def score_doc(rnd, r):
             "pole": r["pole"], "slots": r["slots"], "lead": r["lead"], "pos": r["pos"]}
 
 
-_DB = None
+_APP = _DB = None
+def get_app():
+    """Firebase Admin app: the service account in production; in tests the emulators (no credentials needed)."""
+    global _APP
+    if _APP is None:
+        import firebase_admin
+        from firebase_admin import credentials
+        sa = os.environ.get("FIREBASE_SERVICE_ACCOUNT", "").strip()
+        if sa:
+            _APP = firebase_admin.initialize_app(credentials.Certificate(json.loads(sa)))
+        else:
+            from google.auth.credentials import AnonymousCredentials
+            class _Emulator(credentials.Base):
+                def get_credential(self): return AnonymousCredentials()
+            _APP = firebase_admin.initialize_app(_Emulator(), {"projectId": os.environ.get("GCLOUD_PROJECT", "demo-trackalmanac")})
+    return _APP
+
+
 def get_db(sa=None):
-    """Firestore client: the service account in production, the emulator (no credentials) in tests."""
     global _DB
     if _DB is None:
         sa = sa if sa is not None else os.environ.get("FIREBASE_SERVICE_ACCOUNT", "").strip()
         if sa:
-            import firebase_admin
-            from firebase_admin import credentials, firestore
-            _DB = firestore.client(firebase_admin.initialize_app(credentials.Certificate(json.loads(sa))))
+            from firebase_admin import firestore
+            _DB = firestore.client(get_app())
         else:
             from google.cloud import firestore as gfs
             from google.auth.credentials import AnonymousCredentials
             _DB = gfs.Client(project=os.environ.get("GCLOUD_PROJECT", "demo-trackalmanac"), credentials=AnonymousCredentials())
     return _DB
+
+
+def auth_accounts():
+    """uid -> "g" guest (anonymous sign-in), "o" ok (Google, or a confirmed email), "u" email/password not confirmed yet.
+    From Firebase Authentication, so players can't fake it."""
+    from firebase_admin import auth
+    out = {}
+    for u in auth.list_users(app=get_app()).iterate_all():
+        prov = {p.provider_id for p in (u.provider_data or [])}
+        out[u.uid] = "g" if not prov else "o" if ("google.com" in prov or u.email_verified) else "u"
+    return out
+
+
+def rank_public(rows, acct):
+    """Rank the players who may appear on the leaderboard; unconfirmed email accounts keep their score but get pos 0."""
+    ok = G.rank([r for r in rows if acct.get(r["uid"]) != "u"])
+    wait = [r for r in rows if acct.get(r["uid"]) == "u"]
+    for r in wait: r["pos"] = 0
+    for r in ok + wait: r["guest"] = acct.get(r["uid"]) == "g"
+    return ok + wait
 
 
 def run_firebase(D, now=None):
@@ -172,14 +209,16 @@ def run_firebase(D, now=None):
     # 3. display names (pub/) and bans: refreshed every few hours, after a re-score, or on a manual run
     manual = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
     at = st.get("namesAt")
-    if fresh or manual or not at or now - at > NAMES_MAX_AGE or "names" not in st:
+    if fresh or manual or not at or now - at > NAMES_MAX_AGE or "names" not in st or "acct" not in st:
         raw = {d.id: (d.to_dict() or {}).get("name", "") for d in db.collection("pub").stream()}
         banned = {d.id for d in db.collection("bans").stream()}
-        names = {u: G.public_name(u, n, banned) for u, n in raw.items()}
-        if names != st.get("names") or not at or now - at > NAMES_MAX_AGE:
-            writes.append(("system", "scorer", {"names": names, "namesAt": now}))
+        accounts = auth_accounts()
+        names = {u: G.public_name(u, n, banned) for u, n in raw.items() if u in accounts}     # no sign-in any more: account deleted
+        acct = {u: accounts[u] for u in names}
+        if names != st.get("names") or acct != st.get("acct") or not at or now - at > NAMES_MAX_AGE:
+            writes.append(("system", "scorer", {"names": names, "acct": acct, "namesAt": now}))
     else:
-        names = st["names"]
+        names, acct = st["names"], st.get("acct") or {}
 
     # 4. tables: rows for players who still have an account (pub/ doc), ranked; diff against what is stored
     per_round, offs = {}, {}
@@ -192,7 +231,8 @@ def run_firebase(D, now=None):
             _, rows = table_for_round(D, rnd, [p for p in picks if p["uid"] in names], names, set())
         else:
             h = t["resultHash"]
-            rows = G.rank([dict(r, name=names[u]) for u, r in old.items() if u in names])
+            rows = [dict(r, name=names[u]) for u, r in old.items() if u in names]
+        rows = rank_public(rows, acct)
         if rows: per_round[str(rnd)], offs[str(rnd)] = rows, off      # nobody played: no table to publish
         new = {r["uid"]: r for r in rows}
         for u, r in new.items():
