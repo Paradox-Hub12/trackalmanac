@@ -217,8 +217,7 @@
 "The carbon-fibre survival cell that holds the driver and fuel tank, built to stay intact in heavy impacts.",
 [
 "Survival cell",
-"Tub",
-"Chassis"
+"Tub"
 ]
 ],
 [
@@ -2084,6 +2083,747 @@
 [
 "Net lead"
 ]
+],
+[
+"Aerodynamics",
+"aero",
+"How air flows over and under the car. In F1 it is about creating downforce for grip while keeping drag low.",
+[
+"Aero"
+]
+],
+[
+"Air intake",
+"aero",
+"The opening above the driver's head that feeds air to the engine (and in older cars a tall airbox).",
+[
+"Airbox"
+]
+],
+[
+"Bodywork",
+"aero",
+"The car's outer carbon panels: engine cover, sidepods, nose and so on.",
+[
+"Body"
+]
+],
+[
+"Rear wing",
+"aero",
+"The wing at the back that produces rear downforce. Its flap opened for DRS until 2025 and moves with active aero from 2026.",
+[]
+],
+[
+"Wheelbase",
+"aero",
+"The distance between the front and rear axles. Limited to 3.6 m until 2025 and 3.4 m from 2026.",
+[]
+],
+[
+"Carbon fibre",
+"aero",
+"Strong, light woven carbon material set in resin, used for almost the whole car since McLaren's MP4/1 of 1981.",
+[
+"Carbon composite"
+]
+],
+[
+"Chassis",
+"aero",
+"The main structure of the car, built around the monocoque, to which engine and suspension are attached. 'Constructor' means the team that builds it.",
+[]
+],
+[
+"Cockpit",
+"aero",
+"The space where the driver sits.",
+[]
+],
+[
+"Suspension",
+"aero",
+"The springs, dampers and wishbones joining the wheels to the car, set up to control grip and ride height.",
+[]
+],
+[
+"Inerter",
+"aero",
+"A suspension part (also called a J-damper) that helped control tyre bounce. Banned from 2022.",
+[
+"J-damper"
+]
+],
+[
+"T-wing",
+"aero",
+"A small wing mounted on top of the engine cover in 2017, banned for 2018.",
+[]
+],
+[
+"Shark fin",
+"aero",
+"A vertical fin on the engine cover to steady airflow to the rear wing, used in various years.",
+[
+"Engine cover fin"
+]
+],
+[
+"High wings",
+"aero",
+"Tall wings mounted on stalks directly to the suspension in 1968–69. Several broke and caused crashes, so they were banned mid-1969.",
+[]
+],
+[
+"Flat bottom",
+"aero",
+"A flat floor between the wheels, required from 1983 to 2021 to limit ground-effect downforce.",
+[
+"Flat floor"
+]
+],
+[
+"Dual-axis steering",
+"aero",
+"Mercedes' 2020 system that changed the front wheels' toe when the driver pushed or pulled the steering wheel. Banned from 2021.",
+[
+"DAS"
+]
+],
+[
+"Aerodynamic device",
+"aero",
+"Any part shaped to change airflow. The 2009 and 2022 rules removed many of them to make following easier.",
+[]
+],
+[
+"Active suspension",
+"pu",
+"Computer-controlled suspension that kept the car at the ideal height. Williams dominated with it in 1992–93; banned for 1994.",
+[]
+],
+[
+"ABS",
+"pu",
+"Anti-lock brakes, which stop wheels locking under braking. Banned since 1994.",
+[
+"Anti-lock brakes"
+]
+],
+[
+"CVT",
+"pu",
+"Continuously variable transmission: a gearbox with no fixed gears, tested by Williams in 1993 and banned before it raced.",
+[
+"Continuously variable transmission"
+]
+],
+[
+"Naturally aspirated",
+"pu",
+"An engine that breathes air at normal pressure, without a turbo or supercharger.",
+[
+"Atmospheric engine",
+"Normally aspirated"
+]
+],
+[
+"Supercharger",
+"pu",
+"A compressor driven by the engine itself that forces more air in for more power. Allowed in early F1 (also called a compressor).",
+[
+"Compressor",
+"Supercharged"
+]
+],
+[
+"Turbocharger",
+"pu",
+"A compressor driven by exhaust gas that forces extra air into the engine. Used 1977–1988 and again since 2014.",
+[
+"Turbo"
+]
+],
+[
+"Boost pressure",
+"pu",
+"How hard the turbo pushes air into the engine, in bar. Limited to 4.0 bar in 1987 and 2.5 bar in 1988 before turbos were banned.",
+[
+"Boost (turbo)"
+]
+],
+[
+"Engine capacity",
+"pu",
+"The total volume of the engine's cylinders, in litres or cc (cubic centimetres). 1.6 litres = 1600 cc. A bigger capacity usually means more power.",
+[
+"Displacement",
+"cc",
+"Cubic capacity"
+]
+],
+[
+"Cylinders",
+"pu",
+"The chambers where fuel burns. V6, V8, V10 and V12 mean six, eight, ten or twelve cylinders arranged in a V shape.",
+[
+"V6",
+"V8 engine",
+"V10 engine",
+"V12"
+]
+],
+[
+"Rev limit",
+"pu",
+"The maximum engine speed allowed: 19,000 rpm in 2007, 18,000 rpm 2009–2013, and 15,000 rpm in the hybrid era.",
+[
+"rpm",
+"Rev limiter"
+]
+],
+[
+"Engine freeze",
+"pu",
+"A rule stopping makers from developing their engines, used from 2007 and in the hybrid era, to cut costs.",
+[
+"Development freeze"
+]
+],
+[
+"Token system",
+"pu",
+"From 2014 to 2017, a limited number of 'tokens' each power-unit maker could spend on upgrades.",
+[
+"Engine tokens"
+]
+],
+[
+"Cosworth DFV",
+"pu",
+"The 3-litre V8 that Ford funded and Cosworth built in 1967. Cheap and widely available, it won 155 races into the 1980s.",
+[
+"DFV"
+]
+],
+[
+"Rear-engined",
+"pu",
+"A car with the engine behind the driver. Cooper's success in 1959–60 made it the standard layout.",
+[
+"Mid-engined"
+]
+],
+[
+"Control Electronics",
+"pu",
+"The power unit's electronic brain, managing energy flow between battery, motor and engine.",
+[
+"CE"
+]
+],
+[
+"Fuel cell",
+"pu",
+"The flexible, puncture-resistant fuel tank inside the monocoque.",
+[
+"Fuel bladder",
+"Fuel tank"
+]
+],
+[
+"Torque",
+"pu",
+"The twisting force an engine delivers, which drives acceleration out of corners.",
+[]
+],
+[
+"Traction",
+"tyre",
+"The grip the rear tyres have under acceleration.",
+[]
+],
+[
+"Grip",
+"tyre",
+"How well the tyres hold the road. It comes from the tyres themselves (mechanical grip) and from downforce (aerodynamic grip).",
+[
+"Mechanical grip",
+"Aero grip"
+]
+],
+[
+"Handling",
+"tyre",
+"How a car behaves through corners: balance, response and stability.",
+[]
+],
+[
+"Cold tyres",
+"tyre",
+"Tyres below their working temperature, with little grip, common on out-laps and restarts.",
+[]
+],
+[
+"Track temperature",
+"tyre",
+"The temperature of the asphalt, which strongly affects tyre grip and wear.",
+[
+"Track temp"
+]
+],
+[
+"Option / prime tyre",
+"tyre",
+"Older names (2007–2010s) for the softer (option) and harder (prime) of the two dry compounds at a race.",
+[
+"Option tyre",
+"Prime tyre"
+]
+],
+[
+"Laying down rubber",
+"tyre",
+"Cars leaving rubber on the racing line, which adds grip over a session.",
+[]
+],
+[
+"Esses",
+"race",
+"A sequence of quick left-right-left corners, like the S in their name.",
+[
+"S-bends"
+]
+],
+[
+"Braking point",
+"race",
+"The spot where a driver starts braking for a corner.",
+[]
+],
+[
+"Left-foot braking",
+"race",
+"Braking with the left foot while the right stays on the throttle; standard in F1 since cars lost clutch pedals.",
+[]
+],
+[
+"Drift",
+"race",
+"A controlled slide with the rear tyres sliding.",
+[]
+],
+[
+"Stall",
+"race",
+"When the engine cuts out, most often at the start.",
+[
+"Stalled"
+]
+],
+[
+"Speed trap",
+"race",
+"A timing point on the fastest straight that records top speed.",
+[]
+],
+[
+"Sector",
+"race",
+"Each lap is split into three timed sectors.",
+[
+"Sector times"
+]
+],
+[
+"Lap record",
+"race",
+"The fastest race lap ever set on a circuit's current layout.",
+[]
+],
+[
+"Lapped",
+"race",
+"A car the leader has passed a full lap ahead of.",
+[]
+],
+[
+"G-force",
+"race",
+"The force drivers feel in braking, cornering and acceleration, up to about 5–6 g in F1.",
+[
+"g"
+]
+],
+[
+"Night race",
+"wknd",
+"A race held after dark under floodlights, first at Singapore in 2008.",
+[]
+],
+[
+"Installation lap",
+"wknd",
+"A short lap at the start of a session to check that the car works.",
+[
+"Installation run"
+]
+],
+[
+"Reconnaissance lap",
+"wknd",
+"A lap from the pit lane to the grid before the race, used to check conditions.",
+[
+"Recon lap"
+]
+],
+[
+"Retirement",
+"wknd",
+"Stopping during a race because of damage, a fault or a crash.",
+[
+"Retired",
+"Ret"
+]
+],
+[
+"DNQ",
+"wknd",
+"Did Not Qualify: too slow to make the grid, common when more cars entered than could start.",
+[
+"Did not qualify",
+"Pre-qualifying"
+]
+],
+[
+"Grand Prix",
+"wknd",
+"French for 'great prize': the name for each championship race.",
+[
+"GP"
+]
+],
+[
+"Grandes Épreuves",
+"hist",
+"The most important Grands Prix of the 1920s–40s. Before 1950 there was no championship; these races carried the prestige.",
+[
+"Grande Épreuve"
+]
+],
+[
+"Formula Two",
+"hist",
+"The junior single-seater class. In 1952 and 1953 the World Championship was run to its rules (2-litre engines) to get more cars on the grid.",
+[
+"F2"
+]
+],
+[
+"Commercial petrol",
+"hist",
+"From 1958 cars had to run on fuel close to aviation petrol instead of alcohol mixtures. Fuel today must be close to road fuel, and sustainable from 2026.",
+[
+"Pump fuel",
+"Avgas"
+]
+],
+[
+"Dropped scores",
+"hist",
+"Until 1990 only a driver's best results counted toward the title, so some points were dropped.",
+[
+"Best results count"
+]
+],
+[
+"Double points",
+"hist",
+"In 2014 only, the final race awarded double points.",
+[]
+],
+[
+"Aggregate qualifying",
+"hist",
+"A 2005 format adding together times from two sessions. Dropped mid-season.",
+[]
+],
+[
+"Single-lap qualifying",
+"hist",
+"2003–2005: each driver ran one timed lap alone on track.",
+[
+"One-lap qualifying"
+]
+],
+[
+"Catch fencing",
+"rules",
+"Wire fences once used to slow cars that left the track. Banned in 1986 because they caused injuries.",
+[]
+],
+[
+"Crash test",
+"rules",
+"Impact tests every chassis must pass before racing: front from 1985, side and rear later.",
+[
+"Impact test"
+]
+],
+[
+"Roll hoop",
+"rules",
+"The strong hoop above the driver's head that protects him if the car flips.",
+[
+"Roll bar",
+"Roll structure"
+]
+],
+[
+"HANS device",
+"rules",
+"Head and Neck Support: a carbon collar linked to the helmet that stops violent head movement in crashes. Compulsory since 2003.",
+[
+"HANS"
+]
+],
+[
+"Helmet",
+"rules",
+"Compulsory since 1952; today's carbon helmets pass strict FIA tests.",
+[]
+],
+[
+"Visor",
+"rules",
+"The clear front of the helmet. A Zylon strip has reinforced its top edge since 2011.",
+[
+"Tear-off strip",
+"Tear-offs"
+]
+],
+[
+"Zylon",
+"rules",
+"A super-strong fibre used in helmet visor strips, tethers and anti-intrusion panels in the cockpit sides.",
+[]
+],
+[
+"Overalls",
+"rules",
+"Fireproof race suits made of Nomex, tested to resist fire for several seconds.",
+[
+"Race suit",
+"Nomex"
+]
+],
+[
+"Gloves",
+"rules",
+"Fireproof gloves, with sensors that send the driver's pulse and blood oxygen to the medical team.",
+[]
+],
+[
+"Headrest",
+"rules",
+"The padded cockpit sides that protect the driver's head.",
+[]
+],
+[
+"Accident data recorder",
+"rules",
+"A 'black box' that records crash forces, compulsory since 1997.",
+[
+"ADR"
+]
+],
+[
+"Medical car",
+"rules",
+"A fast car with a doctor that follows the first lap and responds to crashes.",
+[]
+],
+[
+"Medical centre",
+"rules",
+"The trackside hospital every circuit must have.",
+[]
+],
+[
+"Marshal",
+"rules",
+"A trackside volunteer who waves flags, clears debris and helps after crashes.",
+[
+"Marshals"
+]
+],
+[
+"Armco",
+"rules",
+"Steel crash barrier rails.",
+[
+"Guardrail"
+]
+],
+[
+"TecPro",
+"rules",
+"Linked foam-filled barrier blocks that absorb impacts better than tyre walls.",
+[
+"TecPro barrier"
+]
+],
+[
+"Tyre barrier",
+"rules",
+"Stacks of tyres bolted together in front of walls to soften impacts.",
+[
+"Tyre wall"
+]
+],
+[
+"Technical regulations",
+"rules",
+"The rules about how cars must be built.",
+[]
+],
+[
+"Sporting regulations",
+"rules",
+"The rules about how races and weekends are run.",
+[]
+],
+[
+"Technical directive",
+"rules",
+"An FIA note clarifying how the technical rules should be read.",
+[
+"TD"
+]
+],
+[
+"World Motor Sport Council",
+"rules",
+"The FIA body that approves rule changes.",
+[
+"WMSC"
+]
+],
+[
+"Protest",
+"rules",
+"A formal complaint by a team about another team or a decision.",
+[]
+],
+[
+"Appeal",
+"rules",
+"Challenging a stewards' decision at the FIA court of appeal.",
+[]
+],
+[
+"Ballast",
+"rules",
+"Weights added to bring a car up to the minimum weight and adjust its balance.",
+[]
+],
+[
+"Allocation",
+"rules",
+"The fixed number of parts or tyres each driver may use, such as power units or tyre sets.",
+[]
+],
+[
+"Curfew",
+"rules",
+"Hours at night when team staff may not work on the cars, with a few exceptions per season.",
+[]
+],
+[
+"Sole supplier",
+"rules",
+"A single maker supplies every team, as with tyres since 2007 and the standard ECU.",
+[
+"Single supplier"
+]
+],
+[
+"Constructor",
+"team",
+"A team that builds its own chassis. Since 1981 every team must be a constructor.",
+[]
+],
+[
+"Scuderia",
+"team",
+"Italian for 'stable', the word in Ferrari's team name.",
+[]
+],
+[
+"Technical director",
+"team",
+"The engineer in charge of designing the car.",
+[
+"TD (technical director)"
+]
+],
+[
+"Debrief",
+"team",
+"Meetings after sessions where drivers and engineers go over the data.",
+[]
+],
+[
+"Development driver",
+"team",
+"A driver who works on the simulator and in tests to help develop the car.",
+[]
+],
+[
+"Drivers' briefing",
+"team",
+"The meeting before the race where the Race Director goes over procedures with drivers.",
+[]
+],
+[
+"Cooldown room",
+"team",
+"The room where the top three wait before going to the podium.",
+[]
+],
+[
+"Pit board",
+"team",
+"The sign held over the pit wall with gap and lap information, before radio became standard.",
+[]
+],
+[
+"Pit lane",
+"team",
+"The lane alongside the garages where pit stops happen.",
+[
+"Pits"
+]
+],
+[
+"Paddles",
+"team",
+"The levers behind the steering wheel for changing gear and working the clutch.",
+[
+"Paddle shift"
+]
+],
+[
+"Temple of Speed",
+"fan",
+"Nickname for Monza, the fastest circuit on the calendar.",
+[]
+],
+[
+"Net Zero 2030",
+"fan",
+"F1's target to be carbon neutral by 2030.",
+[]
 ]
 ]
 }

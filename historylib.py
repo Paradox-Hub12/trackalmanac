@@ -411,10 +411,23 @@ def compute(base, D):
         if o["w"] and (c["best"] is None or o["w"] > c["best"][1]): c["best"] = [o["i"], o["w"]]
         if o["y"] and (c["first"] is None or o["y"][0] < c["first"][1]): c["first"] = [o["i"], o["y"][0]]
     countries = sorted(C.values(), key=lambda c: (-c["t"], -c["w"], -c["p"], -c["d"]))
+    # wins and poles per constructor and engine maker in each season (for the regulations page)
+    yw = {}
+    for R in races:
+        Y = yw.setdefault(str(R["y"]), {"n": 0, "c": {}, "e": {}, "p": {}})
+        Y["n"] += 1; seen = set()
+        for row in R["rows"]:
+            pos, pole, ci, eng = row[1], row[6], row[7], row[8]
+            if pos == 1 and ("w", ci) not in seen:
+                seen.add(("w", ci))
+                if ci is not None and ci >= 0: Y["c"][ci] = Y["c"].get(ci, 0) + 1
+                if eng is not None and eng >= 0: Y["e"][eng] = Y["e"].get(eng, 0) + 1
+            if pole and ("p", ci) not in seen and ci is not None and ci >= 0:
+                seen.add(("p", ci)); Y["p"][ci] = Y["p"].get(ci, 0) + 1
     TM = team_history(base, D, races, champs, year_now, season_done, None)
     CI_ = circuit_history(base, D, races, year_now)
     return {**TM, **CI_, "source": base["source"], "upto": [races[-1]["y"], races[-1]["r"]], "races": len(races), "now": year_now, "done": season_done,
-            "drivers": out, "champs": champs, "records": rec, "countries": countries,
+            "drivers": out, "champs": champs, "records": rec, "countries": countries, "yw": yw,
             "ccn": {k: v[0] for k, v in cc_name.items()}}
 
 

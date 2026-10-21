@@ -99,3 +99,7 @@ Track Almanac is not associated with the Formula 1 companies. F1, Formula 1 and 
 ## F1 dictionary
 
 `/dictionary/` (under More) lists Formula 1 terms with search, A–Z and by-topic views. The terms live in `src/dictionary.json` as `{"cats": [[key, name]], "terms": [[term, cat, definition, [also known as]]]}`; the build writes `data/dictionary.json` (loaded only on that page) and prerenders every term into the page HTML. Add a term by adding a row and rebuilding.
+
+## Regulations history
+
+`/history/regulations/` explains every rules era from 1946 to 2026 and the plans after. The text lives in `src/regulations.json` (intro, eras with changes by area, what it meant and who got it right, plus engine, weight and points tables); race wins, titles and champions per era are computed from the results (`yw` in `data/history.json`). Words found in the F1 dictionary are underlined and show their definition on hover or tap.

@@ -18,6 +18,7 @@ function keyToPath(k){let m;if(!k||k==="season")return "/";
   if(m=k.match(/^history-([\w-]+)$/))return "/history/?driver="+m[1];
   if(k==="hcons")return "/history/constructors/";
   if(k==="hcirc")return "/history/circuits/";
+  if(k==="hregs")return "/history/regulations/";
   if(m=k.match(/^hcirc-([\w-]+)$/))return "/history/circuits/?circuit="+m[1];
   if(m=k.match(/^hcons-([\w-]+)$/))return "/history/constructors/?team="+m[1];
   if(m=k.match(/^heng-([\w-]+)$/))return "/history/constructors/?engine="+m[1];
@@ -33,6 +34,7 @@ function pathToKey(){const p=location.pathname.replace(/index\.html$/,""),q=new 
   if(/^\/drivers\/?$/.test(p))return q.get("driver")?"driver-"+q.get("driver"):"drivers";
   if(/^\/teams\/?$/.test(p))return q.get("team")?"team-"+q.get("team"):"teams";
   if(/^\/history\/?$/.test(p))return q.get("driver")?"history-"+q.get("driver"):"history";
+  if(/^\/history\/regulations\/?$/.test(p))return "hregs";
   if(/^\/history\/circuits\/?$/.test(p))return q.get("circuit")?"hcirc-"+q.get("circuit"):"hcirc";
   if(/^\/history\/constructors\/?$/.test(p))return q.get("team")?"hcons-"+q.get("team"):q.get("engine")?"heng-"+q.get("engine"):"hcons";
   if(/^\/site-map\/?$/.test(p))return "sitemap";
@@ -49,6 +51,7 @@ function pageTitle(k){const T=" | Track Almanac";let m;
   if(k.startsWith("heng-")&&HIST&&HIST.ebyid&&HIST.ebyid[k.slice(5)])return `${HIST.ebyid[k.slice(5)].n} F1 Engines: History, Stats & Records${T}`;
   if(k.startsWith("hcirc-")&&HIST&&HIST.cbyid&&HIST.cbyid[k.slice(6)])return `${HIST.cbyid[k.slice(6)].n}: F1 Circuit History, Records & Lap Record${T}`;
   if(k==="hcirc"||k.startsWith("hcirc-"))return `F1 Circuits: Every Track, Lap Records & Calendar Changes${T}`;
+  if(k==="hregs")return `History of F1 Regulations 1946–2026 and Beyond, Explained${T}`;
   if(k==="hcons"||k.startsWith("hcons-")||k.startsWith("heng-"))return `F1 Constructors History: Every Team, Champion, Engine & Record${T}`;
   if(k.startsWith("history-")&&HIST&&HIST.byid[k.slice(8)])return `${HIST.byid[k.slice(8)].n}: F1 Career Stats & Records${T}`;
   if(k==="history"||k.startsWith("history-"))return `F1 History: Every Driver, World Champion & All-Time Record${T}`;
@@ -1432,7 +1435,7 @@ function openHDriver(i){const d=HIST.by[i];if(!d)return;
 const ordn=n=>n+(n%100>=11&&n%100<=13?"th":({1:"st",2:"nd",3:"rd"}[n%10]||"th"));
 /* ---------- HISTORY · CONSTRUCTORS: constructors' champions, every team, engine makers, records ---------- */
 const CS={q:"",cc:"",era:"",show:"all",sort:"w",dir:-1,limit:60,rcat:0,rmore:{},esort:"w",edir:-1};
-const htabs=m=>`<div class="htabs" role="tablist" aria-label="History sections"><a href="${H("history")}" data-go="history" role="tab" aria-selected="${m==="d"}">Drivers</a><a href="${H("hcons")}" data-go="hcons" role="tab" aria-selected="${m==="c"}">Constructors</a><a href="${H("hcirc")}" data-go="hcirc" role="tab" aria-selected="${m==="r"}">Circuits</a></div>`;
+const htabs=m=>`<div class="htabs" role="tablist" aria-label="History sections"><a href="${H("history")}" data-go="history" role="tab" aria-selected="${m==="d"}">Drivers</a><a href="${H("hcons")}" data-go="hcons" role="tab" aria-selected="${m==="c"}">Constructors</a><a href="${H("hcirc")}" data-go="hcirc" role="tab" aria-selected="${m==="r"}">Circuits</a><a href="${H("hregs")}" data-go="hregs" role="tab" aria-selected="${m==="g"}">Regulations</a></div>`;
 const tcl=i=>{const t=HIST.tby[i];return t?`<button class="hdl" data-ht="${t.i}"><span class="sw" style="background:${hcol(t.id,t.y?t.y[1]:2025)}"></span>${esc(t.n2||t.n)}</button>`:"";};
 const ecl=i=>{const e=HIST.eby[i];return e?`<button class="hdl" data-he="${e.i}">${flagOf(e.cc)} ${esc(e.n)}</button>`:"";};
 function histIndexTeams(){if(HIST.tby)return;HIST.tby={};HIST.tbyid={};HIST.teams.forEach(t=>{HIST.tby[t.i]=t;HIST.tbyid[t.id]=t;t._q=t.n.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")+" "+(t.full||"").toLowerCase();});
@@ -1540,8 +1543,106 @@ function openHEngine(i){histIndexTeams();const e=HIST.eby[i];if(!e)return;
    ${e.facts.length?`<div><div class="mh"><h3>Achievements & facts</h3></div><ul class="hfacts">${e.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>`:""}
   </div>`;
   modalShell("hcons",inner,"var(--ink-3)",pv,nx);setKey("heng-"+e.id);document.title=pageTitle("heng-"+e.id);}
+/* ---------- HISTORY · REGULATIONS: every rules era 1946→future, with stats from the results (data/regulations.json) ---------- */
+let REGS=null,REGLOAD=null;
+function loadRegs(){if(REGS)return Promise.resolve(REGS);if(!REGLOAD)REGLOAD=fetch(`/data/regulations.json?v=${REGV}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>(REGS=j)).catch(e=>{REGLOAD=null;throw e;});return REGLOAD;}
+const RTC={"ferrari":"#e8002d","mclaren":"#ff8000","williams":"#2f6fe0","mercedes":"#00c8b4","red-bull":"#3a5bd9","lotus":"#2e9e4f","brabham":"#7fb3e6","cooper":"#1f6f3f","maserati":"#a33","alfa-romeo":"#b5121b","renault":"#ffd23f","benetton":"#46c3a5","tyrrell":"#5b7fbf","brm":"#6a7f2a","vanwall":"#0b6b4f","brawn":"#d6f23c","matra":"#2a52be","ligier":"#4aa3df","kurtis-kraft":"#8a8a8a"};
+const RAREA={engine:"#ff8a3d",aero:"#3d8bff",tyres:"#ff4d5e",safety:"#43c56b",sport:"#c06bff",money:"#e8c45a"};
+const rtcol=i=>{const t=HIST.tby[i];return (t&&RTC[t.id])||"#6b7a8f";};
+const regEra=y=>REGS.eras.find(e=>y>=e.y[0]&&y<=e.y[1]&&e.id!=="1946")||null;
+function regYear(y){const Y=HIST.yw[String(y)];if(!Y)return null;const c=Object.entries(Y.c).map(([k,v])=>[+k,v]).sort((a,b)=>b[1]-a[1]);
+  const ch=HIST.champs.find(x=>x.y===y),cc=HIST.cchamps.find(x=>x.y===y);
+  return {n:Y.n,c,ch:ch?[(HIST.by[ch.top[0][0]]||{}).n,ch.done]:null,cc:cc?[cc.top[0][1],cc.done]:null};}
+function regStats(e){const ys=[];for(let y=Math.max(1950,e.y[0]);y<=Math.min(HIST.now,e.y[1]);y++)if(HIST.yw[String(y)])ys.push(y);if(!ys.length)return null;
+  const W={};let n=0;ys.forEach(y=>{const Y=HIST.yw[String(y)];n+=Y.n;Object.entries(Y.c).forEach(([k,v])=>W[k]=(W[k]||0)+v);});
+  const top=Object.entries(W).map(([k,v])=>[+k,v]).sort((a,b)=>b[1]-a[1]);
+  const dch=ys.map(y=>{const c=HIST.champs.find(x=>x.y===y);return c&&c.done?[y,(HIST.by[c.top[0][0]]||{}).n]:null;}).filter(Boolean);
+  const cch={};ys.forEach(y=>{const c=HIST.cchamps.find(x=>x.y===y);if(c&&c.done){const t=c.top[0][1].split("-")[0];cch[t]=(cch[t]||[]).concat(y);}});
+  return {ys,n,top,dch,cch};}
+function regStatsBox(e){const S=regStats(e);if(!S)return "";const max=S.top[0][1];
+  const yr=S.ys[0]===S.ys[S.ys.length-1]?String(S.ys[0]):`${S.ys[0]}–${S.ys[S.ys.length-1]}`;
+  return `<div class="rgst"><div class="rgsh"><span class="lbl">The results, ${yr}</span><b>${S.n} races</b></div>
+    <div class="rgbars">${S.top.slice(0,5).map(([i,w])=>`<div class="rgbar"><span>${esc(HIST.tby[i].n)}</span><i><em style="width:${(100*w/max).toFixed(1)}%;background:${rtcol(i)}"></em></i><b>${w}</b><small>${Math.round(100*w/S.n)}%</small></div>`).join("")}</div>
+    ${Object.keys(S.cch).length?`<p><span class="lbl">Constructors' titles</span> ${Object.entries(S.cch).sort((a,b)=>b[1].length-a[1].length).map(([t,ys])=>`<b>${esc(t)}</b> ${ys.length}`).join(" · ")}</p>`:""}
+    ${S.dch.length?`<p><span class="lbl">Drivers' champions</span> ${S.dch.map(([y,n])=>`${y} ${esc(n||"")}`).join(" · ")}</p>`:""}</div>`;}
+function viewRegs(){const R=REGS,A=R.areas;
+  const eras=R.eras;
+  return `<div class="hist regs" data-mode="g"><div class="pagehead"><div><span class="lbl">Formula 1 history</span><h2 class="h1">Regulations</h2>
+    <p class="dlink">${esc(R.intro[0])}</p>${htabs("g")}</div></div>
+    <div class="rgintro dlink">${R.intro.slice(1).map(p=>`<p>${esc(p)}</p>`).join("")}<p class="note2">Words with a dotted underline are in the <a href="${H("dictionary")}" data-go="dictionary">F1 dictionary</a>: hover or tap one for a short explanation.</p></div>
+    <nav class="rgnav" aria-label="Eras">${eras.map(e=>`<a href="#era-${e.id}" data-rgj="${e.id}"><b>${e.y[0]===e.y[1]?e.y[0]:e.y[0]+"–"+String(e.y[1]).slice(-2)}</b><span>${esc(e.name)}</span></a>`).join("")}</nav>
+    <section class="dsec"><div class="sec"><h2>Who won, year by year</h2><span class="lbl">Share of race wins per team · 1950–60 include the Indianapolis 500 · select a year</span></div>${regStrip()}</section>
+    <section class="dsec"><div class="sec"><h2>Explore a season</h2><span class="lbl">The rules in force and how it went</span></div>${regExplorer()}</section>
+    ${eras.map(e=>`<section class="rgera" id="era-${e.id}"><div class="rgeh"><span class="rgy">${e.y[0]===e.y[1]?e.y[0]:e.y[0]+"–"+e.y[1]}</span><div><h2>${esc(e.name)}</h2><span class="lbl">${esc(e.tag)}</span></div></div>
+      <div class="rgbody"><div class="rgtext dlink"><p class="rgplain">${esc(e.plain)}</p>
+        <h3>What changed</h3><ul class="rgch">${e.changes.map(([a,t])=>`<li style="--ac:${RAREA[a]}"><span class="rga">${esc(A[a])}</span>${esc(t)}</li>`).join("")}</ul>
+        <h3>What it meant</h3><p>${esc(e.meant)}</p>${e.nailed?`<p class="rgnail"><b>Who got it right</b> ${esc(e.nailed)}</p>`:""}</div>
+        ${e.stats===false?"":regStatsBox(e)}</div></section>`).join("")}
+    <section class="dsec"><div class="sec"><h2>Engines over the years</h2><span class="lbl">Engine size allowed</span></div>${regEngChart()}</section>
+    <section class="dsec"><div class="sec"><h2>Minimum weight</h2><span class="lbl">Lightest a car may be · includes the driver from 1995</span></div>${regWeightChart()}</section>
+    <section class="dsec"><div class="sec"><h2>Points systems</h2><span class="lbl">For the top finishers of a Grand Prix</span></div>${regPoints()}</section>
+    <p class="note2">Race and title figures come from this site's results (F1DB and the 2026 season). Sources for the rules: ${R.sources.map(([t,u])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join(" · ")}.</p></div>`;}
+function regStrip(){const y0=1950,y1=HIST.now,N=y1-y0+1,W=1000,Hh=150,bw=W/N;let bars="";
+  for(let y=y0;y<=y1;y++){const Y=regYear(y);if(!Y)continue;let acc=0;const x=(y-y0)*bw;
+    Y.c.forEach(([i,w])=>{const h=Hh*w/Y.n;bars+=`<rect x="${(x+.5).toFixed(2)}" y="${(Hh-acc-h).toFixed(2)}" width="${(bw-1).toFixed(2)}" height="${h.toFixed(2)}" fill="${rtcol(i)}"/>`;acc+=h;});
+    bars+=`<rect class="rghit" data-ry="${y}" x="${x.toFixed(2)}" y="0" width="${bw.toFixed(2)}" height="${Hh+20}" fill="transparent"/>`;}
+  const marks=REGS.eras.filter(e=>e.y[0]>=1950&&e.y[0]<=y1).map(e=>{const x=(e.y[0]-y0)*bw;return `<line x1="${x}" x2="${x}" y1="-6" y2="${Hh}" class="rgmk"/><text x="${x+3}" y="${Hh+14}" class="rgml">${e.y[0]}</text>`;}).join("");
+  return `<div class="rgstrip"><svg viewBox="0 -8 ${W} ${Hh+24}" preserveAspectRatio="none" role="img" aria-label="Share of wins per team in every season since 1950">${bars}${marks}<rect class="rgsel" x="0" y="-8" width="${bw}" height="${Hh+8}"/></svg></div><div class="rgread" id="rgread" aria-live="polite">${regReadout(1988)}</div>`;}
+function regReadout(y){const Y=regYear(y);if(!Y)return "";const e=regEra(y);
+  return `<b>${y}</b> <span class="lbl">${e?esc(e.name):""}</span> ${Y.c.slice(0,3).map(([i,w])=>`<span class="rgk"><i style="background:${rtcol(i)}"></i>${esc(HIST.tby[i].n)} ${w}</span>`).join("")}<span class="rgk">of ${Y.n} races</span>${Y.ch?`<span class="rgk">Champion: <b>${esc(Y.ch[0]||"")}</b>${Y.ch[1]?"":" (leading)"}</span>`:""}`;}
+function regRules(y){const R=REGS;const en=R.engines.filter(x=>y>=x[0]&&y<=x[1]).pop();const wt=R.weight.filter(x=>x[0]<=y).pop();const pt=R.points.find(x=>y>=x[0]&&y<=x[1]);return {en,wt,pt};}
+function regExplorer(){return `<div class="rgx"><div class="rgxs"><input type="range" id="rgy" min="1950" max="${HIST.now}" value="1988" aria-label="Season"><div class="rgxy" id="rgxy"></div></div><div id="rgxo">${regExplore(1988)}</div></div>`;}
+function regExplore(y){const {en,wt,pt}=regRules(y),Y=regYear(y),e=regEra(y);
+  const box=(l,v,s)=>`<div><span class="lbl">${l}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`;
+  return `<div class="rgxh"><b>${y}</b>${e?`<a href="#era-${e.id}" data-rgj="${e.id}">${esc(e.name)} →</a>`:""}</div>
+   <div class="rgxg dlink">${box("Engine",en?esc(en[2]):"—","")}${box("Minimum weight",wt?wt[1]+" kg":"None","")}${box("Points for 1st to last scorer",pt?pt[2].join(" · "):"—",pt&&pt[4]?esc(pt[4]):"")}
+   ${box("Drivers' champion",Y&&Y.ch?esc(Y.ch[0]||""):"—",Y&&Y.ch&&!Y.ch[1]?"Leading, season under way":"")}${box("Constructors' champion",Y&&Y.cc?esc(Y.cc[0]):(y<1958?"No title before 1958":"—"),"")}${box("Most wins",Y&&Y.c[0]?`${esc(HIST.tby[Y.c[0][0]].n)} ${Y.c[0][1]} of ${Y.n}`:"—","")}</div>`;}
+function regEngChart(){const E=REGS.engines,W=1000,Hh=200,x0=1946,x1=2030,X=y=>(y-x0)/(x1-x0+1)*W,Y=v=>Hh-v/5*Hh;
+  const bars=E.map(([a,b,l,v])=>`<g class="rgeb"><rect x="${X(a).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(X(b+1)-X(a)-2).toFixed(1)}" height="${(Hh-Y(v)).toFixed(1)}" rx="2"/><text x="${(X(a)+4).toFixed(1)}" y="${(Y(v)-6).toFixed(1)}">${v} L</text><title>${a}–${b}: ${esc(l)}</title></g>`).join("");
+  const ax=[1950,1960,1970,1980,1990,2000,2010,2020,2030].map(y=>`<text class="rgax" x="${X(y)}" y="${Hh+16}" text-anchor="middle">${y}</text>`).join("");
+  return `<div class="rgchart"><svg viewBox="0 -24 ${W} ${Hh+44}" role="img" aria-label="Maximum engine size from 1946 to 2030">${bars}${ax}</svg><p class="note2 dlink">Turbo or supercharged engines were allowed a smaller size: 1.5 litres supercharged until 1953 and turbo engines of 1.5 litres from 1977 to 1988. Today's engines are 1.6-litre turbo V6s with hybrid systems.</p></div>`;}
+function regWeightChart(){const P=REGS.weight,W=1000,Hh=200,x0=1958,x1=2028,X=y=>(y-x0)/(x1-x0)*W,lo=400,hi=850,Y=v=>Hh-(v-lo)/(hi-lo)*Hh;
+  let d="";P.forEach(([y,v],k)=>{const nx=k<P.length-1?P[k+1][0]:HIST.now+1;d+=`${k?"L":"M"}${X(y).toFixed(1)} ${Y(v).toFixed(1)} L${X(nx).toFixed(1)} ${Y(v).toFixed(1)} `;});
+  const pts=P.map(([y,v])=>`<g class="rgwp"><circle cx="${X(y).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4"/><title>${y}: ${v} kg</title></g>`).join("");
+  const gy=[450,550,650,750,850].map(v=>`<line class="rgg" x1="0" x2="${W}" y1="${Y(v)}" y2="${Y(v)}"/><text class="rgax" x="4" y="${Y(v)-4}">${v} kg</text>`).join("");
+  const ax=[1960,1970,1980,1990,2000,2010,2020].map(y=>`<text class="rgax" x="${X(y)}" y="${Hh+16}" text-anchor="middle">${y}</text>`).join("");
+  return `<div class="rgchart"><svg viewBox="0 -10 ${W} ${Hh+30}" role="img" aria-label="Minimum car weight since 1961">${gy}<path class="rgwl" d="${d}"/>${pts}${ax}</svg><p class="note2 dlink">Weight limits stop teams building flimsy, ultra-light cars. Cars got much heavier in the hybrid era because of batteries, motors and safety structures such as the halo; the 2026 rules cut 32 kg.</p></div>`;}
+function regPoints(){return `<div class="tw"><table class="t" data-fz="1"><thead><tr><th>Years</th>${[1,2,3,4,5,6,7,8,9,10].map(n=>`<th class="n">${ordinal(n)}</th>`).join("")}<th>Notes</th></tr></thead><tbody>${REGS.points.map(([a,b,p,fl,note])=>`<tr><td class="m"><b>${a===b?a:a+"–"+b}</b></td>${[0,1,2,3,4,5,6,7,8,9].map(k=>`<td class="n">${p[k]!=null?p[k]:'<span style="color:var(--ink-3)">–</span>'}</td>`).join("")}<td class="dlink" style="color:var(--ink-2)">${esc(note)}</td></tr>`).join("")}</tbody></table></div>`;}
+function regsInit(){dictLink($(".regs"));const sv=$(".rgstrip svg");if(sv){const pick=e=>{const b=sv.getBoundingClientRect();const y=1950+Math.floor((e.clientX-b.left)/b.width*(HIST.now-1950+1));if(y>=1950&&y<=HIST.now&&y!==sv._y){sv._y=y;regSel(y);}};sv.addEventListener("pointermove",pick);sv.addEventListener("pointerdown",pick);}const r=$("#rgy");if(r){const f=()=>{const y=+r.value;$("#rgxo").innerHTML=regExplore(y);dictLink($("#rgxo"));regSel(y);};r.addEventListener("input",f);regSel(+r.value);}}
+function regSel(y){const sel=$(".rgsel"),hit=$(`.rghit[data-ry="${y}"]`);if(sel&&hit){sel.setAttribute("x",hit.getAttribute("x"));}const rd=$("#rgread");if(rd)rd.innerHTML=regReadout(y);const r=$("#rgy");if(r&&+r.value!==y){r.value=y;$("#rgxo").innerHTML=regExplore(y);dictLink($("#rgxo"));}}
+/* dictionary words: underline them in a block of text and show the definition in a small box on hover, focus or tap */
+const DSTOP=new Set(["pace","grid","points","podium","garage","balance","bite","lapped","wear","sector","debrief","stall","drift","pits","box","engine","grand prix","gp","position","testing","practice","race pace","data","body","g","retired","ret","drivers' championship","constructors' championship","p1, p2…","copy","understood","push","loose","snap","the plan","helmet","gloves","cockpit","grip","handling","traction","torque","lap record","sprint","qualifying","quali","pole","pit stop","team orders","constructor","chassis","circuit","track","delta","boost"]);
+let DRX=null;
+function dictRx(){if(DRX)return DRX;const map=new Map();DICT.terms.forEach(x=>[x.t,...x.a].forEach(p=>{const k=p.toLowerCase();if(k.length<2||DSTOP.has(k)||/[/…]/.test(p))return;if(!map.has(k))map.set(k,x);}));
+  const keys=[...map.keys()].sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
+  DRX={map,rx:new RegExp(`(^|[^\\p{L}\\p{N}-])(${keys.join("|")})(?=$|[^\\p{L}\\p{N}-])`,"giu")};return DRX;}
+function dictLink(root){if(!root||!DICT)return;const {map,rx}=dictRx();
+  root.querySelectorAll(".dlink").forEach(block=>{const used=new Set();
+    const walk=document.createTreeWalker(block,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest("a,button,.dword,b.no,.rga,h2,h3,.lbl")?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+    const nodes=[];while(walk.nextNode())nodes.push(walk.currentNode);
+    nodes.forEach(n=>{const t=n.nodeValue;rx.lastIndex=0;let m,last=0,frag=null;
+      while((m=rx.exec(t))){const word=m[2],x=map.get(word.toLowerCase());if(!x||used.has(x.i))continue;
+        if(word.length<=3&&word!==[x.t,...x.a].find(p=>p.toLowerCase()===word.toLowerCase()))continue;
+        used.add(x.i);frag=frag||document.createDocumentFragment();const st=m.index+m[1].length;
+        frag.appendChild(document.createTextNode(t.slice(last,st)));const b=document.createElement("button");b.type="button";b.className="dword";b.dataset.di=x.i;b.textContent=word;frag.appendChild(b);last=st+word.length;}
+      if(frag){frag.appendChild(document.createTextNode(t.slice(last)));n.parentNode.replaceChild(frag,n);}});});}
+let DTIP=null,DTIPT=0;
+function dtipShow(el){if(!DICT)return;if(DTIP&&DTIP._for===el&&!DTIP.hidden)return;const x=DICT.terms.find(z=>z.i===+el.dataset.di);if(!x)return;clearTimeout(DTIPT);
+  if(!DTIP){DTIP=document.createElement("div");DTIP.className="dtip";DTIP.setAttribute("role","tooltip");document.body.appendChild(DTIP);
+    DTIP.addEventListener("pointerenter",()=>clearTimeout(DTIPT));DTIP.addEventListener("pointerleave",()=>dtipHide(150));}
+  DTIP._at=Date.now();DTIP.style.setProperty("--dc",DCOL[x.c]||"var(--ink-3)");
+  DTIP.innerHTML=`<div class="dth"><b>${esc(x.t)}</b><span>${esc(DICT.cn[x.c])}</span></div>${x.a.length?`<p class="aka">Also: ${x.a.map(esc).join(", ")}</p>`:""}<p>${esc(x.d)}</p><a href="${H("dictionary")}${PATHMODE?"?q="+encodeURIComponent(x.t):""}" data-dq="${esc(x.t)}">Open in the F1 dictionary →</a>`;
+  DTIP.hidden=false;DTIP.classList.add("on");const r=el.getBoundingClientRect(),w=Math.min(340,innerWidth-24);DTIP.style.width=w+"px";
+  let left=Math.max(12,Math.min(innerWidth-w-12,r.left+r.width/2-w/2));DTIP.style.left=left+"px";
+  const h=DTIP.offsetHeight;let top=r.bottom+8;if(top+h>innerHeight-8)top=Math.max(8,r.top-h-8);DTIP.style.top=top+"px";DTIP._for=el;}
+function dtipHide(ms){clearTimeout(DTIPT);DTIPT=setTimeout(()=>{if(DTIP){DTIP.classList.remove("on");DTIP.hidden=true;DTIP._for=null;}},ms||0);}
+document.addEventListener("pointerover",e=>{if(e.pointerType!=="mouse")return;const w=e.target.closest&&e.target.closest(".dword");if(w)dtipShow(w);});
+document.addEventListener("pointerout",e=>{if(e.pointerType!=="mouse")return;const w=e.target.closest&&e.target.closest(".dword");if(w&&!(e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest(".dtip")))dtipHide(200);});
+document.addEventListener("focusin",e=>{const w=e.target.closest&&e.target.closest(".dword");if(w)dtipShow(w);});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")dtipHide();});
+addEventListener("scroll",()=>{if(DTIP&&DTIP._for)dtipHide();},{passive:true});
 /* ---------- F1 DICTIONARY: every term A to Z or by topic, with search (data/dictionary.json, loaded on demand) ---------- */
-let DICT=null,DICTLOAD=null;const DS={q:"",cat:"",view:"az"};
+let DICT=null,DICTLOAD=null;const DS={q:"",cat:"",view:"topic"};
 /* one quiet accent colour per topic */
 const DCOL={aero:"#3d8bff",pu:"#ffd23f",tyre:"#ff4d5e",race:"#43c56b",wknd:"#c06bff",rules:"#ff8a3d",team:"#2ec4c4",radio:"#ff6fb5",fan:"#e8c45a",hist:"#d08f55"};
 const dc=k=>`--dc:${DCOL[k]||"var(--ink-3)"}`;
@@ -1851,7 +1952,9 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   document.querySelectorAll("[data-theme-set]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.themeSet===THEME));
   clearInterval(t); closeDrawer();
   const h=curKey();
-  if(h==="dictionary"){if(!$(".dict"))$("#app").innerHTML=DICT?viewDict():`<div class="dict"><div class="pagehead"><div><span class="lbl">Formula 1 A to Z</span><h2 class="h1">F1 dictionary</h2><p class="dload">Loading…</p></div></div></div>`;$("#sheetname").textContent="F1 DICTIONARY";setNav("");document.title=pageTitle("dictionary");
+  if(h==="hregs"){if(!$(".regs"))$("#app").innerHTML=`<div class="hist regs" data-mode="g"><div class="pagehead"><div><span class="lbl">Formula 1 history</span><h2 class="h1">Regulations</h2><p class="dload">Loading…</p>${htabs("g")}</div></div></div>`;$("#sheetname").textContent="F1 HISTORY";setNav("history");document.title=pageTitle("hregs");
+    Promise.all([loadHist(),loadRegs(),loadDict()]).then(()=>{if(curKey()!=="hregs"||$(".regs .rgera"))return;histIndexTeams();$("#app").innerHTML=viewRegs();pinSizes();regsInit();}).catch(()=>{const n=$(".dload");if(n)n.textContent="This page could not be loaded. Check your connection and reload.";});}
+  else if(h==="dictionary"){if(!$(".dict")){const q0=new URLSearchParams(location.search).get("q");if(q0)DS.q=q0;}if(!$(".dict"))$("#app").innerHTML=DICT?viewDict():`<div class="dict"><div class="pagehead"><div><span class="lbl">Formula 1 A to Z</span><h2 class="h1">F1 dictionary</h2><p class="dload">Loading…</p></div></div></div>`;$("#sheetname").textContent="F1 DICTIONARY";setNav("");document.title=pageTitle("dictionary");
     loadDict().then(()=>{if(curKey()==="dictionary"&&!$(".dict .dsearch")){$("#app").innerHTML=viewDict();pinSizes();}}).catch(()=>{});}
   else if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
   else if(h==="notfound"){$("#app").innerHTML=viewNotFound();$("#sheetname").textContent="NOT FOUND";setNav("");}
@@ -1913,6 +2016,11 @@ document.addEventListener("click",e=>{
     const zb=e.target.closest("[data-rz]");if(zb){RT.zoomBy(zb.dataset.rz==="in"?1/1.6:1.6);return;}
     const rs=e.target.closest("[data-rstop],[data-rpin]");if(rs){RT.pick(+(rs.dataset.rstop??rs.dataset.rpin));return;}
     if(e.target.closest("#rsvg")&&RT.phase==="idle"&&RT.pin!=null){RT.unpick();return;}}
+  {const dw=e.target.closest(".dword");if(dw){e.preventDefault();if(DTIP&&DTIP._for===dw&&!DTIP.hidden&&Date.now()-DTIP._at>400)dtipHide();else dtipShow(dw);return;}
+   const dq=e.target.closest(".dtip a[data-dq]");if(dq){if(e.ctrlKey||e.metaKey)return;e.preventDefault();DS.q=dq.dataset.dq;DS.cat="";dtipHide();if(curKey()==="dictionary"){dRefresh();const i=$("#dq");if(i)i.value=DS.q;}else go("dictionary");return;}
+   if(DTIP&&!DTIP.hidden&&!e.target.closest(".dtip"))dtipHide();}
+  if($(".regs")){const rj=e.target.closest("[data-rgj]");if(rj){e.preventDefault();const t=document.getElementById("era-"+rj.dataset.rgj);if(t)window.scrollTo({top:t.getBoundingClientRect().top+scrollY-headTop()-10,behavior:"smooth"});return;}
+    const ry=e.target.closest("[data-ry]");if(ry){regSel(+ry.dataset.ry);return;}}
   if($(".dict")){
     const dc=e.target.closest("[data-dcat]");if(dc){DS.cat=dc.dataset.dcat;dRefresh();if(dc.classList.contains("dcat"))$(".dchips").scrollIntoView({block:"start",behavior:"smooth"});return;}
     const dv=e.target.closest("[data-dview]");if(dv){DS.view=dv.dataset.dview;dRefresh();return;}

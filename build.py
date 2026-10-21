@@ -222,6 +222,7 @@ class Site:
         if key == "sitemap": return "/site-map/"
         if key == "hcons": return "/history/constructors/"
         if key == "hcirc": return "/history/circuits/"
+        if key == "hregs": return "/history/regulations/"
         return "/%s/" % key
     def a(self, key, text): return '<a href="%s">%s</a>' % (self.path(key), text)
     def dlink(self, name):
@@ -547,6 +548,19 @@ def fmtn(x):
     return "{:,}".format(x) if isinstance(x, int) else ("%g" % x)
 
 
+def regs_page(R):
+    out = [pagehead("History of F1 regulations", " ".join(R["intro"][:1]), "Formula 1 history")]
+    out.append("".join("<p>%s</p>" % esc(p) for p in R["intro"][1:]))
+    A = R["areas"]
+    for e in R["eras"]:
+        y = "%d–%d" % tuple(e["y"]) if e["y"][0] != e["y"][1] else str(e["y"][0])
+        body = "<p>%s</p><ul>%s</ul><p>%s</p>%s" % (esc(e["plain"]), "".join("<li><b>%s:</b> %s</li>" % (esc(A[a]), esc(t)) for a, t in e["changes"]),
+                                                    esc(e["meant"]), ("<p><b>Who got it right:</b> %s</p>" % esc(e["nailed"])) if e.get("nailed") else "")
+        out.append(sec("%s: %s" % (y, esc(e["name"])), body))
+    out.append(sec("Sources", "<ul>%s</ul>" % "".join('<li><a href="%s">%s</a></li>' % (esc(u), esc(t)) for t, u in R["sources"])))
+    return "".join(out)
+
+
 def dictionary_page(DI):
     """Every term, A to Z, as plain HTML (the app replaces it with the searchable version)."""
     cats = dict((k, n) for k, n in DI["cats"])
@@ -683,7 +697,7 @@ def head(p, assets, fonts):
 """
 
 
-NAVKEY = {"/": "season", "/championship/": "championship", "/drivers/": "drivers", "/teams/": "teams", "/history/": "history", "/history/constructors/": "history", "/history/circuits/": "history"}
+NAVKEY = {"/": "season", "/championship/": "championship", "/drivers/": "drivers", "/teams/": "teams", "/history/": "history", "/history/constructors/": "history", "/history/circuits/": "history", "/history/regulations/": "history"}
 
 
 def page_html(p, body_tpl, assets, fonts):
@@ -720,6 +734,11 @@ def build(out, data_path=DATA):
     dtxt = json.dumps(load_data(dpath), ensure_ascii=False, separators=(",", ":")) if os.path.exists(dpath) else '{"cats":[],"terms":[]}'
     open(os.path.join(out, "data", "dictionary.json"), "w", encoding="utf-8").write(dtxt)
     data += "const DICTV=%s;\n" % json.dumps(vhash(dtxt))
+    # regulations history, loaded only on /history/regulations/
+    rpath = os.path.join(ROOT, "src", "regulations.json")
+    rtxt = json.dumps(load_data(rpath), ensure_ascii=False, separators=(",", ":")) if os.path.exists(rpath) else "{}"
+    open(os.path.join(out, "data", "regulations.json"), "w", encoding="utf-8").write(rtxt)
+    data += "const REGV=%s;\n" % json.dumps(vhash(rtxt))
     # circuit outlines for the circuits page, loaded only there
     cm = os.path.join(ROOT, "src", "circuitmaps.json")
     ctxt = open(cm, encoding="utf-8").read().strip() if os.path.exists(cm) else "{}"
@@ -792,6 +811,11 @@ def build(out, data_path=DATA):
         add("hcirc", "F1 Circuits: Every Track, Lap Records & Calendar Changes | Track Almanac",
             "Every Formula 1 circuit since 1950 (%d tracks) with track maps, lap records, most wins and every race held there, plus 2026 and 2027 calendar changes and planned future circuits." % len([c for c in S.HIST["circuits"] if c["r"]]),
             "Formula 1 history: circuits", history_circ_page(S, D), "F1 HISTORY", home + [("History", "/history/"), ("Circuits", "/history/circuits/")])
+        rpath = os.path.join(ROOT, "src", "regulations.json")
+        if os.path.exists(rpath):
+            add("hregs", "History of F1 Regulations 1946–2026 and Beyond, Explained | Track Almanac",
+                "Every era of Formula 1 rules from 1946 to 2026 and the plans after, explained in plain words: engines, aerodynamics, tyres, safety and points, what each change meant and which teams dominated.",
+                "History of F1 regulations", regs_page(load_data(rpath)), "F1 HISTORY", home + [("History", "/history/"), ("Regulations", "/history/regulations/")])
         add("hcons", "F1 Constructors History: Every Team, Champion, Engine & Record | Track Almanac",
             "Every Formula 1 constructor since 1950 (%d teams, %d engine makers): constructors' champions by year, team and engine records like most wins and consecutive titles, and team histories." % (len(S.HIST["teams"]), len(S.HIST["engines"])),
             "Formula 1 history: constructors", history_cons_page(S), "F1 HISTORY", home + [("History", "/history/"), ("Constructors", "/history/constructors/")])

@@ -30,6 +30,7 @@
   "/races/2026/abu-dhabi/",
   "/history/",
   "/history/circuits/",
+  "/history/regulations/",
   "/history/constructors/",
   "/archive/",
   "/archive/2027/",
@@ -239,6 +240,10 @@
   "/history/circuits/": {
    "hash": "1ebb21bb92941e02df440cd4f6c17f5b524d111d",
    "lastmod": "2026-10-20"
+  },
+  "/history/regulations/": {
+   "hash": "120f719baa438a3f7417bfc96a2e5e230ad70e27",
+   "lastmod": "2026-10-21"
   },
   "/history/constructors/": {
    "hash": "02d851c42226528d8297ec94e57bc4db758b3c79",
@@ -565,7 +570,7 @@
    "lastmod": "2026-10-19"
   },
   "/dictionary/": {
-   "hash": "0e5e60fc641bc31f06ef173196c20d417120171f",
+   "hash": "7ba6ec9445454c176ed2008d0afa0843d75ef0e2",
    "lastmod": "2026-10-21"
   },
   "/about/": {
@@ -589,8 +594,8 @@
    "lastmod": "2026-10-20"
   },
   "/site-map/": {
-   "hash": "dcf84046a673d34b6137be7ade74edfade8ce55f",
-   "lastmod": "2026-10-20"
+   "hash": "34c937343b78e4e8e5fc7962aafdcaf08b6ebb95",
+   "lastmod": "2026-10-21"
   }
  }
 }
