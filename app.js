@@ -7,7 +7,7 @@ const PATHMODE=!!window.TA_PATHS;
 let NAVD=false;
 if(PATHMODE){try{const dsc=Object.getOwnPropertyDescriptor(Document.prototype,"title");Object.defineProperty(document,"title",{configurable:true,get(){return dsc.get.call(document);},set(v){if(NAVD)dsc.set.call(document,v);}});}catch(e){}}
 const SLUG=r=>r.short.replace(" (Sepang)","").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-const STATIC_KEYS=["season","championship","drivers","teams","calendar","archive","history","about","contact","privacy","terms","disclaimer","sitemap"];
+const STATIC_KEYS=["season","championship","drivers","teams","calendar","archive","history","dictionary","about","contact","privacy","terms","disclaimer","sitemap"];
 function keyToPath(k){let m;if(!k||k==="season")return "/";
   if(m=k.match(/^detail-(\d+)(?:-(\w+))?$/)){const r=RACES.find(x=>x.r===+m[1]);return r?`/races/2026/${SLUG(r)}/${m[2]?"#"+m[2]:""}`:"/";}
   if(m=k.match(/^race-(\d+)$/))return "/?race="+m[1];
@@ -55,7 +55,7 @@ function pageTitle(k){const T=" | Track Almanac";let m;
   if(m=k.match(/^archive-(\d{4})$/)){const y=+m[1],a=ARCHIVE[y]||{};return a.next?`2027 F1 Calendar: All ${CAL2027.length} Races & Sprint Dates${T}`:a.live?`2026 Formula 1 Season${T}`:`${y} Formula 1 Season: Results, Standings & Champion${T}`;}
   if(k.startsWith("driver-")){const b=BIO[k.slice(7)];return b?`${b.name}: Profile, 2026 Season & Career Stats${T}`:`2026 F1 Drivers${T}`;}
   if(k.startsWith("team-")){const n=teamByKey(k.slice(5));return n?`${(TEAMBIO[n]||{}).name||n}: 2026 Line-up, Car & Record${T}`:`2026 F1 Teams${T}`;}
-  return ({championship:"2026 F1 Championship Standings & Points Breakdown",drivers:"2026 F1 Drivers: Profiles, Stats & Standings",teams:"2026 F1 Teams: Line-ups, Cars & Standings",calendar:"2026 F1 Calendar: Dates, Circuits & Results",archive:"F1 Season Archive 1946–2025: Results & Champions",sitemap:"Site Map",notfound:"Page not found"}[k]||((PAGES[k]||{}).t)||"Track Almanac")+T;}
+  return ({championship:"2026 F1 Championship Standings & Points Breakdown",drivers:"2026 F1 Drivers: Profiles, Stats & Standings",teams:"2026 F1 Teams: Line-ups, Cars & Standings",calendar:"2026 F1 Calendar: Dates, Circuits & Results",dictionary:"F1 Dictionary: Formula 1 Terms, Slang & Radio Calls Explained",archive:"F1 Season Archive 1946–2025: Results & Champions",sitemap:"Site Map",notfound:"Page not found"}[k]||((PAGES[k]||{}).t)||"Track Almanac")+T;}
 function h1Text(k){let m;
   if(!k||k==="season"||k.startsWith("race-"))return "2026 Formula 1 season";
   if(m=k.match(/^detail-(\d+)/)){const r=RACES.find(x=>x.r===+m[1]);return r?r.gp.replace(" (Sepang)","")+" 2026":"";}
@@ -1540,6 +1540,43 @@ function openHEngine(i){histIndexTeams();const e=HIST.eby[i];if(!e)return;
    ${e.facts.length?`<div><div class="mh"><h3>Achievements & facts</h3></div><ul class="hfacts">${e.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>`:""}
   </div>`;
   modalShell("hcons",inner,"var(--ink-3)",pv,nx);setKey("heng-"+e.id);document.title=pageTitle("heng-"+e.id);}
+/* ---------- F1 DICTIONARY: every term A to Z or by topic, with search (data/dictionary.json, loaded on demand) ---------- */
+let DICT=null,DICTLOAD=null;const DS={q:"",cat:"",view:"az"};
+const dnorm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const dkey=t=>dnorm(t).replace(/^[^a-z0-9]+/,"");
+function loadDict(){if(DICT)return Promise.resolve(DICT);if(!DICTLOAD)DICTLOAD=fetch(`/data/dictionary.json?v=${DICTV}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>{
+    DICT=j;DICT.cn=Object.fromEntries(j.cats);DICT.terms=j.terms.map(([t,c,d,a],i)=>({i,t,c,d,a:a||[],k:dkey(t),q:dnorm([t,...(a||[]),d].join(" "))})).sort((x,y)=>x.k.localeCompare(y.k));return DICT;})
+    .catch(e=>{DICTLOAD=null;const n=$(".dload");if(n)n.textContent="The dictionary could not be loaded. Check your connection and reload the page.";throw e;});return DICTLOAD;}
+function dLetter(x){const c=x.k[0]||"#";return /[a-z]/.test(c)?c.toUpperCase():"#";}
+function dFiltered(){const q=dnorm(DS.q.trim());const words=q.split(/\s+/).filter(Boolean);
+  let L=DICT.terms.filter(x=>(!DS.cat||x.c===DS.cat)&&words.every(w=>x.q.includes(w)));
+  if(words.length){const sc=x=>(x.k.startsWith(q)?0:dnorm(x.t).includes(q)||x.a.some(a=>dnorm(a).includes(q))?1:2);L=L.slice().sort((a,b)=>sc(a)-sc(b)||a.k.localeCompare(b.k));}
+  return L;}
+function dHi(s){const q=DS.q.trim();if(!q)return esc(s);const words=dnorm(q).split(/\s+/).filter(w=>w.length>1);if(!words.length)return esc(s);
+  const n=dnorm(s);const marks=new Array(s.length).fill(false);words.forEach(w=>{let i=0;while((i=n.indexOf(w,i))>=0){for(let k=i;k<i+w.length;k++)marks[k]=true;i+=w.length;}});
+  let out="",on=false;for(let i=0;i<s.length;i++){if(marks[i]!==on){out+=on?"</mark>":"<mark>";on=marks[i];}out+=esc(s[i]);}return out+(on?"</mark>":"");}
+function dCard(x){return `<article class="dterm" id="t-${x.i}"><h3>${dHi(x.t)}</h3>${x.a.length?`<p class="aka">Also: ${x.a.map(dHi).join(", ")}</p>`:""}<p>${dHi(x.d)}</p><button class="tag dcat" data-dcat="${x.c}">${esc(DICT.cn[x.c])}</button></article>`;}
+function dList(){const L=dFiltered(),cnt=$("#d-count");if(cnt)cnt.textContent=`${L.length} term${L.length===1?"":"s"}`;
+  if(!L.length)return `<p class="note2">No term matches “${esc(DS.q)}”. <button class="hmore" data-dreset>Clear the search</button></p>`;
+  if(DS.q.trim())return `<div class="dgrid">${L.map(dCard).join("")}</div>`;
+  if(DS.view==="topic"&&!DS.cat)return DICT.cats.map(([k,n])=>{const g=L.filter(x=>x.c===k);return g.length?`<section class="dgrp" id="g-${k}"><h2 class="dlh">${esc(n)} <small>${g.length}</small></h2><div class="dgrid">${g.map(dCard).join("")}</div></section>`:"";}).join("");
+  const by={};L.forEach(x=>(by[dLetter(x)]=by[dLetter(x)]||[]).push(x));
+  return Object.keys(by).sort((a,b)=>a==="#"?-1:b==="#"?1:a.localeCompare(b)).map(l=>`<section class="dgrp" id="l-${l==="#"?"num":l.toLowerCase()}"><h2 class="dlh">${l}</h2><div class="dgrid">${by[l].map(dCard).join("")}</div></section>`).join("");}
+function dLetters(){const L=dFiltered(),have=new Set(L.map(dLetter));
+  return ["#",..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].map(l=>have.has(l)?`<a href="#l-${l==="#"?"num":l.toLowerCase()}" data-dl="${l}">${l}</a>`:`<span>${l}</span>`).join("");}
+function viewDict(){const n=DICT.terms.length;
+  return `<div class="dict"><div class="pagehead"><div><span class="lbl">Formula 1 A to Z</span><h2 class="h1">F1 dictionary</h2>
+    <p>${n} words you hear from commentators, engineers, drivers and fans: the technical terms, the rules and flags, the radio codes and the slang. Search, browse A to Z, or by topic.</p></div></div>
+    <div class="dbar"><label class="dsearch"><span class="lbl">Search</span><input id="dq" type="search" placeholder="Try “undercut”, “porpoising” or “box”" value="${esc(DS.q)}" autocomplete="off" spellcheck="false"></label>
+      <div><span class="lbl">Order</span><div class="dsort" role="group" aria-label="Order"><button data-dview="az" aria-pressed="${DS.view==="az"}">A to Z</button><button data-dview="topic" aria-pressed="${DS.view==="topic"}">By topic</button></div></div>
+      <span class="lbl" id="d-count" aria-live="polite">${dFiltered().length} terms</span></div>
+    <div class="dchips" role="group" aria-label="Topic"><button data-dcat="" aria-pressed="${!DS.cat}">All</button>${DICT.cats.map(([k,nm])=>`<button data-dcat="${k}" aria-pressed="${DS.cat===k}">${esc(nm)} <small>${DICT.terms.filter(x=>x.c===k).length}</small></button>`).join("")}</div>
+    <nav class="dletters" aria-label="Jump to letter" ${DS.view==="topic"&&!DS.cat||DS.q.trim()?"hidden":""}>${dLetters()}</nav>
+    <div id="d-list">${dList()}</div>
+    <p class="note2">Definitions written for Track Almanac from FIA regulations, Pirelli, Formula1.com and long-standing paddock usage. Rule details are current for ${new Date().getFullYear()}; where a rule changed over the years the entry says so. Missing a word? Use the contact page.</p></div>`;}
+function dRefresh(){const l=$("#d-list");if(l)l.innerHTML=dList();const nav=$(".dletters");if(nav){nav.innerHTML=dLetters();nav.hidden=(DS.view==="topic"&&!DS.cat)||!!DS.q.trim();}
+  document.querySelectorAll("[data-dcat]").forEach(b=>{if(b.closest(".dchips"))b.setAttribute("aria-pressed",String(b.dataset.dcat===DS.cat));});
+  document.querySelectorAll("[data-dview]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.dview===DS.view)));}
 /* ---------- HISTORY · CIRCUITS: every circuit since 1950, calendar changes, records, track maps (F1DB / Jules Roy) ---------- */
 let CMAPS=null,CMAPLOAD=null;
 const RS={q:"",cc:"",type:"",era:"",show:"all",sort:"r",dir:-1,limit:100};
@@ -1811,7 +1848,9 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   document.querySelectorAll("[data-theme-set]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.themeSet===THEME));
   clearInterval(t); closeDrawer();
   const h=curKey();
-  if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
+  if(h==="dictionary"){if(!$(".dict"))$("#app").innerHTML=DICT?viewDict():`<div class="dict"><div class="pagehead"><div><span class="lbl">Formula 1 A to Z</span><h2 class="h1">F1 dictionary</h2><p class="dload">Loading…</p></div></div></div>`;$("#sheetname").textContent="F1 DICTIONARY";setNav("");document.title=pageTitle("dictionary");
+    loadDict().then(()=>{if(curKey()==="dictionary"&&!$(".dict .dsearch")){$("#app").innerHTML=viewDict();pinSizes();}}).catch(()=>{});}
+  else if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
   else if(h==="notfound"){$("#app").innerHTML=viewNotFound();$("#sheetname").textContent="NOT FOUND";setNav("");}
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}
   else if(h==="hcirc"||h.startsWith("hcirc-")){const ck=h.startsWith("hcirc-")?h.slice(6):null,keep=!!$('.hist[data-mode="r"] .hjump');
@@ -1871,6 +1910,11 @@ document.addEventListener("click",e=>{
     const zb=e.target.closest("[data-rz]");if(zb){RT.zoomBy(zb.dataset.rz==="in"?1/1.6:1.6);return;}
     const rs=e.target.closest("[data-rstop],[data-rpin]");if(rs){RT.pick(+(rs.dataset.rstop??rs.dataset.rpin));return;}
     if(e.target.closest("#rsvg")&&RT.phase==="idle"&&RT.pin!=null){RT.unpick();return;}}
+  if($(".dict")){
+    const dc=e.target.closest("[data-dcat]");if(dc){DS.cat=dc.dataset.dcat;dRefresh();if(dc.classList.contains("dcat"))$(".dchips").scrollIntoView({block:"start",behavior:"smooth"});return;}
+    const dv=e.target.closest("[data-dview]");if(dv){DS.view=dv.dataset.dview;dRefresh();return;}
+    if(e.target.closest("[data-dreset]")){DS.q="";const i=$("#dq");if(i)i.value="";dRefresh();return;}
+    const dl=e.target.closest("[data-dl]");if(dl){e.preventDefault();const t=document.getElementById(dl.getAttribute("href").slice(1));if(t){const off=($(".dletters")||{}).offsetHeight||0;window.scrollTo({top:t.getBoundingClientRect().top+scrollY-headTop()-off-8,behavior:"smooth"});}return;}}
   if($(".hist")||$(".modal")){
     const hd=e.target.closest("[data-hd]");if(hd&&HIST){e.preventDefault();openHDriver(+hd.dataset.hd);return;}
     if(e.target.closest("a.gmap"))return;
@@ -1938,7 +1982,7 @@ document.addEventListener("click",e=>{
   if(b.dataset.quick){const n=+b.dataset.quick;setKey("race-"+n);if(!$(".home")){route();}else openRace(n);}
 });
 /* history page: search as you type, filter selects */
-{let qt=0;document.addEventListener("input",e=>{if(e.target.id==="rq"){clearTimeout(qt);qt=setTimeout(()=>{RS.q=e.target.value;circRefresh();},120);return;}if(e.target.id==="cq"){clearTimeout(qt);qt=setTimeout(()=>{CS.q=e.target.value;CS.limit=60;consRefresh();},120);return;}if(e.target.id==="hq"){clearTimeout(qt);qt=setTimeout(()=>{HS.q=e.target.value;HS.limit=60;histRefresh();},120);}});
+{let qt=0;document.addEventListener("input",e=>{if(e.target.id==="dq"){clearTimeout(qt);qt=setTimeout(()=>{DS.q=e.target.value;dRefresh();},100);return;}if(e.target.id==="rq"){clearTimeout(qt);qt=setTimeout(()=>{RS.q=e.target.value;circRefresh();},120);return;}if(e.target.id==="cq"){clearTimeout(qt);qt=setTimeout(()=>{CS.q=e.target.value;CS.limit=60;consRefresh();},120);return;}if(e.target.id==="hq"){clearTimeout(qt);qt=setTimeout(()=>{HS.q=e.target.value;HS.limit=60;histRefresh();},120);}});
  document.addEventListener("change",e=>{if(e.target.id==="hcc"){HS.cc=e.target.value;HS.limit=60;histRefresh();}else if(e.target.id==="hera"){HS.era=e.target.value;HS.limit=60;histRefresh();}
    else if(e.target.id==="rdir"){RS.dir2=e.target.value;circRefresh();}
    else if(e.target.id==="rcc"){RS.cc=e.target.value;circRefresh();}else if(e.target.id==="rtype"){RS.type=e.target.value;circRefresh();}else if(e.target.id==="rera"){RS.era=e.target.value;circRefresh();}

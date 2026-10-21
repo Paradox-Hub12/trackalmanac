@@ -547,6 +547,32 @@ def fmtn(x):
     return "{:,}".format(x) if isinstance(x, int) else ("%g" % x)
 
 
+def dictionary_page(DI):
+    """Every term, A to Z, as plain HTML (the app replaces it with the searchable version)."""
+    cats = dict((k, n) for k, n in DI["cats"])
+    terms = sorted(DI["terms"], key=lambda t: norm_sort(t[0]))
+    out, letter = [], None
+    for t, c, d, aka in terms:
+        L = first_letter(t)
+        if L != letter:
+            if letter is not None: out.append("</dl>")
+            out.append('<h2 id="l-%s">%s</h2><dl>' % (L.lower() if L != "#" else "num", L)); letter = L
+        out.append("<dt>%s%s</dt><dd>%s <small>(%s)</small></dd>" % (esc(t), (" <small>also: %s</small>" % esc(", ".join(aka))) if aka else "", esc(d), esc(cats.get(c, c))))
+    out.append("</dl>")
+    return pagehead("F1 dictionary", "%d Formula 1 terms, from aerodynamics and tyres to flags, radio codes and fan slang." % len(terms)) + "".join(out)
+
+
+def norm_sort(t):
+    import unicodedata
+    t = unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"^[^a-z0-9]+", "", t)
+
+
+def first_letter(t):
+    c = norm_sort(t)[:1].upper()
+    return c if c.isalpha() else "#"
+
+
 def sitemap_page(S, pages):
     groups = [("2026 season", [p for p in pages if p["path"] in ("/", "/championship/", "/drivers/", "/teams/", "/calendar/")]),
               ("2026 races", [p for p in pages if p["path"].startswith("/races/")]),
@@ -689,6 +715,11 @@ def build(out, data_path=DATA):
     htxt = json.dumps(HIST, ensure_ascii=False, separators=(",", ":"))
     open(os.path.join(out, "data", "history.json"), "w", encoding="utf-8").write(htxt)
     data += "const HISTV=%s;\n" % json.dumps(vhash(htxt))
+    # F1 dictionary, loaded only on /dictionary/
+    dpath = os.path.join(ROOT, "src", "dictionary.json")
+    dtxt = json.dumps(load_data(dpath), ensure_ascii=False, separators=(",", ":")) if os.path.exists(dpath) else '{"cats":[],"terms":[]}'
+    open(os.path.join(out, "data", "dictionary.json"), "w", encoding="utf-8").write(dtxt)
+    data += "const DICTV=%s;\n" % json.dumps(vhash(dtxt))
     # circuit outlines for the circuits page, loaded only there
     cm = os.path.join(ROOT, "src", "circuitmaps.json")
     ctxt = open(cm, encoding="utf-8").read().strip() if os.path.exists(cm) else "{}"
@@ -785,6 +816,12 @@ def build(out, data_path=DATA):
         add("archive-1946-1949", "Grand Prix Racing 1946–1949: Before the F1 World Championship | Track Almanac",
             "Grand Prix racing from 1946 to 1949, before the Formula 1 World Championship: %d races with winners and cars, the Grandes Épreuves, and the most successful drivers and makes." % n,
             "Grand Prix racing 1946–1949", prewar_page(S), "SEASON ARCHIVE", home + [("Archive", "/archive/"), ("1946–1949", "/archive/1946-1949/")])
+    dpath = os.path.join(ROOT, "src", "dictionary.json")
+    if os.path.exists(dpath):
+        DI = load_data(dpath)
+        add("dictionary", "F1 Dictionary: %d Formula 1 Terms, Slang & Radio Calls Explained | Track Almanac" % len(DI["terms"]),
+            "A to Z of %d Formula 1 words: aerodynamics, power units, tyres, strategy, flags and penalties, team radio codes, commentary catchphrases and fan slang." % len(DI["terms"]),
+            "F1 dictionary", dictionary_page(DI), "F1 DICTIONARY", home + [("F1 dictionary", "/dictionary/")])
     for key in ("about", "contact", "privacy", "terms", "disclaimer"):
         t, main = static_page(S, key)
         add(key, "%s | Track Almanac" % t, "%s for Track Almanac, an unofficial Formula 1 results and statistics site." % t, t, main, t.upper(), home + [(t, S.path(key))])

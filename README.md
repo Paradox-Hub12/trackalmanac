@@ -95,3 +95,7 @@ Rounds newer than the F1DB release are added from the site's results using each 
 Edit `src/data.json`, run `python3 build.py`, commit and push. The workflow never overwrites what's there. For a new season or round, add the session times to `SCHED` and the round to `RACES`; the workflow fills in the rest as sessions finish.
 
 Track Almanac is not associated with the Formula 1 companies. F1, Formula 1 and related marks are trademarks of Formula One Licensing B.V.
+
+## F1 dictionary
+
+`/dictionary/` (under More) lists Formula 1 terms with search, A–Z and by-topic views. The terms live in `src/dictionary.json` as `{"cats": [[key, name]], "terms": [[term, cat, definition, [also known as]]]}`; the build writes `data/dictionary.json` (loaded only on that page) and prerenders every term into the page HTML. Add a term by adding a row and rebuilding.

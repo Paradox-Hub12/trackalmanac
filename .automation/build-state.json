@@ -111,6 +111,7 @@
   "/archive/1951/",
   "/archive/1950/",
   "/archive/1946-1949/",
+  "/dictionary/",
   "/about/",
   "/contact/",
   "/privacy/",
@@ -562,6 +563,10 @@
   "/archive/1946-1949/": {
    "hash": "7e92445c1f39ebf3d1aee1ee6aa83c009b466341",
    "lastmod": "2026-10-19"
+  },
+  "/dictionary/": {
+   "hash": "0e5e60fc641bc31f06ef173196c20d417120171f",
+   "lastmod": "2026-10-21"
   },
   "/about/": {
    "hash": "ccce9b5f4bb6066f39a4fbdc9bcd06639455bf35",
