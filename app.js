@@ -1561,33 +1561,41 @@ function regStats(e){const ys=[];for(let y=Math.max(1950,e.y[0]);y<=Math.min(HIS
   return {ys,n,top,dch,cch};}
 function regStatsBox(e){const S=regStats(e);if(!S)return "";const max=S.top[0][1];
   const yr=S.ys[0]===S.ys[S.ys.length-1]?String(S.ys[0]):`${S.ys[0]}–${S.ys[S.ys.length-1]}`;
-  return `<div class="rgst"><div class="rgsh"><span class="lbl">The results, ${yr}</span><b>${S.n} races</b></div>
-    <div class="rgbars">${S.top.slice(0,5).map(([i,w])=>`<div class="rgbar"><span>${esc(HIST.tby[i].n)}</span><i><em style="width:${(100*w/max).toFixed(1)}%;background:${rtcol(i)}"></em></i><b>${w}</b><small>${Math.round(100*w/S.n)}%</small></div>`).join("")}</div>
+  return `<div class="rgst" data-rv><div class="rgsh"><span class="lbl">The results, ${yr}</span><b><span data-count="${S.n}">${S.n}</span> races</b></div>
+    <div class="rgbars">${S.top.slice(0,5).map(([i,w])=>`<div class="rgbar"><span>${esc(HIST.tby[i].n)}</span><i><em style="--w:${(100*w/max).toFixed(1)}%;background:${rtcol(i)}"></em></i><b data-count="${w}">${w}</b><small>${Math.round(100*w/S.n)}%</small></div>`).join("")}</div>
     ${Object.keys(S.cch).length?`<p><span class="lbl">Constructors' titles</span> ${Object.entries(S.cch).sort((a,b)=>b[1].length-a[1].length).map(([t,ys])=>`<b>${esc(t)}</b> ${ys.length}`).join(" · ")}</p>`:""}
     ${S.dch.length?`<p><span class="lbl">Drivers' champions</span> ${S.dch.map(([y,n])=>`${y} ${esc(n||"")}`).join(" · ")}</p>`:""}</div>`;}
 function viewRegs(){const R=REGS,A=R.areas;
   const eras=R.eras;
-  return `<div class="hist regs" data-mode="g"><div class="pagehead"><div><span class="lbl">Formula 1 history</span><h2 class="h1">Regulations</h2>
-    <p class="dlink">${esc(R.intro[0])}</p>${htabs("g")}</div></div>
+  const split=t=>[...t].map((c,i)=>c===" "?`<span class="sp"> </span>`:`<span class="ch" style="--i:${i}">${esc(c)}</span>`).join("");
+  const words=["Ground effect","Turbo","Halo","Slicks","DRS","Active aero","Refuelling","Grooved tyres","KERS","Cost cap","V10","Fan car","Hybrid","Sustainable fuel"];
+  const mq=words.map(w=>`<span>${esc(w)}</span><i>✦</i>`).join("");
+  return `<div class="hist regs" data-mode="g">
+    <header class="rghero" id="rghero"><div class="rghl"><span class="lbl">Formula 1 history · Regulations</span>
+      <h1 class="rgtitle" aria-label="The rulebook"><span class="rgw">${split("THE")}</span><span class="rgw rgw2">${split("RULEBOOK")}</span></h1>
+      <p class="rgsub dlink">${esc(R.intro[0])}</p>${htabs("g")}</div>
+      <div class="rghn" aria-hidden="true"><b id="rgcount">1946</b><span>${eras.length} eras · ${HIST.races} Grands Prix · one rulebook rewritten again and again</span></div>
+      <div class="rgmq" aria-hidden="true"><div class="rgmqi">${mq}${mq}</div></div></header>
+    <nav class="rgrail" aria-label="Eras on this page">${eras.map(e=>`<a href="#era-${e.id}" data-rgj="${e.id}" data-rail="${e.id}"><i></i><span>${e.y[0]}</span></a>`).join("")}<b class="rgrf"></b></nav>
     <div class="rgintro dlink">${R.intro.slice(1).map(p=>`<p>${esc(p)}</p>`).join("")}<p class="note2">Words with a dotted underline are in the <a href="${H("dictionary")}" data-go="dictionary">F1 dictionary</a>: hover or tap one for a short explanation.</p></div>
     <nav class="rgnav" aria-label="Eras">${eras.map(e=>`<a href="#era-${e.id}" data-rgj="${e.id}"><b>${e.y[0]===e.y[1]?e.y[0]:e.y[0]+"–"+String(e.y[1]).slice(-2)}</b><span>${esc(e.name)}</span></a>`).join("")}</nav>
     <section class="dsec"><div class="sec"><h2>Who won, year by year</h2><span class="lbl">Share of race wins per team · 1950–60 include the Indianapolis 500 · select a year</span></div>${regStrip()}</section>
     <section class="dsec"><div class="sec"><h2>Explore a season</h2><span class="lbl">The rules in force and how it went</span></div>${regExplorer()}</section>
-    ${eras.map(e=>`<section class="rgera" id="era-${e.id}"><div class="rgeh"><span class="rgy">${e.y[0]===e.y[1]?e.y[0]:e.y[0]+"–"+e.y[1]}</span><div><h2>${esc(e.name)}</h2><span class="lbl">${esc(e.tag)}</span></div></div>
-      <div class="rgbody"><div class="rgtext dlink"><p class="rgplain">${esc(e.plain)}</p>
-        <h3>What changed</h3><ul class="rgch">${e.changes.map(([a,t])=>`<li style="--ac:${RAREA[a]}"><span class="rga">${esc(A[a])}</span>${esc(t)}</li>`).join("")}</ul>
+    ${eras.map(e=>{const S=e.stats===false?null:regStats(e),tc=S&&S.top[0]?rtcol(S.top[0][0]):"var(--signal)";return `<section class="rgera" id="era-${e.id}" style="--tc:${tc}"><span class="rgghost" aria-hidden="true">${e.y[0]}</span><div class="rgeh" data-rv><span class="rgy">${e.y[0]===e.y[1]?e.y[0]:e.y[0]+"–"+e.y[1]}</span><div><h2>${esc(e.name)}</h2><span class="lbl">${esc(e.tag)}</span></div></div>
+      <div class="rgbody"><div class="rgtext dlink"><p class="rgplain" data-rv>${esc(e.plain)}</p>
+        <h3>What changed</h3><ul class="rgch">${e.changes.map(([a,t],i)=>`<li data-rv style="--ac:${RAREA[a]};--i:${i}"><span class="rga">${esc(A[a])}</span>${esc(t)}</li>`).join("")}</ul>
         <h3>What it meant</h3><p>${esc(e.meant)}</p>${e.nailed?`<p class="rgnail"><b>Who got it right</b> ${esc(e.nailed)}</p>`:""}</div>
-        ${e.stats===false?"":regStatsBox(e)}</div></section>`).join("")}
+        ${e.stats===false?"":regStatsBox(e)}</div></section>`;}).join("")}
     <section class="dsec"><div class="sec"><h2>Engines over the years</h2><span class="lbl">Engine size allowed</span></div>${regEngChart()}</section>
     <section class="dsec"><div class="sec"><h2>Minimum weight</h2><span class="lbl">Lightest a car may be · includes the driver from 1995</span></div>${regWeightChart()}</section>
     <section class="dsec"><div class="sec"><h2>Points systems</h2><span class="lbl">For the top finishers of a Grand Prix</span></div>${regPoints()}</section>
     <p class="note2">Race and title figures come from this site's results (F1DB and the 2026 season). Sources for the rules: ${R.sources.map(([t,u])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join(" · ")}.</p></div>`;}
 function regStrip(){const y0=1950,y1=HIST.now,N=y1-y0+1,W=1000,Hh=150,bw=W/N;let bars="";
   for(let y=y0;y<=y1;y++){const Y=regYear(y);if(!Y)continue;let acc=0;const x=(y-y0)*bw;
-    Y.c.forEach(([i,w])=>{const h=Hh*w/Y.n;bars+=`<rect x="${(x+.5).toFixed(2)}" y="${(Hh-acc-h).toFixed(2)}" width="${(bw-1).toFixed(2)}" height="${h.toFixed(2)}" fill="${rtcol(i)}"/>`;acc+=h;});
+    Y.c.forEach(([i,w])=>{const h=Hh*w/Y.n;bars+=`<rect class="rgsb" style="--d:${((y-y0)*12)}ms" x="${(x+.5).toFixed(2)}" y="${(Hh-acc-h).toFixed(2)}" width="${(bw-1).toFixed(2)}" height="${h.toFixed(2)}" fill="${rtcol(i)}"/>`;acc+=h;});
     bars+=`<rect class="rghit" data-ry="${y}" x="${x.toFixed(2)}" y="0" width="${bw.toFixed(2)}" height="${Hh+20}" fill="transparent"/>`;}
   const marks=REGS.eras.filter(e=>e.y[0]>=1950&&e.y[0]<=y1).map(e=>{const x=(e.y[0]-y0)*bw;return `<line x1="${x}" x2="${x}" y1="-6" y2="${Hh}" class="rgmk"/><text x="${x+3}" y="${Hh+14}" class="rgml">${e.y[0]}</text>`;}).join("");
-  return `<div class="rgstrip"><svg viewBox="0 -8 ${W} ${Hh+24}" preserveAspectRatio="none" role="img" aria-label="Share of wins per team in every season since 1950">${bars}${marks}<rect class="rgsel" x="0" y="-8" width="${bw}" height="${Hh+8}"/></svg></div><div class="rgread" id="rgread" aria-live="polite">${regReadout(1988)}</div>`;}
+  return `<div class="rgstrip" data-rv><svg viewBox="0 -8 ${W} ${Hh+24}" preserveAspectRatio="none" role="img" aria-label="Share of wins per team in every season since 1950">${bars}${marks}<rect class="rgsel" x="0" y="-8" width="${bw}" height="${Hh+8}"/></svg></div><div class="rgread" id="rgread" aria-live="polite">${regReadout(1988)}</div>`;}
 function regReadout(y){const Y=regYear(y);if(!Y)return "";const e=regEra(y);
   return `<b>${y}</b> <span class="lbl">${e?esc(e.name):""}</span> ${Y.c.slice(0,3).map(([i,w])=>`<span class="rgk"><i style="background:${rtcol(i)}"></i>${esc(HIST.tby[i].n)} ${w}</span>`).join("")}<span class="rgk">of ${Y.n} races</span>${Y.ch?`<span class="rgk">Champion: <b>${esc(Y.ch[0]||"")}</b>${Y.ch[1]?"":" (leading)"}</span>`:""}`;}
 function regRules(y){const R=REGS;const en=R.engines.filter(x=>y>=x[0]&&y<=x[1]).pop();const wt=R.weight.filter(x=>x[0]<=y).pop();const pt=R.points.find(x=>y>=x[0]&&y<=x[1]);return {en,wt,pt};}
@@ -1598,17 +1606,40 @@ function regExplore(y){const {en,wt,pt}=regRules(y),Y=regYear(y),e=regEra(y);
    <div class="rgxg dlink">${box("Engine",en?esc(en[2]):"—","")}${box("Minimum weight",wt?wt[1]+" kg":"None","")}${box("Points for 1st to last scorer",pt?pt[2].join(" · "):"—",pt&&pt[4]?esc(pt[4]):"")}
    ${box("Drivers' champion",Y&&Y.ch?esc(Y.ch[0]||""):"—",Y&&Y.ch&&!Y.ch[1]?"Leading, season under way":"")}${box("Constructors' champion",Y&&Y.cc?esc(Y.cc[0]):(y<1958?"No title before 1958":"—"),"")}${box("Most wins",Y&&Y.c[0]?`${esc(HIST.tby[Y.c[0][0]].n)} ${Y.c[0][1]} of ${Y.n}`:"—","")}</div>`;}
 function regEngChart(){const E=REGS.engines,W=1000,Hh=200,x0=1946,x1=2030,X=y=>(y-x0)/(x1-x0+1)*W,Y=v=>Hh-v/5*Hh;
-  const bars=E.map(([a,b,l,v])=>`<g class="rgeb"><rect x="${X(a).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(X(b+1)-X(a)-2).toFixed(1)}" height="${(Hh-Y(v)).toFixed(1)}" rx="2"/><text x="${(X(a)+4).toFixed(1)}" y="${(Y(v)-6).toFixed(1)}">${v} L</text><title>${a}–${b}: ${esc(l)}</title></g>`).join("");
+  const bars=E.map(([a,b,l,v])=>`<g class="rgeb" style="--d:${(a-x0)*14}ms"><rect x="${X(a).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(X(b+1)-X(a)-2).toFixed(1)}" height="${(Hh-Y(v)).toFixed(1)}" rx="2"/><text x="${(X(a)+4).toFixed(1)}" y="${(Y(v)-6).toFixed(1)}">${v} L</text><title>${a}–${b}: ${esc(l)}</title></g>`).join("");
   const ax=[1950,1960,1970,1980,1990,2000,2010,2020,2030].map(y=>`<text class="rgax" x="${X(y)}" y="${Hh+16}" text-anchor="middle">${y}</text>`).join("");
-  return `<div class="rgchart"><svg viewBox="0 -24 ${W} ${Hh+44}" role="img" aria-label="Maximum engine size from 1946 to 2030">${bars}${ax}</svg><p class="note2 dlink">Turbo or supercharged engines were allowed a smaller size: 1.5 litres supercharged until 1953 and turbo engines of 1.5 litres from 1977 to 1988. Today's engines are 1.6-litre turbo V6s with hybrid systems.</p></div>`;}
+  return `<div class="rgchart" data-rv><svg viewBox="0 -24 ${W} ${Hh+44}" role="img" aria-label="Maximum engine size from 1946 to 2030">${bars}${ax}</svg><p class="note2 dlink">Turbo or supercharged engines were allowed a smaller size: 1.5 litres supercharged until 1953 and turbo engines of 1.5 litres from 1977 to 1988. Today's engines are 1.6-litre turbo V6s with hybrid systems.</p></div>`;}
 function regWeightChart(){const P=REGS.weight,W=1000,Hh=200,x0=1958,x1=2028,X=y=>(y-x0)/(x1-x0)*W,lo=400,hi=850,Y=v=>Hh-(v-lo)/(hi-lo)*Hh;
   let d="";P.forEach(([y,v],k)=>{const nx=k<P.length-1?P[k+1][0]:HIST.now+1;d+=`${k?"L":"M"}${X(y).toFixed(1)} ${Y(v).toFixed(1)} L${X(nx).toFixed(1)} ${Y(v).toFixed(1)} `;});
   const pts=P.map(([y,v])=>`<g class="rgwp"><circle cx="${X(y).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4"/><title>${y}: ${v} kg</title></g>`).join("");
   const gy=[450,550,650,750,850].map(v=>`<line class="rgg" x1="0" x2="${W}" y1="${Y(v)}" y2="${Y(v)}"/><text class="rgax" x="4" y="${Y(v)-4}">${v} kg</text>`).join("");
   const ax=[1960,1970,1980,1990,2000,2010,2020].map(y=>`<text class="rgax" x="${X(y)}" y="${Hh+16}" text-anchor="middle">${y}</text>`).join("");
-  return `<div class="rgchart"><svg viewBox="0 -10 ${W} ${Hh+30}" role="img" aria-label="Minimum car weight since 1961">${gy}<path class="rgwl" d="${d}"/>${pts}${ax}</svg><p class="note2 dlink">Weight limits stop teams building flimsy, ultra-light cars. Cars got much heavier in the hybrid era because of batteries, motors and safety structures such as the halo; the 2026 rules cut 32 kg.</p></div>`;}
+  return `<div class="rgchart" data-rv><svg viewBox="0 -10 ${W} ${Hh+30}" role="img" aria-label="Minimum car weight since 1961">${gy}<path class="rgwl" pathLength="1" d="${d}"/>${pts}${ax}</svg><p class="note2 dlink">Weight limits stop teams building flimsy, ultra-light cars. Cars got much heavier in the hybrid era because of batteries, motors and safety structures such as the halo; the 2026 rules cut 32 kg.</p></div>`;}
 function regPoints(){return `<div class="tw"><table class="t" data-fz="1"><thead><tr><th>Years</th>${[1,2,3,4,5,6,7,8,9,10].map(n=>`<th class="n">${ordinal(n)}</th>`).join("")}<th>Notes</th></tr></thead><tbody>${REGS.points.map(([a,b,p,fl,note])=>`<tr><td class="m"><b>${a===b?a:a+"–"+b}</b></td>${[0,1,2,3,4,5,6,7,8,9].map(k=>`<td class="n">${p[k]!=null?p[k]:'<span style="color:var(--ink-3)">–</span>'}</td>`).join("")}<td class="dlink" style="color:var(--ink-2)">${esc(note)}</td></tr>`).join("")}</tbody></table></div>`;}
-function regsInit(){dictLink($(".regs"));const sv=$(".rgstrip svg");if(sv){const pick=e=>{const b=sv.getBoundingClientRect();const y=1950+Math.floor((e.clientX-b.left)/b.width*(HIST.now-1950+1));if(y>=1950&&y<=HIST.now&&y!==sv._y){sv._y=y;regSel(y);}};sv.addEventListener("pointermove",pick);sv.addEventListener("pointerdown",pick);}const r=$("#rgy");if(r){const f=()=>{const y=+r.value;$("#rgxo").innerHTML=regExplore(y);dictLink($("#rgxo"));regSel(y);};r.addEventListener("input",f);regSel(+r.value);}}
+function regsInit(){dictLink($(".regs"));regsMotion();const sv=$(".rgstrip svg");if(sv){const pick=e=>{const b=sv.getBoundingClientRect();const y=1950+Math.floor((e.clientX-b.left)/b.width*(HIST.now-1950+1));if(y>=1950&&y<=HIST.now&&y!==sv._y){sv._y=y;regSel(y);}};sv.addEventListener("pointermove",pick);sv.addEventListener("pointerdown",pick);}const r=$("#rgy");if(r){const f=()=>{const y=+r.value;$("#rgxo").innerHTML=regExplore(y);dictLink($("#rgxo"));regSel(y);};r.addEventListener("input",f);regSel(+r.value);}}
+/* motion: reveal on scroll, counters, hero year counter, scroll-linked era fill, ghost-year parallax, era rail, pointer spotlight.
+   Everything is skipped (content shown as is) when the reader prefers reduced motion. */
+const RM=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+function countUp(el,dur){const to=+el.dataset.count;if(el._c)return;el._c=1;if(RM()){el.textContent=to;return;}const t0=performance.now(),from=0;
+  const step=t=>{const k=Math.min(1,(t-t0)/(dur||900)),v=Math.round(from+(to-from)*(1-Math.pow(1-k,3)));el.textContent=v.toLocaleString();if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);}
+function regsMotion(){const root=$(".regs");if(!root)return;root.classList.add("mo");
+  if(RM()){root.classList.add("still");root.querySelectorAll("[data-rv]").forEach(e=>e.classList.add("in"));}
+  else{const io=new IntersectionObserver(es=>es.forEach(x=>{if(!x.isIntersecting)return;x.target.classList.add("in");x.target.querySelectorAll("[data-count]").forEach(c=>countUp(c));io.unobserve(x.target);}),{rootMargin:"0px 0px -8% 0px",threshold:.08});
+    root.querySelectorAll("[data-rv]").forEach(e=>io.observe(e));}
+  /* hero: year ticks from 1946 to now */
+  const hc=$("#rgcount");if(hc){if(RM())hc.textContent=HIST.now;else{const t0=performance.now()+500,d=2200;const f=t=>{const k=Math.max(0,Math.min(1,(t-t0)/d));hc.textContent=Math.round(1946+(HIST.now-1946)*(1-Math.pow(1-k,4)));if(k<1&&hc.isConnected)requestAnimationFrame(f);};requestAnimationFrame(f);}}
+  /* pointer spotlight in the hero */
+  const hero=$("#rghero");if(hero&&!RM())hero.addEventListener("pointermove",e=>{const r=hero.getBoundingClientRect();hero.style.setProperty("--mx",((e.clientX-r.left)/r.width*100).toFixed(1)+"%");hero.style.setProperty("--my",((e.clientY-r.top)/r.height*100).toFixed(1)+"%");},{passive:true});
+  const eras=[...root.querySelectorAll(".rgera")],rail=[...root.querySelectorAll("[data-rail]")],rf=$(".rgrf"),mq=$(".rgmqi");let lastY=scrollY,vel=0,q=0;
+  const tick=()=>{q=0;if(!root.isConnected)return;const vh=innerHeight;let cur=-1;
+    eras.forEach((s,k)=>{const r=s.getBoundingClientRect();if(r.top<vh*.45)cur=k;if(r.bottom<0||r.top>vh)return;
+      const p=Math.max(0,Math.min(1,(vh*.85-r.top)/(vh*.6)));s.style.setProperty("--p",p.toFixed(3));
+      const g=s.querySelector(".rgghost");if(g&&!RM())g.style.transform=`translate3d(0,${((r.top-vh/2)*-.18).toFixed(1)}px,0)`;});
+    rail.forEach((a,k)=>a.classList.toggle("on",k===cur));
+    if(rf&&eras.length){const a=eras[0].getBoundingClientRect().top+scrollY,b=eras[eras.length-1].getBoundingClientRect().bottom+scrollY;rf.style.transform=`scaleY(${Math.max(0,Math.min(1,(scrollY+vh*.45-a)/(b-a))).toFixed(3)})`;}
+    root.classList.toggle("railon",cur>=0&&eras[eras.length-1].getBoundingClientRect().bottom>vh*.3);
+    vel=vel*.85+(scrollY-lastY)*.15;lastY=scrollY;if(mq&&!RM())mq.style.setProperty("--sk",Math.max(-12,Math.min(12,vel*.4)).toFixed(2)+"deg");};
+  const on=()=>{if(!q)q=requestAnimationFrame(tick);};addEventListener("scroll",on,{passive:true});addEventListener("resize",on,{passive:true});tick();}
 function regSel(y){const sel=$(".rgsel"),hit=$(`.rghit[data-ry="${y}"]`);if(sel&&hit){sel.setAttribute("x",hit.getAttribute("x"));}const rd=$("#rgread");if(rd)rd.innerHTML=regReadout(y);const r=$("#rgy");if(r&&+r.value!==y){r.value=y;$("#rgxo").innerHTML=regExplore(y);dictLink($("#rgxo"));}}
 /* dictionary words: underline them in a block of text and show the definition in a small box on hover, focus or tap */
 const DSTOP=new Set(["pace","grid","points","podium","garage","balance","bite","lapped","wear","sector","debrief","stall","drift","pits","box","engine","grand prix","gp","position","testing","practice","race pace","data","body","g","retired","ret","drivers' championship","constructors' championship","p1, p2…","copy","understood","push","loose","snap","the plan","helmet","gloves","cockpit","grip","handling","traction","torque","lap record","sprint","qualifying","quali","pole","pit stop","team orders","constructor","chassis","circuit","track","delta","boost"]);
