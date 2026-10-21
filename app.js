@@ -1542,6 +1542,9 @@ function openHEngine(i){histIndexTeams();const e=HIST.eby[i];if(!e)return;
   modalShell("hcons",inner,"var(--ink-3)",pv,nx);setKey("heng-"+e.id);document.title=pageTitle("heng-"+e.id);}
 /* ---------- F1 DICTIONARY: every term A to Z or by topic, with search (data/dictionary.json, loaded on demand) ---------- */
 let DICT=null,DICTLOAD=null;const DS={q:"",cat:"",view:"az"};
+/* one quiet accent colour per topic */
+const DCOL={aero:"#3d8bff",pu:"#ffd23f",tyre:"#ff4d5e",race:"#43c56b",wknd:"#c06bff",rules:"#ff8a3d",team:"#2ec4c4",radio:"#ff6fb5",fan:"#e8c45a",hist:"#d08f55"};
+const dc=k=>`--dc:${DCOL[k]||"var(--ink-3)"}`;
 const dnorm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const dkey=t=>dnorm(t).replace(/^[^a-z0-9]+/,"");
 function loadDict(){if(DICT)return Promise.resolve(DICT);if(!DICTLOAD)DICTLOAD=fetch(`/data/dictionary.json?v=${DICTV}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>{
@@ -1555,11 +1558,11 @@ function dFiltered(){const q=dnorm(DS.q.trim());const words=q.split(/\s+/).filte
 function dHi(s){const q=DS.q.trim();if(!q)return esc(s);const words=dnorm(q).split(/\s+/).filter(w=>w.length>1);if(!words.length)return esc(s);
   const n=dnorm(s);const marks=new Array(s.length).fill(false);words.forEach(w=>{let i=0;while((i=n.indexOf(w,i))>=0){for(let k=i;k<i+w.length;k++)marks[k]=true;i+=w.length;}});
   let out="",on=false;for(let i=0;i<s.length;i++){if(marks[i]!==on){out+=on?"</mark>":"<mark>";on=marks[i];}out+=esc(s[i]);}return out+(on?"</mark>":"");}
-function dCard(x){return `<article class="dterm" id="t-${x.i}"><h3>${dHi(x.t)}</h3>${x.a.length?`<p class="aka">Also: ${x.a.map(dHi).join(", ")}</p>`:""}<p>${dHi(x.d)}</p><button class="tag dcat" data-dcat="${x.c}">${esc(DICT.cn[x.c])}</button></article>`;}
+function dCard(x){return `<article class="dterm" id="t-${x.i}" style="${dc(x.c)}"><h3>${dHi(x.t)}</h3>${x.a.length?`<p class="aka">Also: ${x.a.map(dHi).join(", ")}</p>`:""}<p>${dHi(x.d)}</p><button class="dcat" data-dcat="${x.c}">${esc(DICT.cn[x.c])}</button></article>`;}
 function dList(){const L=dFiltered(),cnt=$("#d-count");if(cnt)cnt.textContent=`${L.length} term${L.length===1?"":"s"}`;
   if(!L.length)return `<p class="note2">No term matches “${esc(DS.q)}”. <button class="hmore" data-dreset>Clear the search</button></p>`;
   if(DS.q.trim())return `<div class="dgrid">${L.map(dCard).join("")}</div>`;
-  if(DS.view==="topic"&&!DS.cat)return DICT.cats.map(([k,n])=>{const g=L.filter(x=>x.c===k);return g.length?`<section class="dgrp" id="g-${k}"><h2 class="dlh">${esc(n)} <small>${g.length}</small></h2><div class="dgrid">${g.map(dCard).join("")}</div></section>`:"";}).join("");
+  if(DS.view==="topic"&&!DS.cat)return DICT.cats.map(([k,n])=>{const g=L.filter(x=>x.c===k);return g.length?`<section class="dgrp" id="g-${k}" style="${dc(k)}"><h2 class="dlh dlt">${esc(n)} <small>${g.length}</small></h2><div class="dgrid">${g.map(dCard).join("")}</div></section>`:"";}).join("");
   const by={};L.forEach(x=>(by[dLetter(x)]=by[dLetter(x)]||[]).push(x));
   return Object.keys(by).sort((a,b)=>a==="#"?-1:b==="#"?1:a.localeCompare(b)).map(l=>`<section class="dgrp" id="l-${l==="#"?"num":l.toLowerCase()}"><h2 class="dlh">${l}</h2><div class="dgrid">${by[l].map(dCard).join("")}</div></section>`).join("");}
 function dLetters(){const L=dFiltered(),have=new Set(L.map(dLetter));
@@ -1570,7 +1573,7 @@ function viewDict(){const n=DICT.terms.length;
     <div class="dbar"><label class="dsearch"><span class="lbl">Search</span><input id="dq" type="search" placeholder="Try “undercut”, “porpoising” or “box”" value="${esc(DS.q)}" autocomplete="off" spellcheck="false"></label>
       <div><span class="lbl">Order</span><div class="dsort" role="group" aria-label="Order"><button data-dview="az" aria-pressed="${DS.view==="az"}">A to Z</button><button data-dview="topic" aria-pressed="${DS.view==="topic"}">By topic</button></div></div>
       <span class="lbl" id="d-count" aria-live="polite">${dFiltered().length} terms</span></div>
-    <div class="dchips" role="group" aria-label="Topic"><button data-dcat="" aria-pressed="${!DS.cat}">All</button>${DICT.cats.map(([k,nm])=>`<button data-dcat="${k}" aria-pressed="${DS.cat===k}">${esc(nm)} <small>${DICT.terms.filter(x=>x.c===k).length}</small></button>`).join("")}</div>
+    <div class="dchips" role="group" aria-label="Topic"><button data-dcat="" aria-pressed="${!DS.cat}">All</button>${DICT.cats.map(([k,nm])=>`<button data-dcat="${k}" style="${dc(k)}" aria-pressed="${DS.cat===k}"><i></i>${esc(nm)} <small>${DICT.terms.filter(x=>x.c===k).length}</small></button>`).join("")}</div>
     <nav class="dletters" aria-label="Jump to letter" ${DS.view==="topic"&&!DS.cat||DS.q.trim()?"hidden":""}>${dLetters()}</nav>
     <div id="d-list">${dList()}</div>
     <p class="note2">Definitions written for Track Almanac from FIA regulations, Pirelli, Formula1.com and long-standing paddock usage. Rule details are current for ${new Date().getFullYear()}; where a rule changed over the years the entry says so. Missing a word? Use the contact page.</p></div>`;}

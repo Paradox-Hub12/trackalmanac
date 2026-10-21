@@ -238,24 +238,34 @@ h1,h2,h3{font-family:var(--f-display);text-transform:uppercase;margin:0;line-hei
 .dbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end;margin-top:18px}
 .dsearch{display:flex;flex-direction:column;gap:4px;flex:1 1 280px;max-width:520px}
 .dsearch input{background:var(--panel);border:1.5px solid var(--rule-2);color:var(--ink);font:inherit;font-size:16px;padding:10px 12px}
+.dsearch input{border-radius:6px}
 .dsearch input:focus{outline:2px solid var(--signal);outline-offset:0}
+.dbar .dsort button{font-family:var(--f-body);font-size:14px;font-weight:600;letter-spacing:.01em;text-transform:none;padding:7px 12px}
 .dchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-.dchips button{background:var(--panel);border:1px solid var(--rule-2);color:var(--ink-2);font-family:var(--f-data);font-size:11.5px;letter-spacing:.04em;padding:6px 10px;cursor:pointer}
-.dchips button small{color:var(--ink-3);margin-left:3px}
-.dchips button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}.dchips button[aria-pressed="true"] small{color:inherit;opacity:.7}
+.dchips button{--dc:var(--ink-2);display:inline-flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--rule-2);color:var(--ink);font-family:var(--f-body);font-size:14.5px;font-weight:600;letter-spacing:.01em;padding:6px 12px 6px 10px;cursor:pointer;border-radius:999px;transition:background .15s,border-color .15s}
+.dchips button i{width:9px;height:9px;border-radius:50%;background:var(--dc);flex:none}
+.dchips button small{color:var(--ink-3);font-family:var(--f-data);font-size:11px;font-weight:400}
+.dchips button:hover{border-color:var(--dc)}
+.dchips button[aria-pressed="true"]{background:color-mix(in srgb,var(--dc) 22%,var(--panel));border-color:var(--dc)}
+.dchips button[aria-pressed="true"] small{color:var(--ink-2)}
+.dchips button[data-dcat=""][aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
 .dletters{position:sticky;top:var(--pinh,0px);z-index:6;display:flex;flex-wrap:wrap;gap:2px;margin-top:12px;padding:6px 0;background:var(--sheet);border-bottom:1px solid var(--rule)}
 .dletters a,.dletters span{min-width:28px;text-align:center;padding:5px 0;font-family:var(--f-data);font-size:13px;text-decoration:none}
 .dletters a{color:var(--ink)}.dletters a:hover{color:var(--signal)}.dletters span{color:var(--ink-3);opacity:.45}
 .dlh{font-family:var(--f-display);font-weight:900;font-size:40px;margin:26px 0 10px;border-bottom:2px solid var(--signal);padding-bottom:2px}
 .dlh small{font-family:var(--f-data);font-size:13px;color:var(--ink-3);font-weight:400;margin-left:6px}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
-.dterm{border:1.5px solid var(--rule-2);background:var(--panel);padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.dterm{border:1.5px solid var(--rule-2);border-left:3px solid var(--dc,var(--rule-2));background:linear-gradient(135deg,color-mix(in srgb,var(--dc,transparent) 7%,var(--panel)),var(--panel) 45%);padding:12px 14px;display:flex;flex-direction:column;gap:6px}
 .dterm h3{margin:0;font-size:18px}.dterm p{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink-2)}
 .dterm .aka{font-size:12.5px;color:var(--ink-3)}
-.dterm .dcat{align-self:flex-start;margin:4px 0 0;cursor:pointer;background:none}
+.dterm .dcat{align-self:flex-start;margin:4px 0 0;cursor:pointer;background:color-mix(in srgb,var(--dc) 14%,transparent);border:0;color:var(--dc);font-family:var(--f-body);font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:999px}
+.dterm .dcat:hover{background:color-mix(in srgb,var(--dc) 26%,transparent)}
+:root[data-theme="light"] .dterm .dcat{color:color-mix(in srgb,var(--dc) 60%,#000)}
+.dlt{border-bottom-color:var(--dc)}
+.dletters a{transition:color .15s}
 .dterm mark{background:color-mix(in srgb,var(--signal) 30%,transparent);color:var(--ink);padding:0 1px}
 .dgrp{scroll-margin-top:calc(var(--pinh,0px) + 60px)}
-@media (max-width:640px){.dgrid{grid-template-columns:minmax(0,1fr)}.dletters a,.dletters span{min-width:22px;font-size:12px}}
+@media (max-width:640px){.dchips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:-16px;padding-right:16px}.dchips::-webkit-scrollbar{display:none}.dchips button{flex:none;font-size:14px}.dgrid{grid-template-columns:minmax(0,1fr)}.dletters a,.dletters span{min-width:22px;font-size:12px}}
 /* championship page top: standings + update panel */
 .ctop{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;margin-top:22px;align-items:start}
 @media (max-width:860px){.ctop{grid-template-columns:minmax(0,1fr)}}
@@ -2554,6 +2564,9 @@ function openHEngine(i){histIndexTeams();const e=HIST.eby[i];if(!e)return;
   modalShell("hcons",inner,"var(--ink-3)",pv,nx);setKey("heng-"+e.id);document.title=pageTitle("heng-"+e.id);}
 /* ---------- F1 DICTIONARY: every term A to Z or by topic, with search (data/dictionary.json, loaded on demand) ---------- */
 let DICT=null,DICTLOAD=null;const DS={q:"",cat:"",view:"az"};
+/* one quiet accent colour per topic */
+const DCOL={aero:"#3d8bff",pu:"#ffd23f",tyre:"#ff4d5e",race:"#43c56b",wknd:"#c06bff",rules:"#ff8a3d",team:"#2ec4c4",radio:"#ff6fb5",fan:"#e8c45a",hist:"#d08f55"};
+const dc=k=>`--dc:${DCOL[k]||"var(--ink-3)"}`;
 const dnorm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const dkey=t=>dnorm(t).replace(/^[^a-z0-9]+/,"");
 function loadDict(){if(DICT)return Promise.resolve(DICT);if(!DICTLOAD)DICTLOAD=fetch(`/data/dictionary.json?v=${DICTV}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>{
@@ -2567,11 +2580,11 @@ function dFiltered(){const q=dnorm(DS.q.trim());const words=q.split(/\s+/).filte
 function dHi(s){const q=DS.q.trim();if(!q)return esc(s);const words=dnorm(q).split(/\s+/).filter(w=>w.length>1);if(!words.length)return esc(s);
   const n=dnorm(s);const marks=new Array(s.length).fill(false);words.forEach(w=>{let i=0;while((i=n.indexOf(w,i))>=0){for(let k=i;k<i+w.length;k++)marks[k]=true;i+=w.length;}});
   let out="",on=false;for(let i=0;i<s.length;i++){if(marks[i]!==on){out+=on?"</mark>":"<mark>";on=marks[i];}out+=esc(s[i]);}return out+(on?"</mark>":"");}
-function dCard(x){return `<article class="dterm" id="t-${x.i}"><h3>${dHi(x.t)}</h3>${x.a.length?`<p class="aka">Also: ${x.a.map(dHi).join(", ")}</p>`:""}<p>${dHi(x.d)}</p><button class="tag dcat" data-dcat="${x.c}">${esc(DICT.cn[x.c])}</button></article>`;}
+function dCard(x){return `<article class="dterm" id="t-${x.i}" style="${dc(x.c)}"><h3>${dHi(x.t)}</h3>${x.a.length?`<p class="aka">Also: ${x.a.map(dHi).join(", ")}</p>`:""}<p>${dHi(x.d)}</p><button class="dcat" data-dcat="${x.c}">${esc(DICT.cn[x.c])}</button></article>`;}
 function dList(){const L=dFiltered(),cnt=$("#d-count");if(cnt)cnt.textContent=`${L.length} term${L.length===1?"":"s"}`;
   if(!L.length)return `<p class="note2">No term matches “${esc(DS.q)}”. <button class="hmore" data-dreset>Clear the search</button></p>`;
   if(DS.q.trim())return `<div class="dgrid">${L.map(dCard).join("")}</div>`;
-  if(DS.view==="topic"&&!DS.cat)return DICT.cats.map(([k,n])=>{const g=L.filter(x=>x.c===k);return g.length?`<section class="dgrp" id="g-${k}"><h2 class="dlh">${esc(n)} <small>${g.length}</small></h2><div class="dgrid">${g.map(dCard).join("")}</div></section>`:"";}).join("");
+  if(DS.view==="topic"&&!DS.cat)return DICT.cats.map(([k,n])=>{const g=L.filter(x=>x.c===k);return g.length?`<section class="dgrp" id="g-${k}" style="${dc(k)}"><h2 class="dlh dlt">${esc(n)} <small>${g.length}</small></h2><div class="dgrid">${g.map(dCard).join("")}</div></section>`:"";}).join("");
   const by={};L.forEach(x=>(by[dLetter(x)]=by[dLetter(x)]||[]).push(x));
   return Object.keys(by).sort((a,b)=>a==="#"?-1:b==="#"?1:a.localeCompare(b)).map(l=>`<section class="dgrp" id="l-${l==="#"?"num":l.toLowerCase()}"><h2 class="dlh">${l}</h2><div class="dgrid">${by[l].map(dCard).join("")}</div></section>`).join("");}
 function dLetters(){const L=dFiltered(),have=new Set(L.map(dLetter));
@@ -2582,7 +2595,7 @@ function viewDict(){const n=DICT.terms.length;
     <div class="dbar"><label class="dsearch"><span class="lbl">Search</span><input id="dq" type="search" placeholder="Try “undercut”, “porpoising” or “box”" value="${esc(DS.q)}" autocomplete="off" spellcheck="false"></label>
       <div><span class="lbl">Order</span><div class="dsort" role="group" aria-label="Order"><button data-dview="az" aria-pressed="${DS.view==="az"}">A to Z</button><button data-dview="topic" aria-pressed="${DS.view==="topic"}">By topic</button></div></div>
       <span class="lbl" id="d-count" aria-live="polite">${dFiltered().length} terms</span></div>
-    <div class="dchips" role="group" aria-label="Topic"><button data-dcat="" aria-pressed="${!DS.cat}">All</button>${DICT.cats.map(([k,nm])=>`<button data-dcat="${k}" aria-pressed="${DS.cat===k}">${esc(nm)} <small>${DICT.terms.filter(x=>x.c===k).length}</small></button>`).join("")}</div>
+    <div class="dchips" role="group" aria-label="Topic"><button data-dcat="" aria-pressed="${!DS.cat}">All</button>${DICT.cats.map(([k,nm])=>`<button data-dcat="${k}" style="${dc(k)}" aria-pressed="${DS.cat===k}"><i></i>${esc(nm)} <small>${DICT.terms.filter(x=>x.c===k).length}</small></button>`).join("")}</div>
     <nav class="dletters" aria-label="Jump to letter" ${DS.view==="topic"&&!DS.cat||DS.q.trim()?"hidden":""}>${dLetters()}</nav>
     <div id="d-list">${dList()}</div>
     <p class="note2">Definitions written for Track Almanac from FIA regulations, Pirelli, Formula1.com and long-standing paddock usage. Rule details are current for ${new Date().getFullYear()}; where a rule changed over the years the entry says so. Missing a word? Use the contact page.</p></div>`;}
