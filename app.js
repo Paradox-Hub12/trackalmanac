@@ -226,6 +226,7 @@ function viewSeason(){
         <div style="color:var(--ink-2)">${esc(nr.circuit)}, ${esc(nr.city)}</div>
         <div><span class="tag sig">${esc(nr.days)}</span>${nr.sprint?'<span class="tag">Sprint</span>':""}<span class="tag">Night</span></div>
         <div class="cdx" id="cdx" aria-live="off"></div>
+        <p class="waline">Get session times and results on WhatsApp ${waA("home","wabtn wasm","Follow")}</p>
         <div class="spec"><div><span class="lbl">Lap</span><b>${dist(nr.len,3)}</b></div><div><span class="lbl">Laps</span><b>${nr.laps}</b></div><div><span class="lbl">Distance</span><b>${dist(nr.len*nr.laps,1)}</b></div></div>
         ${tyreBlock(nr.r)}
         <button class="navbtn" data-quick="${nr.r}" style="align-self:flex-start">Weekend schedule →</button>
@@ -409,7 +410,7 @@ function viewLive(n){
     <div class="two">
       <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th>Driver</th><th class="n">Pts</th></tr></thead><tbody>${DRIVERS.slice(0,10).map((d,k)=>`<tr><td class="n">${k+1}</td><td><span class="sw" style="background:${tcol(d[2])}"></span>${esc(d[0])}</td><td class="n">${d[3]}</td></tr>`).join("")}</tbody></table></div>
       <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th>Constructor</th><th class="n">Pts</th></tr></thead><tbody>${CONSTRUCTORS.map((c,k)=>`<tr><td class="n">${k+1}</td><td><span class="sw" style="background:${tcol(c[0])}"></span>${esc(c[0])}</td><td class="n">${c[1]}</td></tr>`).join("")}</tbody></table></div>
-    </div></section>
+    </div>${waCard("race")}</section>
   <div class="dnav" style="margin-top:28px">${pv}<span class="dmid"><button class="navbtn" data-go="season">Home</button><button class="navbtn" data-top>Top ↑</button></span>${nb}</div>`;}
 function scrollHome(sel){const go2=()=>{const el=$(sel);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});};if($(".home"))go2();else{go("season");setTimeout(go2,120);}}
 
@@ -624,6 +625,7 @@ function viewDetail(n){
         ${ds.length>10?`<button class="navbtn standall" data-standall aria-expanded="false">Show all ${ds.length} drivers</button>`:""}</div>
       <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th class="n">±</th><th>Constructor</th><th class="n">Pts</th><th class="n" title="Points scored this round">+Pts</th></tr></thead><tbody>${ts.map((z,k)=>`<tr><td class="n">${k+1}</td><td class="n">${mv(ts,tsPrev,z[0],k)}</td><td><span class="sw" style="background:${tcol(z[0])}"></span>${esc(z[0])}</td><td class="n">${z[1]}</td><td class="n">${gain(tsPrev,z)}</td></tr>`).join("")}</tbody></table></div>
     </div>
+    ${waCard("race")}
   </section>
 
   <section class="dsec" id="s-chart">
@@ -670,7 +672,7 @@ function viewChampionship(){
     return [d,w,pod,pol,fl,sw,dnf,best===99?"–":best];});
   const teamBars=CONSTRUCTORS.map(c=>{const ds=DRIVERS.filter(d=>d[2]===c[0]);return {t:c[0],tot:c[1],ds};});
   const maxT=CONSTRUCTORS[0][1];
-  return `${champTop(st)}
+  return `${champTop(st)}${waCard("championship")}
   <div class="sec" style="margin-top:24px"><h2>Grands Prix</h2><span class="lbl">${RACES.length} rounds · ${RACES.filter(r=>r.sprint).length} sprints · select a race for details</span></div>
   ${gpTableHTML(gpRows2026(),true)}
   <div class="sec"><h2>Points progression</h2><span class="lbl">Cumulative points after each round</span></div>
@@ -1251,7 +1253,15 @@ const pageBase=()=>$(".home")?"season":$(".tcards")?"teams":$('.hist[data-mode="
 const teamByKey=k=>Object.keys(TEAMBIO).find(t=>TEAMBIO[t].key===k);
 const closeModal=base=>{if(!$(".modal"))return false;closeDrawer();if(base)setKey(base);NAVD=true;document.title=base==="season"?"Track Almanac · Races. Drivers. Teams. Numbers.":(base==="history"||base==="hcons"||base==="hcirc")?pageTitle(base):(base==="teams"?"2026 Teams":"2026 Drivers")+" · Track Almanac";return true;};
 
-const SITE={name:"Track Almanac",domain:"trackalmanac.com",email:"contact@trackalmanac.com",updated:"8 October 2026"};
+const SITE={name:"Track Almanac",domain:"trackalmanac.com",email:"contact@trackalmanac.com",updated:"8 October 2026",
+  /* WhatsApp channel: change it here only (build.py reads this too) */
+  whatsapp:"https://whatsapp.com/channel/0029Vb94DCTLCoX9RirsMk1L",whatsappName:"Track Almanac | F1 Stats"};
+/* WhatsApp follow links. Every click sends a GA4 event with its placement (consent mode decides what GA keeps). */
+const WAICON=`<svg class="waic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.8a9.2 9.2 0 0 0-7.9 13.9L2.8 21.2l4.6-1.2A9.2 9.2 0 1 0 12 2.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.7 7.3c.3-.3.8-.3 1 .1l1 1.9c.2.3.1.7-.1 1l-.6.6c.6 1.3 1.6 2.3 2.9 2.9l.6-.6c.3-.3.7-.3 1-.1l1.9 1c.4.2.4.7.1 1l-.8.9c-.5.5-1.3.7-2 .4-2.6-1-4.7-3.1-5.7-5.7-.3-.7-.1-1.5.4-2z" fill="currentColor"/></svg>`;
+const waA=(pl,cls,txt)=>`<a class="${cls}" href="${esc(SITE.whatsapp)}" target="_blank" rel="noopener" data-wa="${pl}" title="${esc(SITE.whatsappName)} on WhatsApp">${WAICON}<span>${txt}</span></a>`;
+const waCard=pl=>`<aside class="wacard" aria-label="WhatsApp channel"><p><b>Results, session times and stats after every session</b><span>Follow the Track Almanac channel on WhatsApp</span></p>${waA(pl,"wabtn","Follow on WhatsApp")}</aside>`;
+document.querySelectorAll('a[href="__WHATSAPP__"]').forEach(a=>a.href=SITE.whatsapp);
+document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest("a[data-wa]");if(a&&typeof window.gtag==="function")gtag("event","follow_whatsapp",{placement:a.dataset.wa});},true);
 const PAGES={
 about:{t:"About Track Almanac",b:`
 <p class="lead">Track Almanac is an independent, fan-made reference for Formula 1. Our tagline says what we care about: races, drivers, teams and numbers.</p>
@@ -1263,6 +1273,8 @@ about:{t:"About Track Almanac",b:`
 <li><b>An archive.</b> Summaries of past seasons, which we are expanding into full race-by-race records.</li></ul>
 <h3>Where the data comes from</h3>
 <p>Results, grids and session times are compiled from official published classifications and timing, cross-checked against independent sources: the Jolpica F1 API, <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a> (openf1.org) for practice classifications, lap timing and race control, and <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> for per-lap tyre data from the official timing feed (Apache-2.0). Every driver's points total is reconciled against the official championship standings before publication. Tyre compound selections and weekend forecasts come from published team and supplier previews. Lap-by-lap positions and circuit maps come from <a href="https://github.com/TracingInsights" target="_blank" rel="noopener">TracingInsights</a> telemetry and timing data (Apache-2.0), with lap positions for new races from <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a>. Past seasons in the archive come from <a href="https://github.com/f1db/f1db" target="_blank" rel="noopener">F1DB</a> (CC BY 4.0).</p>
+<h3>Follow us</h3>
+<p>WhatsApp channel: <a class="walink2" href="${SITE.whatsapp}" target="_blank" rel="noopener" data-wa="about">Track Almanac | F1 Stats</a>. Results, session times and stats after every session.</p>
 <h3>Accuracy and corrections</h3>
 <p>We work hard to get the numbers right, but mistakes happen and results can change after stewards' decisions. If you spot an error, please <a href="${H("contact")}" data-go="contact">tell us</a> and we will correct it.</p>
 <h3>Independence</h3>
@@ -1348,6 +1360,7 @@ contact:{t:"Contact",b:`
 <p class="lead">Spotted an error, have a suggestion or want to get in touch about the site?</p>
 <div class="contact-card"><span class="lbl">Email</span><b class="mono" id="cmail">${SITE.email}</b><button class="navbtn" data-copy="${SITE.email}">Copy address</button></div>
 <p>For corrections, please include the round, the session and what you think is wrong. We usually reply within a few days.</p>
+<p>Follow us: <a class="walink2" href="${SITE.whatsapp}" target="_blank" rel="noopener" data-wa="contact">WhatsApp channel</a> (Track Almanac | F1 Stats).</p>
 <p>For privacy requests, see our <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>.</p>`},
 sitemap:{t:"Site map",b:`
 <ul class="smap">

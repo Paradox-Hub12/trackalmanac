@@ -326,6 +326,7 @@ def race_page(S, r):
     parts.append("</div></section>")
     if se.get("race"): parts.append(sec("Race classification", class_table(S, se["race"], grid=True), "%d laps" % r["laps"]))
     if se.get("race"): parts.append(race_extras_html(S, se))
+    parts.append(wa_card(S, "race"))
     if S.GRIDNOTES.get(str(r["r"])): parts.append(sec("Starting grid", "<p>%s</p>" % esc(S.GRIDNOTES[str(r["r"])]), "Penalties and pit lane starts"))
     if se.get("quali"): parts.append(sec("Qualifying", quali_table(S, se["quali"], ["Q1", "Q2", "Q3"]), "Q1 · Q2 · Q3"))
     if se.get("sprint"): parts.append(sec("Sprint", class_table(S, se["sprint"]), "Sprint classification"))
@@ -350,6 +351,8 @@ def home_page(S):
     out.append(pagehead("2026 Formula 1 season", esc(lead), "Track Almanac · Races. Drivers. Teams. Numbers."))
     if nr:
         out.append(sec("Next race: " + esc(gp_name(nr)), "<p>Round %d · %s · %s, %s. %s</p>%s" % (nr["r"], esc(nr.get("days", "")), esc(nr["circuit"]), esc(nr["city"]), S.a("detail-%d" % nr["r"], "Weekend schedule and session results"), session_rows(S, nr))))
+    if nr and wa_url(S):
+        out.append('<p class="waline">Get session times and results on WhatsApp <a class="wabtn wasm" href="%s" target="_blank" rel="noopener" data-wa="home">%s<span>Follow</span></a></p>' % (esc(wa_url(S)), WA_ICON))
     out.append(standings_tables(S, 10))
     rows = [[r["r"], S.a("detail-%d" % r["r"], esc(gp_name(r))), fmt_date(r["date"], False), esc(r["res"]["pod"][0][0]) if r.get("res") else "—"] for r in reversed(S.RACES)]
     out.append(sec("Race results", table(["Rd", "Grand Prix", "Date", "Winner"], rows), "Latest first"))
@@ -358,7 +361,7 @@ def home_page(S):
 
 def championship_page(S):
     return (pagehead("2026 F1 Championship standings", "Drivers' and constructors' points after round %d of %d, with every Grand Prix winner, pole position and fastest lap." % (len(S.done), len(S.RACES))) +
-            sec("Grands Prix", gp_rows(S), "%d rounds" % len(S.RACES)) + standings_tables(S))
+            sec("Grands Prix", gp_rows(S), "%d rounds" % len(S.RACES)) + standings_tables(S) + wa_card(S, "championship"))
 
 
 def drivers_page(S):
@@ -646,10 +649,25 @@ def sports_event(S, r):
     return ev
 
 
-def org_ld():
+WA_ICON = ('<svg class="waic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.8a9.2 9.2 0 0 0-7.9 13.9L2.8 21.2l4.6-1.2A9.2 9.2 0 1 0 12 2.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>'
+           '<path d="M8.7 7.3c.3-.3.8-.3 1 .1l1 1.9c.2.3.1.7-.1 1l-.6.6c.6 1.3 1.6 2.3 2.9 2.9l.6-.6c.3-.3.7-.3 1-.1l1.9 1c.4.2.4.7.1 1l-.8.9c-.5.5-1.3.7-2 .4-2.6-1-4.7-3.1-5.7-5.7-.3-.7-.1-1.5.4-2z" fill="currentColor"/></svg>')
+
+
+def wa_url(S): return (S.SITEINFO or {}).get("whatsapp", "")      # the one place it is set: const SITE in src/app.html
+
+
+def wa_card(S, placement):
+    """Same card as waCard() in the app, for the prerendered pages."""
+    if not wa_url(S): return ""
+    return ('<aside class="wacard" aria-label="WhatsApp channel"><p><b>Results, session times and stats after every session</b><span>Follow the Track Almanac channel on WhatsApp</span></p>'
+            '<a class="wabtn" href="%s" target="_blank" rel="noopener" data-wa="%s">%s<span>Follow on WhatsApp</span></a></aside>' % (esc(wa_url(S)), placement, WA_ICON))
+
+
+def org_ld(same_as=()):
     return [{"@context": "https://schema.org", "@type": "WebSite", "name": "Track Almanac", "url": SITE + "/",
              "description": "Races. Drivers. Teams. Numbers. Formula 1 calendar, results, standings and lap-by-lap charts."},
-            {"@context": "https://schema.org", "@type": "Organization", "name": "Track Almanac", "url": SITE + "/", "logo": SITE + "/icon-512.png"}]
+            dict({"@context": "https://schema.org", "@type": "Organization", "name": "Track Almanac", "url": SITE + "/", "logo": SITE + "/icon-512.png"},
+                 **({"sameAs": [u for u in same_as if u]} if any(same_as) else {}))]
 
 
 # ---------------------------------------------------------------- page shell
@@ -802,6 +820,8 @@ def build(out, data_path=DATA):
     open(os.path.join(out, "app.js"), "w", encoding="utf-8").write(app_x)
     assets = {"css": vhash(css_x), "data": vhash(data_x), "app": vhash(app_x)}
     S = Site(D, app); S.HIST = HIST
+    assert wa_url(S), "src/app.html: const SITE needs whatsapp (the channel address)"
+    body = body.replace("__WHATSAPP__", esc(wa_url(S)))           # footer link
 
     home = [("Home", "/")]
     pages = []
@@ -812,7 +832,7 @@ def build(out, data_path=DATA):
     add("season", "Track Almanac · Races. Drivers. Teams. Numbers.",
         "Formula 1 2026: calendar with session times, live standings, race results, qualifying, grids and lap-by-lap charts.%s" %
         (" Next: %s, %s." % (gp_name(nr), nr.get("days", "")) if nr else ""),
-        "2026 Formula 1 season", home_page(S), "2026 WORLD CHAMPIONSHIP", home, org_ld())
+        "2026 Formula 1 season", home_page(S), "2026 WORLD CHAMPIONSHIP", home, org_ld([wa_url(S)]))
     add("championship", "2026 F1 Championship Standings & Points Breakdown | Track Almanac",
         "2026 Formula 1 drivers' and constructors' standings after round %d, results grid for every Grand Prix, points progression and season statistics." % len(S.done),
         "2026 F1 Championship standings", championship_page(S), "2026 CHAMPIONSHIP · POINTS", home + [("2026 Championship", "/championship/")])
