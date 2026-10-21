@@ -664,7 +664,7 @@ function viewChampionship(){
     return [d,w,pod,pol,fl,sw,dnf,best===99?"–":best];});
   const teamBars=CONSTRUCTORS.map(c=>{const ds=DRIVERS.filter(d=>d[2]===c[0]);return {t:c[0],tot:c[1],ds};});
   const maxT=CONSTRUCTORS[0][1];
-  return `
+  return `${champTop(st)}
   <div class="sec" style="margin-top:24px"><h2>Grands Prix</h2><span class="lbl">${RACES.length} rounds · ${RACES.filter(r=>r.sprint).length} sprints · select a race for details</span></div>
   ${gpTableHTML(gpRows2026(),true)}
   <div class="sec"><h2>Points progression</h2><span class="lbl">Cumulative points after each round</span></div>
@@ -688,6 +688,40 @@ function viewChampionship(){
   <div class="tw"><table class="t"><thead><tr><th class="n stk0">Pos</th><th class="stk1 nonum">Driver</th><th>Team</th><th class="n">Pts</th><th class="n">Wins</th><th class="n">Podiums</th><th class="n">Poles</th><th class="n">Fastest laps</th><th class="n">Sprint wins</th><th class="n">Retirements</th><th class="n">Best finish</th></tr></thead><tbody>
   ${st.map((z,i)=>`<tr><td class="n stk0">${i+1}</td><td class="stk1 nonum"><span class="sw" style="background:${tcol(z[0][2])}"></span>${nmSpan(z[0][0])}</td><td style="color:var(--ink-2)">${esc(z[0][2])}</td><td class="n">${z[0][3]}</td>${z.slice(1).map(v=>`<td class="n">${v||"–"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
+/* top of the championship page: standings (top ten, scroll for the rest) beside an update panel.
+   The panel shows the title race worked out from the results, so it updates itself after every round. */
+const GPPTS=[25,18,15,12,10,8,6,4,2,1];
+const ordinal=n=>n+(n%100>=11&&n%100<=13?"th":["th","st","nd","rd"][n%10]||"th");
+function champTop(st){const L=DRIVERS,lead=L[0],wins=Object.fromEntries(st.map(z=>[z[0][0],z[1]]));
+  const rows=L.map((d,i)=>`<li${i<3?` class="p${i+1}"`:""}><span class="ps">${i+1}</span><span class="sw" style="background:${tcol(d[2])}"></span><span class="who"><b>${esc(d[0])}</b><small>${esc(d[2])}</small></span><span class="pt">${d[3]}</span><span class="gp">${i?"−"+(lead[3]-d[3]):"Leader"}</span></li>`).join("");
+  const done=RACES.filter(r=>r.res).length;
+  return `<div class="ctop"><section class="cst"><div class="sec" style="margin-top:0"><h2>Drivers' standings</h2><span class="lbl">After round ${done} of ${RACES.length}</span></div>
+    <div class="cstw"><ol class="cstl" id="cstl">${rows}</ol><div class="cstmore" aria-hidden="true">Scroll for the rest ↓</div></div></section>
+    <section class="cup"><div class="sec" style="margin-top:0"><h2>Title watch</h2><span class="lbl">How ${esc(lead[0].split(" ")[0])} can win it</span></div>${titleWatch(wins)}</section></div>`;}
+function titleWatch(wins){const L=DRIVERS,lead=L[0],first=lead[0].split(" ")[0];
+  const left=RACES.filter(r=>!r.res),sprintLeft=left.filter(r=>r.sprint===true).length;
+  const maxLeft=left.length*25+sprintLeft*8;
+  const rivals=L.slice(1).filter(d=>lead[3]-d[3]<=maxLeft);
+  const nm=d=>esc(sur(d[0]));
+  if(!left.length||!rivals.length){return `<div class="tw2"><p class="tbig">${esc(lead[0])} is the ${2026} world champion.</p><p>${left.length?`With ${maxLeft} points left, nobody can catch him.`:"The season is over."}</p></div>`;}
+  const after=k=>left.slice(k+1).reduce((a,r)=>a+25+(r.sprint===true?8:0),0);
+  /* a rival allowed at most `pts` points: where he must finish */
+  const posTxt=pts=>pts<1?"outside the points":`${ordinal(GPPTS.findIndex(v=>v<=pts)+1)} or lower`;
+  /* next race: exact finishing conditions */
+  const r0=left[0],need0=after(0);
+  const p0=[];for(let k=0;k<GPPTS.length;k++){const P=GPPTS[k];const conds=rivals.map(d=>{const allow=P+lead[3]-d[3]-need0-1;return [d,allow];});
+    if(conds.some(([d,a])=>a<0))continue;const nextPts=GPPTS[k+1]??0;p0.push([k,conds.filter(([d,a])=>a<nextPts)]);}
+  const nextBlock=p0.length?`<p><b>Champion at the ${esc(r0.gp)}</b> (${esc(r0.days||"")}) if he finishes:</p><ul class="tws">${p0.map(([k,cs])=>`<li><b>${ordinal(k+1)}</b>${cs.length?`, with ${cs.map(([d,a])=>`${nm(d)} ${posTxt(a)}`).join(" and ")}`:" — whatever the others do"}</li>`).join("")}</ul>`
+    :`<p>He can't clinch it at the ${esc(r0.gp)}: even a win leaves ${nm(rivals.find(d=>25+lead[3]-d[3]-need0-1<0)||rivals[0])} in with a chance.</p>`;
+  /* the races after: lead he needs to hold */
+  const later=left.slice(1).map((r,j)=>{const k=j+1,need=after(k),span=left.slice(0,k+1).map(x=>esc(x.short));
+    const cs=rivals.map(d=>[d,lead[3]-d[3]-need-1]).filter(([d,a])=>a<25*(k+1)).sort((x,y)=>x[1]-y[1]).slice(0,2);
+    const over=span.length>2?`${span[0]} to ${span[span.length-1]}`:span.join(" and ");
+    return `<li><b>${esc(r.short)}</b><span>${need?`Lead of more than ${need} after this race`:"Ahead on points at the finale"}${cs.length?` — across ${over} he can lose ${cs.map(([d,a])=>a>=0?`up to ${a} point${a===1?"":"s"} to ${nm(d)}`:`nothing to ${nm(d)} and must gain ${-a}`).join(" and ")}`:""}.</span><small>${esc(r.days||"")}</small></li>`;}).join("");
+  return `<div class="tw2"><div class="tnums"><div><b>${lead[3]-L[1][3]}</b><span>point lead over ${nm(L[1])}</span></div><div><b>${maxLeft}</b><span>points left · ${left.length} race${left.length>1?"s":""}${sprintLeft?` · ${sprintLeft} sprint${sprintLeft>1?"s":""}`:""}</span></div><div><b>${rivals.length}</b><span>rival${rivals.length>1?"s":""} still in it</span></div></div>
+    ${nextBlock}
+    <p style="margin-top:12px"><b>Or later.</b> To be sure of the title after each race, ${esc(first)} needs:</p><ul class="twl">${later}</ul>
+    <p class="note2">Counted from today's standings: ${GPPTS[0]} points for a win, ${left.some(r=>r.sprint===true)?"8 for a sprint win, ":""}no fastest-lap point. Still in it: ${rivals.map(d=>`${nm(d)} (−${lead[3]-d[3]})`).join(", ")}. If drivers end level on points, the title goes to the one with more wins (${esc(sur(lead[0]))} has ${wins[lead[0]]||0}).</p></div>`;}
 /* shared: interpolate a series [[x,y]...] at fractional x */
 function interpAt(pts,p){if(p<=pts[0][0])return pts[0][1];for(let i=1;i<pts.length;i++){if(p<=pts[i][0]){const a=pts[i-1],b=pts[i],f=(p-a[0])/((b[0]-a[0])||1);return a[1]+(b[1]-a[1])*f;}}return pts[pts.length-1][1];}
 let ANIM_SPEED=1;
@@ -1799,7 +1833,7 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
     if(ARCHV[ay]&&!ARCHDATA[ay])loadSeason(ay).then(()=>{if(curKey()===h){const r=$(".yrail"),x=r?r.scrollLeft:null;$("#app").innerHTML=viewArchive(ARCHIVE[y]?y:null);drawArchCharts(ay);const r2=$(".yrail");if(r2&&x!=null)r2.scrollLeft=x;}});$("#sheetname").textContent="SEASON ARCHIVE";setNav("archive");}
   else if(h==="drivers"||h.startsWith("driver-")){$("#app").innerHTML=viewDrivers();$("#sheetname").textContent="2026 DRIVERS";setNav("drivers");document.title="2026 Drivers · Track Almanac";if(h.startsWith("driver-"))openDriver(h.slice(7));}
   else if(h==="teams"||h.startsWith("team-")){$("#app").innerHTML=viewTeams();$("#sheetname").textContent="2026 TEAMS";setNav("teams");document.title="2026 Teams · Track Almanac";if(h.startsWith("team-")){const k=teamByKey(h.slice(5));if(k)openTeam(k);}}
-  else if(h==="championship"){$("#app").innerHTML=viewChampionship();drawCharts();$("#sheetname").textContent="2026 CHAMPIONSHIP · POINTS";setNav("championship");}
+  else if(h==="championship"){$("#app").innerHTML=viewChampionship();drawCharts();{const l=$("#cstl");if(l){const f=()=>l.parentElement.classList.toggle("end",l.scrollTop+l.clientHeight>=l.scrollHeight-4);l.addEventListener("scroll",f,{passive:true});f();}}$("#sheetname").textContent="2026 CHAMPIONSHIP · POINTS";setNav("championship");}
   else if(h.startsWith("detail-")){const [nn,jk]=h.slice(7).split("-");const n=+nn;lapSel=new Set();$("#app").innerHTML=viewDetail(n);drawLapChart();if(jk)jumpTo(jk);const r=RACES.find(x=>x.r===n);$("#sheetname").textContent=r?`R${n} · ${r.gp.toUpperCase()}`:"";setNav("season");}
   else{$("#app").innerHTML=viewSeason();tower("d");countdown();$("#sheetname").textContent="2026 WORLD CHAMPIONSHIP";setNav("season");
     if(h.startsWith("race-"))openRace(+h.slice(5));}
