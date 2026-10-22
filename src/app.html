@@ -424,8 +424,10 @@ body.pzmode::before{content:"";position:fixed;inset:-20vmax;z-index:-1;pointer-e
 .pzteam:first-child{padding-top:4px}
 .pzd{--tc:var(--pzi3);display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 10px 8px 0;border:0;border-left:4px solid var(--tc);border-radius:10px;background:transparent;color:var(--pzi);font:inherit;text-align:left;cursor:pointer;flex:none;transition:background .15s,transform .15s;touch-action:pan-y}
 .pzd:hover{background:var(--pzp2);transform:translateX(2px)}
-.pzd{position:relative}.pzd::after{content:"";position:absolute;left:14px;right:10px;bottom:-2.5px;height:1px;background:var(--pzl);opacity:.75;pointer-events:none}
-.pzd:last-child::after,.pzd:has(+ .pzteam)::after{display:none}
+.pzd{position:relative}
+.pzd::before,.pzd::after{content:"";position:absolute;left:14px;right:10px;height:1px;background:var(--pzl);opacity:.75;pointer-events:none}
+.pzd::before{top:-2.5px}.pzd::after{bottom:-2.5px;display:none}
+.pzd:last-child::after,.pzd:has(+ .pzteam)::after{display:block}
 .pzd .pznum{font-family:var(--pzf);font-weight:900;font-size:16px;text-align:center;color:var(--tc)}
 .pzdn{display:flex;flex-direction:column;min-width:0}.pzdn b{font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pzdn small{font-size:11.5px;color:var(--pzi3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pzbdg{display:flex;flex-wrap:nowrap;gap:4px;justify-content:flex-end}
