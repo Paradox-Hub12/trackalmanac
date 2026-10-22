@@ -351,8 +351,6 @@ def home_page(S):
     out.append(pagehead("2026 Formula 1 season", esc(lead), "Track Almanac · Races. Drivers. Teams. Numbers."))
     if nr:
         out.append(sec("Next race: " + esc(gp_name(nr)), "<p>Round %d · %s · %s, %s. %s</p>%s" % (nr["r"], esc(nr.get("days", "")), esc(nr["circuit"]), esc(nr["city"]), S.a("detail-%d" % nr["r"], "Weekend schedule and session results"), session_rows(S, nr))))
-    if nr and wa_url(S):
-        out.append('<p class="waline">Get session times and results on WhatsApp <a class="wabtn wasm" href="%s" target="_blank" rel="noopener" data-wa="home">%s<span>Follow</span></a></p>' % (esc(wa_url(S)), WA_ICON))
     out.append(standings_tables(S, 10))
     rows = [[r["r"], S.a("detail-%d" % r["r"], esc(gp_name(r))), fmt_date(r["date"], False), esc(r["res"]["pod"][0][0]) if r.get("res") else "—"] for r in reversed(S.RACES)]
     out.append(sec("Race results", table(["Rd", "Grand Prix", "Date", "Winner"], rows), "Latest first"))
@@ -665,7 +663,7 @@ def wa_url(S): return (S.SITEINFO or {}).get("whatsapp", "")      # the one plac
 def wa_card(S, placement):
     """Same card as waCard() in the app, for the prerendered pages."""
     if not wa_url(S): return ""
-    return ('<aside class="wacard" aria-label="WhatsApp channel"><p><b>Results, session times and stats after every session</b><span>Follow the Track Almanac channel on WhatsApp</span></p>'
+    return ('<aside class="wacard" aria-label="WhatsApp channel"><p><b>F1 stories, fun facts and wow stats you won\'t find elsewhere</b><span>Follow the Track Almanac channel on WhatsApp</span></p>'
             '<a class="wabtn" href="%s" target="_blank" rel="noopener" data-wa="%s">%s<span>Follow on WhatsApp</span></a></aside>' % (esc(wa_url(S)), placement, WA_ICON))
 
 

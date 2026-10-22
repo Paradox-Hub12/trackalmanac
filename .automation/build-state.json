@@ -127,12 +127,12 @@
  ],
  "pages": {
   "/": {
-   "hash": "280ca602e874b5b152712b8a6c4f889d18299e50",
-   "lastmod": "2026-10-21"
+   "hash": "c08462f1797633abcde387fe89f7aeffcb7e3673",
+   "lastmod": "2026-10-22"
   },
   "/championship/": {
-   "hash": "851c9cebc9183a748f205e22681fb7ea9ece863b",
-   "lastmod": "2026-10-21"
+   "hash": "631c90b69f3a271994bd7e4bc892c593783f1587",
+   "lastmod": "2026-10-22"
   },
   "/drivers/": {
    "hash": "2a277831ffbbe3b278782b31e26e719de132fdad",
@@ -147,96 +147,96 @@
    "lastmod": "2026-10-11"
   },
   "/races/2026/australia/": {
-   "hash": "89c2bfb3db13869e16e62015abc35c302644ac98",
-   "lastmod": "2026-10-21"
+   "hash": "5de648e4aa1308fa50376537ced1e765014d35ad",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/china/": {
-   "hash": "ad116618847f5e4d7ad979d62f07a30a1e62c879",
-   "lastmod": "2026-10-21"
+   "hash": "a874d12149d79a878027579f4b4102e738462fd5",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/japan/": {
-   "hash": "846fe1d00a6c1010913cd61a4e2359127ff25869",
-   "lastmod": "2026-10-21"
+   "hash": "aa882c7dec527c80179d22b9cd77110dde70254b",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/miami/": {
-   "hash": "1bf0646839f8b180abc03b07bc76a055490fedd2",
-   "lastmod": "2026-10-21"
+   "hash": "9ca822d1e7bd6734d51c2647451429a23a5b86b5",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/canada/": {
-   "hash": "04122c3c2499067bf28fb4bc6e7b4d25deeef270",
-   "lastmod": "2026-10-21"
+   "hash": "1530f0eb193e7bffe18c7b5b8eb97a275c181f74",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/monaco/": {
-   "hash": "51d23088f1fa97a1ff12d3e057e79dd147a08770",
-   "lastmod": "2026-10-21"
+   "hash": "5195ad75b9cb460184f87e13e8731c8142d6932a",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/barcelona/": {
-   "hash": "7dab1a4f8df46fe4e45ca7aa3b3fa5f2df486a1e",
-   "lastmod": "2026-10-21"
+   "hash": "9e6120f116e201207e3501385471f1dcb7518468",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/austria/": {
-   "hash": "89b1e4fe577d2091f3f87bbc17f43d47c5150b0b",
-   "lastmod": "2026-10-21"
+   "hash": "bf73ecbc3b7425518ffa93b0bc84881fdfd421d8",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/britain/": {
-   "hash": "d2f13776291709e4ec1813a3df0febf8e8c45033",
-   "lastmod": "2026-10-21"
+   "hash": "8799c3727494586c64edf50ad54a3d1de32bdf37",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/belgium/": {
-   "hash": "fdc1545c7790a4a3548b75d645536de5507b184d",
-   "lastmod": "2026-10-21"
+   "hash": "60fc2b9892990eeaeaa0ec27f2f51dcd4ff4ea8d",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/hungary/": {
-   "hash": "80a0778cc5605a9313511854c1348bfd84bcecb7",
-   "lastmod": "2026-10-21"
+   "hash": "1ca2bc1428926c6c3f912f9d2afac2e2be6830c5",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/netherlands/": {
-   "hash": "074b2c5e4e14a69136e646ba32cb19dc958f5b42",
-   "lastmod": "2026-10-21"
+   "hash": "48a52df348e741a84d02844d84b8b752658f4a52",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/italy/": {
-   "hash": "eff0d3ac529399ff143c32d8c024561a75d53ac0",
-   "lastmod": "2026-10-21"
+   "hash": "3587f755f9887d16cc61b73a6c09b603e8ba7b56",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/madrid/": {
-   "hash": "c4789104e22ade938913e516b97e3272f818ecb0",
-   "lastmod": "2026-10-21"
+   "hash": "2355dc67c2a453deb8e4cf1cdf829491b1949657",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/azerbaijan/": {
-   "hash": "1635c279df5bfbb9651e342856e8fc1ffeeb42ff",
-   "lastmod": "2026-10-21"
+   "hash": "ed179ffc234cad2de4bbb617313881b5a1cbcfce",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/bahrain/": {
-   "hash": "d0f59f3b6d3516ec2999d12331b9caa5770ed3c1",
-   "lastmod": "2026-10-21"
+   "hash": "08387b3920bd3435386842a08361efbdd707107a",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/singapore/": {
-   "hash": "9542f8335098e091f1d47b241ca79c716bf79733",
-   "lastmod": "2026-10-21"
+   "hash": "541bcbaf43873246109f504679134a35c8fccbbd",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/usa/": {
-   "hash": "69ac1093fd7c81d523ef95878219dac03a1b699b",
-   "lastmod": "2026-10-21"
+   "hash": "5e638b7c9770b99b1afdf3685686d3952c49e4c3",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/mexico/": {
-   "hash": "127e94d6c391e5e4d0b30b35e793ec1c4bbea313",
-   "lastmod": "2026-10-21"
+   "hash": "5176d2cd23a2d19db356af04d401e45f8adaac36",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/brazil/": {
-   "hash": "e306b8eb7863d47ac630f0ac90e16c8edb7cb738",
-   "lastmod": "2026-10-21"
+   "hash": "e07dac1d485d9ad9af3b297379f89e2af813ed74",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/las-vegas/": {
-   "hash": "bd86945c0f95e7073c6ef56aae49c3bf137c92e8",
-   "lastmod": "2026-10-21"
+   "hash": "5d8dcf2faee26656b26822a8231cc47ba6866634",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/qatar/": {
-   "hash": "6d24f129f3c91d4aecc17e2347dea213438bceda",
-   "lastmod": "2026-10-21"
+   "hash": "a6f64fe8adbb7430aa0afc6ac5e7fcebe6694bec",
+   "lastmod": "2026-10-22"
   },
   "/races/2026/abu-dhabi/": {
-   "hash": "f06ff81e39048d55bb86542bc2a0b9ca2991f42b",
-   "lastmod": "2026-10-21"
+   "hash": "65391bef531992863302597c16884a2e01271958",
+   "lastmod": "2026-10-22"
   },
   "/history/": {
    "hash": "43bf8e41f59dc7157fb35ffd1558b1f928a25d8b",
@@ -599,8 +599,8 @@
    "lastmod": "2026-10-21"
   },
   "/about/": {
-   "hash": "445a8d18dd29eeef638ccc2418f5e7c93f532cc5",
-   "lastmod": "2026-10-21"
+   "hash": "eec956a56c9c246bc8962c99dce77b57d3a1c3c3",
+   "lastmod": "2026-10-22"
   },
   "/contact/": {
    "hash": "c71629d0479d7883487d37a98db122a86ba52b8d",

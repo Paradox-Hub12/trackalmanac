@@ -1377,4 +1377,3 @@ a.gco{display:inline-block;margin-top:4px;font-family:var(--f-data);font-size:12
 .wabtn:hover,.wabtn:focus-visible{border-color:#25D366}
 .wabtn span{color:inherit!important;font-size:inherit!important}
 .wasm{padding:5px 11px;font-size:13px}
-.waline{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;margin:0;color:var(--ink-2);font-size:14px}
