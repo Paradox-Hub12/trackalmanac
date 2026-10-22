@@ -669,6 +669,20 @@ def wa_card(S, placement):
             '<a class="wabtn" href="%s" target="_blank" rel="noopener" data-wa="%s">%s<span>Follow on WhatsApp</span></a></aside>' % (esc(wa_url(S)), placement, WA_ICON))
 
 
+def pred_history(H, D, n=5):
+    """{round: [[year, gp, pole, [[name, team] x5]], ...]}: the last n World Championship races before this season
+    at the circuit of each round (F1DB), newest first."""
+    cid = {c["id"]: i for i, c in enumerate(H["circuits"])}
+    names = [d["n"] for d in H["drivers"]]; cons = H["cons"]; out = {}
+    for R in D["RACES"]:
+        c = cid.get(historylib.TRACKCIRC.get(R["track"], ""))
+        past = [x for x in H["races"] if c is not None and x["c"] == c and x["y"] < YEAR][-n:]
+        out[str(R["r"])] = [[x["y"], x["gp"], next((names[row[0]] for row in x["rows"] if row[6]), None),
+                             [[names[row[0]], cons[row[7]]] for row in sorted((r for r in x["rows"] if isinstance(r[1], int) and 1 <= r[1] <= 5), key=lambda r: r[1])]]
+                            for x in reversed(past)]
+    return out
+
+
 def org_ld(same_as=()):
     return [{"@context": "https://schema.org", "@type": "WebSite", "name": "Track Almanac", "url": SITE + "/",
              "description": "Races. Drivers. Teams. Numbers. Formula 1 calendar, results, standings and lap-by-lap charts."},
@@ -785,6 +799,10 @@ def build(out, data_path=DATA):
         data += "const FBV=%s;\n" % json.dumps(vhash(vtxt))
     else:
         data += "const FBV='';\n"
+    # Predictor: the last five editions at each 2026 circuit (pole, 1st-5th), loaded only on My picks
+    phtxt = json.dumps(pred_history(load_data(HISTBASE), D) if os.path.exists(HISTBASE) else {}, ensure_ascii=False, separators=(",", ":"))
+    open(os.path.join(out, "data", "game-history.json"), "w", encoding="utf-8").write(phtxt)
+    data += "const GHV=%s;\n" % json.dumps(vhash(phtxt))
     # F1 dictionary, loaded only on /dictionary/
     dpath = os.path.join(ROOT, "src", "dictionary.json")
     dtxt = json.dumps(load_data(dpath), ensure_ascii=False, separators=(",", ":")) if os.path.exists(dpath) else '{"cats":[],"terms":[]}'

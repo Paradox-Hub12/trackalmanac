@@ -25,6 +25,7 @@ const ARCHDATA={};const ARCHV={"2010":"b9725a2a58","2011":"2b225bd906","2012":"9
 const HISTV="80f76d921c";
 const GAMECFG={"season":2026,"firebase":{"apiKey":"AIzaSyAPkxCDNzOU9AM0F5keAHvSOW-KtrBeuqE","authDomain":"track-almanac-ae45f.firebaseapp.com","projectId":"track-almanac-ae45f","storageBucket":"track-almanac-ae45f.firebasestorage.app","messagingSenderId":"301230867246","appId":"1:301230867246:web:9e5078448c984c36fb70bf"},"emulator":false,"contact":"predictor@trackalmanac.com"};
 const FBV="26519a47e0";
+const GHV="09d830360f";
 const DICTV="ea852dcd85";
 const REGV="edade6fdbe";
 const CMAPV="d4679c314b";

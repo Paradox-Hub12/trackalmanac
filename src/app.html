@@ -249,24 +249,24 @@ body.pzmode::before{content:"";position:fixed;inset:-20vmax;z-index:-1;pointer-e
 .pzsmall{font-size:14px;color:var(--pzi2);margin:8px 0 0;line-height:1.45}
 .pzload{color:var(--pzi2)}
 /* header + wordmark */
-.pzh{position:relative;z-index:20;display:flex;flex-direction:column;gap:14px;padding:22px 0 6px}
-.pzbrand{display:block;text-decoration:none;color:var(--pzi)!important;min-width:0;width:100%}
+.pzh{position:relative;z-index:20;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand brand" "nav me";align-items:center;gap:14px 16px;padding:22px 0 6px}
+.pzbrand{grid-area:brand;display:block;text-decoration:none;color:var(--pzi)!important;min-width:0;width:100%}
 .pzwm{display:flex;flex-direction:column;margin:0;white-space:nowrap;font-family:var(--pzf);font-weight:900;text-transform:uppercase;line-height:.92;letter-spacing:-.01em}
 .pzwm>span{width:max-content}
-.pzw1{font-size:clamp(15px,2.6vw,26px);letter-spacing:.06em;color:var(--pzi2)}
-.pzw2{font-size:clamp(40px,9.4vw,104px);background:linear-gradient(100deg,var(--pzi) 20%,var(--pza) 55%,var(--pzv) 80%,var(--pzi));background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pzshine 9s ease-in-out infinite}
-.pzhl .pzw2{font-size:clamp(46px,12.5vw,150px)}
+.pzw1{font-size:clamp(14px,2.1vw,22px);letter-spacing:.06em;color:var(--pzi2)}
+.pzw2{font-size:clamp(38px,7.2vw,84px);background:linear-gradient(100deg,var(--pzi) 20%,var(--pza) 55%,var(--pzv) 80%,var(--pzi));background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pzshine 9s ease-in-out infinite}
+.pzhl .pzw2{font-size:clamp(44px,9.6vw,118px)}
 @keyframes pzshine{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-.pzhr{position:absolute;top:18px;right:0;z-index:5;display:flex;justify-content:flex-end}
-.pznav{display:flex;gap:4px;flex-wrap:wrap;padding:4px;border:1px solid var(--pzl);border-radius:999px;background:color-mix(in srgb,var(--pzp) 80%,transparent);backdrop-filter:blur(8px);width:max-content;max-width:100%}
+.pzhr{grid-area:me;display:flex;justify-content:flex-end;min-width:0}
+.pznav{grid-area:nav;display:flex;gap:4px;flex-wrap:wrap;padding:4px;border:1px solid var(--pzl);border-radius:999px;background:color-mix(in srgb,var(--pzp) 80%,transparent);backdrop-filter:blur(8px);width:max-content;max-width:100%}
 .pznav a{white-space:nowrap;font-family:var(--f-body);font-weight:600;font-size:14.5px;padding:8px 15px;border-radius:999px;color:var(--pzi2)!important;text-decoration:none;transition:background .2s,color .2s}
 .pznav a:hover{color:var(--pzi)!important;background:var(--pzp2)}
 .pznav a[aria-current="page"]{background:var(--pza);color:var(--pzat)!important}
 /* player chip + menu */
 .pzme{position:relative}
-.pzmeb{display:inline-flex;align-items:center;gap:8px;max-width:52vw;padding:5px 12px 5px 5px;border:1px solid var(--pzl);border-radius:999px;background:var(--pzp);color:var(--pzi);font:inherit;font-weight:600;cursor:pointer;transition:border-color .2s,transform .2s}
-.pzmeb:hover{border-color:var(--pza)}.pzmeb svg{width:12px;height:12px;flex:none;transition:transform .2s}.pzmeb[aria-expanded="true"] svg{transform:rotate(180deg)}
-.pzav{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;font-family:var(--pzf);font-weight:800;font-size:14px;background:linear-gradient(135deg,var(--pza),var(--pzv));color:var(--pzat)}
+.pzmeb{display:inline-flex;align-items:center;gap:8px;max-width:min(52vw,320px);padding:5px 12px 5px 5px;border:0;border-radius:999px;background:linear-gradient(120deg,var(--pzv),var(--pzh));color:#fff;box-shadow:0 8px 24px color-mix(in srgb,var(--pzv) 35%,transparent);font:inherit;font-weight:600;cursor:pointer;transition:border-color .2s,transform .2s}
+.pzmeb:hover{filter:brightness(1.08)}.pzmeb .gguesttag{color:#fff;border-color:rgba(255,255,255,.7)}.pzmeb svg{width:12px;height:12px;flex:none;transition:transform .2s}.pzmeb[aria-expanded="true"] svg{transform:rotate(180deg)}
+.pzav{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;font-family:var(--pzf);font-weight:800;font-size:14px;background:#fff;color:var(--pzv)}
 .pzmen{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .pzmenu{position:absolute;right:0;top:calc(100% + 8px);z-index:40;min-width:230px;padding:6px;border:1px solid var(--pzl);border-radius:14px;background:var(--pzp);box-shadow:var(--pzsh);transform-origin:top right;animation:pzmenu .18s ease-out}
 @keyframes pzmenu{from{opacity:0;transform:translateY(-6px) scale(.97)}}
@@ -375,23 +375,26 @@ body.pzmode::before{content:"";position:fixed;inset:-20vmax;z-index:-1;pointer-e
 .pzpick.locked .pzcols{grid-template-columns:minmax(0,1fr);max-width:620px}
 .pzleft{display:flex;flex-direction:column;gap:12px;min-width:0}
 .pzslots{display:flex;flex-direction:column;gap:8px}
-.pzs{--tc:var(--pzl);position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto auto;align-items:center;gap:12px;min-height:76px;padding:8px 10px 8px 0;border-radius:16px;border:1.5px dashed var(--pzl);background:color-mix(in srgb,var(--pzp) 80%,transparent);cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s,background .2s;outline:none}
+.pzs{position:relative;display:grid;grid-template-columns:78px minmax(0,1fr) auto auto;align-items:center;gap:12px;min-height:76px;padding:8px 10px 8px 0;border-radius:16px;border:1.5px dashed var(--pzl);background:color-mix(in srgb,var(--pzp) 80%,transparent);cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s,background .2s;outline:none}
 .pzin .pzs{animation:pzup .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.25s + var(--i)*.05s)}
 .pzs:hover{border-color:var(--pzi3)}
-.pzs.full{border-style:solid;border-color:color-mix(in srgb,var(--tc) 70%,var(--pzl));background:linear-gradient(100deg,color-mix(in srgb,var(--tc) 24%,var(--pzp)),var(--pzp) 75%)}
+.pzs.full{border-style:solid;border-color:var(--pzl);background:var(--pzp2)}
+.pzpole{border-color:color-mix(in srgb,var(--pza) 55%,var(--pzl))}
+.pzpole.full{border-color:var(--pza);background:linear-gradient(100deg,color-mix(in srgb,var(--pza) 20%,var(--pzp)),var(--pzp) 85%)}
+.pzpole .pznum{color:var(--pza)!important}
 .pzs.sel{border-color:var(--pza);box-shadow:0 0 0 3px color-mix(in srgb,var(--pza) 30%,transparent),0 10px 30px color-mix(in srgb,var(--pza) 14%,transparent)}
 .pzs.sel::after{content:"";position:absolute;inset:-1px;border-radius:16px;border:1.5px solid var(--pza);animation:pzpulse 1.6s ease-out infinite;pointer-events:none}
 @keyframes pzpulse{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(1.04)}}
 .pzs.over{border-color:var(--pza);transform:scale(1.02)}
 .pzs:focus-visible{box-shadow:0 0 0 3px var(--pza)}
-.pzl{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--pzl);font-family:var(--pzf);font-weight:900;font-size:19px;text-transform:uppercase;line-height:1;color:var(--pzi)}
+.pzl{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 4px;border-right:1px solid var(--pzl);font-family:var(--pzf);font-weight:900;font-size:16px;text-transform:uppercase;line-height:1;color:var(--pzi)}
 .pzl small{font-family:var(--f-data);font-weight:400;font-size:9.5px;letter-spacing:.14em;color:var(--pzi3);margin-top:4px}
 .pzpole .pzl{color:var(--pza)}
 .pzsd{display:flex;flex-direction:column;min-width:0;line-height:1.15}
 .pzsd small{font-size:12.5px;color:var(--pzi2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pzsd b{font-family:var(--pzf);font-weight:800;font-size:clamp(16px,2.2vw,22px);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pzsd b{font-family:var(--pzf);font-weight:800;font-size:clamp(14px,1.6vw,18px);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pzsd em{font-style:normal;font-size:12.5px;color:var(--pzi3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pzs .pznum{grid-column:3;font-family:var(--pzf);font-weight:900;font-size:30px;line-height:1;color:color-mix(in srgb,var(--tc) 75%,var(--pzi));pointer-events:none}
+.pzs .pznum{grid-column:3;font-family:var(--pzf);font-weight:900;font-size:26px;line-height:1;color:var(--pzi3);pointer-events:none}
 .pzs .pzx{grid-column:4}
 .pzx{width:34px;height:34px;flex:none;border-radius:50%;border:1px solid var(--pzl);background:var(--pzbg);color:var(--pzi2);font-size:20px;line-height:1;cursor:pointer;display:grid;place-items:center;z-index:1;transition:background .2s,color .2s,transform .2s}
 .pzx:hover{background:var(--pzh);border-color:var(--pzh);color:#fff;transform:rotate(90deg)}
@@ -411,6 +414,9 @@ body.pzmode::before{content:"";position:fixed;inset:-20vmax;z-index:-1;pointer-e
 .pzlistw{position:relative;flex:1 1 auto;min-height:420px;border:1px solid var(--pzl);border-radius:18px;background:color-mix(in srgb,var(--pzp) 85%,transparent);overflow:hidden}
 .pzlistw::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34px;background:linear-gradient(transparent,var(--pzp));pointer-events:none}
 .pzlist{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;padding:6px;display:flex;flex-direction:column;gap:4px;scrollbar-width:thin;scrollbar-color:var(--pzl) transparent}
+.pzteam{flex:none;display:flex;align-items:center;gap:8px;padding:10px 8px 4px;font-family:var(--f-data);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pzi3)}
+.pzteam::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--tc)}
+.pzteam:first-child{padding-top:4px}
 .pzd{--tc:var(--pzi3);display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 10px 8px 0;border:0;border-left:4px solid var(--tc);border-radius:10px;background:transparent;color:var(--pzi);font:inherit;text-align:left;cursor:pointer;flex:none;transition:background .15s,transform .15s;touch-action:pan-y}
 .pzd:hover{background:var(--pzp2);transform:translateX(2px)}
 .pzd .pznum{font-family:var(--pzf);font-weight:900;font-size:16px;text-align:center;color:var(--tc)}
@@ -418,6 +424,17 @@ body.pzmode::before{content:"";position:fixed;inset:-20vmax;z-index:-1;pointer-e
 .pzd i{font-style:normal;font-family:var(--f-data);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:999px;background:var(--pza);color:var(--pzat);margin-left:2px}
 .pzd.used{background:color-mix(in srgb,var(--pza) 8%,transparent)}
 .pzhint{margin:0}
+.pzpast{border-top:1px solid var(--pzl);padding-top:18px}
+.pzpasth{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:12px}.pzpasth .pzst{margin:0}.pzpasth .pzsmall{margin:0}
+.pzpastw{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(210px,1fr);gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:var(--pzl) transparent}
+.pzpc{scroll-snap-align:start;border:1px solid var(--pzl);border-radius:16px;background:var(--pzp);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.pzpc header{display:flex;flex-direction:column}.pzpc header b{font-family:var(--pzf);font-weight:900;font-size:22px;line-height:1;color:var(--pza)}.pzpc header span{font-size:12.5px;color:var(--pzi3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pzpp{margin:0;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;background:color-mix(in srgb,var(--pza) 12%,transparent);border:1px solid color-mix(in srgb,var(--pza) 40%,var(--pzl))}
+.pzpp i{font-style:normal;font-family:var(--f-data);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--pza)}.pzpp span{font-weight:700}
+.pzpc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.pzpc li{display:grid;grid-template-columns:20px minmax(0,1fr);column-gap:8px;align-items:baseline}
+.pzpc li i{font-style:normal;font-family:var(--pzf);font-weight:900;font-size:13px;color:var(--pzi3)}
+.pzpc li b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pzpc li small{grid-column:2;font-size:11px;color:var(--pzi3);margin-top:-2px}
 .gghostd{--tc:var(--pzi3,#888);position:fixed;left:0;top:0;z-index:300;pointer-events:none;display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:14px;border:2px solid var(--tc);background:var(--pzp,#111);color:var(--pzi,#fff);box-shadow:0 18px 40px rgba(0,0,0,.4);font-weight:700}
 .gghostd .pznum{font-family:var(--pzf);font-weight:900;font-size:20px;color:var(--tc)}
 body.gdragging{cursor:grabbing;user-select:none}
@@ -448,15 +465,15 @@ body.gdragging{cursor:grabbing;user-select:none}
 /* narrow screens */
 @media (max-width:900px){.pzhero{grid-template-columns:minmax(0,1fr);gap:18px}.pzheroR{max-width:560px}.pzheroL{display:contents}.pzlede{order:1;margin:0}.pzheroR{order:2}.pzdead{order:3}}
 @media (max-width:720px){
-  .pzh{padding-top:12px;gap:10px}.pzhr{position:static;order:-1;align-self:flex-end;margin-bottom:-4px}.pznav{width:100%;justify-content:space-between}.pznav a{padding:7px 10px;font-size:13.5px}
+  .pzh{padding-top:12px;gap:10px;grid-template-columns:minmax(0,1fr);grid-template-areas:"me" "brand" "nav"}.pzhr{margin-bottom:-4px}.pznav{width:100%;justify-content:space-between}.pznav a{padding:7px 10px;font-size:13.5px}
   .pzbar{grid-template-columns:minmax(0,1fr)}.pzrank{flex-direction:row;align-items:center;gap:14px;flex-wrap:wrap}.pzrank .pzkick{width:100%}.pzrank .pzranks{flex:1;min-width:120px}
   .pzrankbig{flex-direction:column;align-items:flex-start}
   .pzcols{gap:8px}
-  .pzs{grid-template-columns:44px minmax(0,1fr) auto;gap:8px;min-height:64px;padding:6px 6px 6px 0;border-radius:14px}
-  .pzl{font-size:15px}.pzl small{display:none}
-  .pzsd b{font-size:15px}.pzsd small{display:none}.pzsd em{font-size:11px}
-  .pzs .pznum{display:none}.pzs{grid-template-columns:44px minmax(0,1fr) auto}.pzs .pzx{grid-column:3}
-  .pzx{width:28px;height:28px;font-size:17px}
+  .pzs{grid-template-columns:50px minmax(0,1fr);gap:8px;min-height:60px;padding:6px 24px 6px 0;border-radius:14px}
+  .pzl{font-size:12px;padding:0 2px}.pzl small{display:none}
+  .pzsd b{font-family:var(--f-body);font-weight:700;font-size:15px;letter-spacing:0;text-transform:none}.pzsd small{display:none}.pzsd em{font-size:11px}
+  .pzs .pznum{display:none}.pzs .pzx{position:absolute;top:4px;right:4px}
+  .pzx{width:22px;height:22px;font-size:14px}
   .pzlistw{min-height:300px}
   .pzd{grid-template-columns:28px minmax(0,1fr);row-gap:0;padding:7px 6px 7px 0}.pzd .pznum{font-size:14px}.pzd i{grid-column:2;justify-self:start;margin:3px 3px 0 0;font-size:9.5px;padding:2px 6px}
   .pzdn b{font-size:14px}
@@ -464,7 +481,8 @@ body.gdragging{cursor:grabbing;user-select:none}
   .pzauthi{padding:18px 16px 16px}
   .pzseg{gap:6px}
 }
-@media (max-width:380px){.pzmen{max-width:40vw}.pzmeb .gguesttag{display:none}.pznav{flex-wrap:nowrap}.pznav a{padding:6px 8px;font-size:12.5px}.pzs{grid-template-columns:38px minmax(0,1fr) auto;gap:6px}.pzl{font-size:13px}.pzsd b{font-size:13.5px}.pzx{width:26px;height:26px}}
+@media (max-width:380px){.pzmen{max-width:40vw}.pzmeb .gguesttag{display:none}.pznav{flex-wrap:nowrap}.pznav a{padding:6px 8px;font-size:12.5px}.pzs{grid-template-columns:44px minmax(0,1fr);gap:6px}.pzl{font-size:11px}.pzsd b{font-size:14px}}
+@media (max-width:340px){.pzs{grid-template-columns:40px minmax(0,1fr);gap:5px;padding-right:22px}.pzl{font-size:10px}.pzsd b{font-size:13px}.pzcols{gap:6px}}
 /* regulations history: motion layer */
 .rghero{position:relative;overflow:hidden;margin:6px 0 10px;padding:34px 0 0;--mx:72%;--my:48%;isolation:isolate}
 .rghero::before{content:"";position:absolute;inset:-20%;z-index:-1;background:radial-gradient(min(560px,70vw) circle at var(--mx) var(--my),color-mix(in srgb,var(--signal) 15%,transparent),transparent 62%);transition:background .2s}
@@ -2995,6 +3013,9 @@ function gCars(){const m={},full=n=>DRIVERS.find(x=>gKey(sur(x[0]))===gKey(n));
   Object.keys(SEASON).sort((a,b)=>a-b).forEach(r=>{const S=SEASON[r];[...(S.race||[]),...(S.quali||[])].forEach(row=>{const n=+row[1];if(!n||m[n])return;const last=String(row[2]).split(" ").pop(),d=full(last);
     m[n]={n,name:d?d[0]:String(row[2]),last,team:d?d[2]:"",pos:1000+n,standin:true};});});
   return Object.values(m).sort((a,b)=>a.pos-b.pos||a.n-b.n);}
+/* constructors' standings order, teammates together (better placed driver first), stand-ins at the end */
+const gTeamKey=c=>c.standin?"~":c.team;
+function gTeamSort(cars){const ti=t=>{const i=CONSTRUCTORS.findIndex(x=>x[0]===t);return i<0?99:i;};return [...cars].sort((a,b)=>(!!a.standin-!!b.standin)||(ti(a.team)-ti(b.team))||(a.pos-b.pos)||(a.n-b.n));}
 function gCar(n){return gCars().find(c=>c.n===n)||{n,name:"#"+n,last:"#"+n,team:""};}
 const gTime=d=>d.toLocaleString(undefined,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",hour12:CLOCK==="12"});
 function gLeft(d){let s=Math.max(0,Math.floor((d.getTime()-Date.now())/1000));const dd=Math.floor(s/86400);s%=86400;const h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60),x=s%60;
@@ -3021,7 +3042,7 @@ function gTop(k){const nav=[["game","Play"],["game-picks","My picks"],["game-lb"
   return `<header class="pzh${land?" pzhl":""}"><a class="pzbrand" href="${H("game")}" data-go="game" aria-label="Track Almanac Predictor"><${land?"h1":"span"} class="pzwm"><span class="pzw1">Track Almanac</span><span class="pzw2">Predictor</span></${land?"h1":"span"}></a>
     <div class="pzhr">${gMe()}</div>
     <nav class="pznav" aria-label="Predictor">${nav.map(([x,n])=>`<a href="${H(x)}" data-go="${x}"${x===k?' aria-current="page"':""}>${n}</a>`).join("")}</nav></header>`;}
-function gFitWm(){document.querySelectorAll(".pzwm").forEach(w=>{[...w.children].forEach(el=>{el.style.fontSize="";let f=parseFloat(getComputedStyle(el).fontSize),n=0;const W=w.parentElement.clientWidth-(el.classList.contains("pzw1")?($(".pzhr")||{offsetWidth:0}).offsetWidth+12:0);while(el.scrollWidth>W&&f>12&&n++<60){f*=.95;el.style.fontSize=f.toFixed(1)+"px";}});});}
+function gFitWm(){document.querySelectorAll(".pzwm").forEach(w=>{[...w.children].forEach(el=>{el.style.fontSize="";let f=parseFloat(getComputedStyle(el).fontSize),n=0;const W=w.parentElement.clientWidth;while(el.scrollWidth>W&&f>12&&n++<60){f*=.95;el.style.fontSize=f.toFixed(1)+"px";}});});}
 try{document.fonts&&document.fonts.ready.then(()=>{if($(".pz"))gFitWm();});}catch(e){}
 addEventListener("resize",()=>{if($(".pz"))gFitWm();});
 const gWrap=(k,body)=>`<div class="pz${GS.anim?" pzin":""}" data-k="${k}">${gTop(k)}<div class="pzbody">${body}</div></div>`;
@@ -3125,7 +3146,7 @@ function gPicksView(){
   const locked=rd.lock.getTime()<=Date.now(),P=GS.pick||gEmptyPick(),cars=gCars();
   const where=n=>{const o=[];if(P.pole===n)o.push("Pole");const k=P.top5.indexOf(n);if(k>=0)o.push(GSLOT[k+1]);return o;};
   const slot=i=>{const n=gUi(P,i),c=n?gCar(n):null,first=c&&c.name!==c.last?c.name.slice(0,c.name.length-c.last.length).trim():"";
-    return `<div class="pzs${c?" full":""}${!locked&&GS.sel===i?" sel":""}${GS.flash===i?" pzpop":""}${i===0?" pzpole":""}" data-gslot="${i}" role="button" tabindex="${locked?-1:0}" aria-label="${GSLOT[i]}${i?" place":""}: ${c?esc(c.name):"empty"}" style="--i:${i};${c?`--tc:${tcol(c.team)}`:""}">
+    return `<div class="pzs${c?" full":""}${!locked&&GS.sel===i?" sel":""}${GS.flash===i?" pzpop":""}${i===0?" pzpole":""}" data-gslot="${i}" role="button" tabindex="${locked?-1:0}" aria-label="${GSLOT[i]}${i?" place":""}: ${c?esc(c.name):"empty"}" style="--i:${i}">
       <span class="pzl">${GSLOT[i]}${i?"<small>place</small>":""}</span>
       <span class="pzsd">${c?`<small>${esc(first)}</small><b>${esc(c.last)}</b><em>${esc(c.team)}</em>`:`<em>${locked?"No pick":GS.sel===i?"Tap a driver →":"Empty"}</em>`}</span>${c?`<span class="pznum" aria-hidden="true">${c.n}</span>`:""}
       ${c&&!locked?`<button class="pzx" data-gx="${i}" aria-label="Remove ${esc(c.name)} from ${GSLOT[i]}">×</button>`:""}</div>`;};
@@ -3146,12 +3167,22 @@ function gPicksView(){
         <div class="pzacts2">${ready?`<button class="gbtn gsm" data-gcopy>Copy my last picks</button>`:""}<button class="gbtn gsm gghost" data-gclear ${done?"":"disabled"}>Clear all</button></div>
         <p class="gmsg" role="status">${esc(GS.ask?"":GS.msg||(GS.pick&&GS.pick._saved?"Saved "+(GS.pick._savedAt||""):""))}</p></div>`}</div>
      ${locked?"":`<div class="pzright"><div class="pzlh"><b>Drivers</b><span>${GS.sel>=0?`Tap to set <em>${GSLOT[GS.sel]}</em>`:"All set: tap a place to change it"}</span></div>
-      <div class="pzlistw"><div class="pzlist" role="listbox" aria-label="Drivers">${cars.map(c=>{const w=where(c.n);return `<button type="button" class="pzd${w.length?" used":""}" data-gcar="${c.n}" role="option" aria-selected="${!!w.length}" title="${esc(c.name)}${c.standin?" (stand-in)":""}" style="--tc:${tcol(c.team)}"><span class="pznum">${c.n}</span><span class="pzdn"><b>${esc(c.last)}</b><small>${esc(c.team)}${c.standin?" · stand-in":""}</small></span>${w.map(x=>`<i>${x}</i>`).join("")}</button>`;}).join("")}</div></div>
+      <div class="pzlistw"><div class="pzlist" role="listbox" aria-label="Drivers">${gTeamSort(cars).map((c,k,a)=>{const w=where(c.n),head=k===0||gTeamKey(a[k-1])!==gTeamKey(c)?`<div class="pzteam" style="--tc:${tcol(c.team)}">${c.standin?"Stand-ins":esc(c.team)}</div>`:"";return `${head}<button type="button" class="pzd${w.length?" used":""}" data-gcar="${c.n}" role="option" aria-selected="${!!w.length}" title="${esc(c.name)}${c.standin?" (stand-in)":""}" style="--tc:${tcol(c.team)}"><span class="pznum">${c.n}</span><span class="pzdn"><b>${esc(c.last)}</b><small>${esc(c.team)}${c.standin?" · stand-in":""}</small></span>${w.map(x=>`<i>${x}</i>`).join("")}</button>`;}).join("")}</div></div>
       <p class="pzsmall pzhint">Tap a driver to fill the highlighted place, or drag one onto any place (on a phone: press, hold, then drag).</p></div>`}
     </div>
     ${!ready&&GS.ask?`<div class="pzsolo">${gAuthPanel("Sign in, or play as a guest, to save these picks.")}</div>`:""}
     ${!ready&&!GS.ask&&!locked?`<p class="pzsmall">You can make your picks now and sign in when you save them.</p>`:""}
-   </div>`);}
+   </div>
+   <section class="pzpast" data-r style="--i:4"><div class="pzpasth"><h2 class="pzst">The last five here</h2><span class="pzsmall">Pole and top five at this circuit before ${GAMECFG.season||2026}</span></div><div id="gpast">${gPastHtml(rd.r)}</div></section>`);}
+/* the last five World Championship races at the selected round's circuit (data/game-history.json, built from F1DB) */
+const gSur=n=>{const w=String(n).replace(/\s+(Jr\.?|Sr\.?|II|III)$/i,"").split(" ");return w[w.length-1];};
+function gPastHtml(r){if(!GS.ph){gPastLoad();return `<p class="pzsmall">Loading…</p>`;}
+  const L=GS.ph[String(r)]||[];if(!L.length)return `<p class="pzsmall">No earlier Grands Prix at this circuit: it's new to the calendar.</p>`;
+  return `<div class="pzpastw">${L.map(([y,gp,pole,top])=>`<article class="pzpc"><header><b>${y}</b><span>${esc(gp)}</span></header>
+    <p class="pzpp"><i>Pole</i><span>${pole?esc(gSur(pole)):"–"}</span></p>
+    <ol>${top.map(([n,t],k)=>`<li><i>${k+1}</i><b title="${esc(n)}">${esc(gSur(n))}</b><small>${esc(t)}</small></li>`).join("")}</ol></article>`).join("")}</div>`;}
+async function gPastLoad(){if(GS._phl)return;GS._phl=1;try{GS.ph=await gJSON(`/data/game-history.json?v=${typeof GHV!=="undefined"?GHV:""}`);}catch(e){GS.ph={};}
+  const el=$("#gpast");if(el&&GS.round)el.innerHTML=gPastHtml(GS.round.r);}
 function gLbView(){return gWrap("game-lb",`${gTitle("Leaderboard","Season standings and every race. Tables update after each Grand Prix.")}
   <div class="pzlbtop" data-r style="--i:2">${gRankCard(true)}</div>
   <div class="pzcard" data-r style="--i:3"><div class="glbsel"><label class="pzkick" for="glbr">Table</label><select id="glbr"><option value="">Season ${GAMECFG.season||2026}</option>${gRounds().filter(x=>x.done).reverse().map(x=>`<option value="${x.r}">R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div><div id="glbt"><p class="pzsmall">Loading…</p></div></div>

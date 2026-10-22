@@ -1619,6 +1619,9 @@ function gCars(){const m={},full=n=>DRIVERS.find(x=>gKey(sur(x[0]))===gKey(n));
   Object.keys(SEASON).sort((a,b)=>a-b).forEach(r=>{const S=SEASON[r];[...(S.race||[]),...(S.quali||[])].forEach(row=>{const n=+row[1];if(!n||m[n])return;const last=String(row[2]).split(" ").pop(),d=full(last);
     m[n]={n,name:d?d[0]:String(row[2]),last,team:d?d[2]:"",pos:1000+n,standin:true};});});
   return Object.values(m).sort((a,b)=>a.pos-b.pos||a.n-b.n);}
+/* constructors' standings order, teammates together (better placed driver first), stand-ins at the end */
+const gTeamKey=c=>c.standin?"~":c.team;
+function gTeamSort(cars){const ti=t=>{const i=CONSTRUCTORS.findIndex(x=>x[0]===t);return i<0?99:i;};return [...cars].sort((a,b)=>(!!a.standin-!!b.standin)||(ti(a.team)-ti(b.team))||(a.pos-b.pos)||(a.n-b.n));}
 function gCar(n){return gCars().find(c=>c.n===n)||{n,name:"#"+n,last:"#"+n,team:""};}
 const gTime=d=>d.toLocaleString(undefined,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",hour12:CLOCK==="12"});
 function gLeft(d){let s=Math.max(0,Math.floor((d.getTime()-Date.now())/1000));const dd=Math.floor(s/86400);s%=86400;const h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60),x=s%60;
@@ -1645,7 +1648,7 @@ function gTop(k){const nav=[["game","Play"],["game-picks","My picks"],["game-lb"
   return `<header class="pzh${land?" pzhl":""}"><a class="pzbrand" href="${H("game")}" data-go="game" aria-label="Track Almanac Predictor"><${land?"h1":"span"} class="pzwm"><span class="pzw1">Track Almanac</span><span class="pzw2">Predictor</span></${land?"h1":"span"}></a>
     <div class="pzhr">${gMe()}</div>
     <nav class="pznav" aria-label="Predictor">${nav.map(([x,n])=>`<a href="${H(x)}" data-go="${x}"${x===k?' aria-current="page"':""}>${n}</a>`).join("")}</nav></header>`;}
-function gFitWm(){document.querySelectorAll(".pzwm").forEach(w=>{[...w.children].forEach(el=>{el.style.fontSize="";let f=parseFloat(getComputedStyle(el).fontSize),n=0;const W=w.parentElement.clientWidth-(el.classList.contains("pzw1")?($(".pzhr")||{offsetWidth:0}).offsetWidth+12:0);while(el.scrollWidth>W&&f>12&&n++<60){f*=.95;el.style.fontSize=f.toFixed(1)+"px";}});});}
+function gFitWm(){document.querySelectorAll(".pzwm").forEach(w=>{[...w.children].forEach(el=>{el.style.fontSize="";let f=parseFloat(getComputedStyle(el).fontSize),n=0;const W=w.parentElement.clientWidth;while(el.scrollWidth>W&&f>12&&n++<60){f*=.95;el.style.fontSize=f.toFixed(1)+"px";}});});}
 try{document.fonts&&document.fonts.ready.then(()=>{if($(".pz"))gFitWm();});}catch(e){}
 addEventListener("resize",()=>{if($(".pz"))gFitWm();});
 const gWrap=(k,body)=>`<div class="pz${GS.anim?" pzin":""}" data-k="${k}">${gTop(k)}<div class="pzbody">${body}</div></div>`;
@@ -1749,7 +1752,7 @@ function gPicksView(){
   const locked=rd.lock.getTime()<=Date.now(),P=GS.pick||gEmptyPick(),cars=gCars();
   const where=n=>{const o=[];if(P.pole===n)o.push("Pole");const k=P.top5.indexOf(n);if(k>=0)o.push(GSLOT[k+1]);return o;};
   const slot=i=>{const n=gUi(P,i),c=n?gCar(n):null,first=c&&c.name!==c.last?c.name.slice(0,c.name.length-c.last.length).trim():"";
-    return `<div class="pzs${c?" full":""}${!locked&&GS.sel===i?" sel":""}${GS.flash===i?" pzpop":""}${i===0?" pzpole":""}" data-gslot="${i}" role="button" tabindex="${locked?-1:0}" aria-label="${GSLOT[i]}${i?" place":""}: ${c?esc(c.name):"empty"}" style="--i:${i};${c?`--tc:${tcol(c.team)}`:""}">
+    return `<div class="pzs${c?" full":""}${!locked&&GS.sel===i?" sel":""}${GS.flash===i?" pzpop":""}${i===0?" pzpole":""}" data-gslot="${i}" role="button" tabindex="${locked?-1:0}" aria-label="${GSLOT[i]}${i?" place":""}: ${c?esc(c.name):"empty"}" style="--i:${i}">
       <span class="pzl">${GSLOT[i]}${i?"<small>place</small>":""}</span>
       <span class="pzsd">${c?`<small>${esc(first)}</small><b>${esc(c.last)}</b><em>${esc(c.team)}</em>`:`<em>${locked?"No pick":GS.sel===i?"Tap a driver →":"Empty"}</em>`}</span>${c?`<span class="pznum" aria-hidden="true">${c.n}</span>`:""}
       ${c&&!locked?`<button class="pzx" data-gx="${i}" aria-label="Remove ${esc(c.name)} from ${GSLOT[i]}">×</button>`:""}</div>`;};
@@ -1770,12 +1773,22 @@ function gPicksView(){
         <div class="pzacts2">${ready?`<button class="gbtn gsm" data-gcopy>Copy my last picks</button>`:""}<button class="gbtn gsm gghost" data-gclear ${done?"":"disabled"}>Clear all</button></div>
         <p class="gmsg" role="status">${esc(GS.ask?"":GS.msg||(GS.pick&&GS.pick._saved?"Saved "+(GS.pick._savedAt||""):""))}</p></div>`}</div>
      ${locked?"":`<div class="pzright"><div class="pzlh"><b>Drivers</b><span>${GS.sel>=0?`Tap to set <em>${GSLOT[GS.sel]}</em>`:"All set: tap a place to change it"}</span></div>
-      <div class="pzlistw"><div class="pzlist" role="listbox" aria-label="Drivers">${cars.map(c=>{const w=where(c.n);return `<button type="button" class="pzd${w.length?" used":""}" data-gcar="${c.n}" role="option" aria-selected="${!!w.length}" title="${esc(c.name)}${c.standin?" (stand-in)":""}" style="--tc:${tcol(c.team)}"><span class="pznum">${c.n}</span><span class="pzdn"><b>${esc(c.last)}</b><small>${esc(c.team)}${c.standin?" · stand-in":""}</small></span>${w.map(x=>`<i>${x}</i>`).join("")}</button>`;}).join("")}</div></div>
+      <div class="pzlistw"><div class="pzlist" role="listbox" aria-label="Drivers">${gTeamSort(cars).map((c,k,a)=>{const w=where(c.n),head=k===0||gTeamKey(a[k-1])!==gTeamKey(c)?`<div class="pzteam" style="--tc:${tcol(c.team)}">${c.standin?"Stand-ins":esc(c.team)}</div>`:"";return `${head}<button type="button" class="pzd${w.length?" used":""}" data-gcar="${c.n}" role="option" aria-selected="${!!w.length}" title="${esc(c.name)}${c.standin?" (stand-in)":""}" style="--tc:${tcol(c.team)}"><span class="pznum">${c.n}</span><span class="pzdn"><b>${esc(c.last)}</b><small>${esc(c.team)}${c.standin?" · stand-in":""}</small></span>${w.map(x=>`<i>${x}</i>`).join("")}</button>`;}).join("")}</div></div>
       <p class="pzsmall pzhint">Tap a driver to fill the highlighted place, or drag one onto any place (on a phone: press, hold, then drag).</p></div>`}
     </div>
     ${!ready&&GS.ask?`<div class="pzsolo">${gAuthPanel("Sign in, or play as a guest, to save these picks.")}</div>`:""}
     ${!ready&&!GS.ask&&!locked?`<p class="pzsmall">You can make your picks now and sign in when you save them.</p>`:""}
-   </div>`);}
+   </div>
+   <section class="pzpast" data-r style="--i:4"><div class="pzpasth"><h2 class="pzst">The last five here</h2><span class="pzsmall">Pole and top five at this circuit before ${GAMECFG.season||2026}</span></div><div id="gpast">${gPastHtml(rd.r)}</div></section>`);}
+/* the last five World Championship races at the selected round's circuit (data/game-history.json, built from F1DB) */
+const gSur=n=>{const w=String(n).replace(/\s+(Jr\.?|Sr\.?|II|III)$/i,"").split(" ");return w[w.length-1];};
+function gPastHtml(r){if(!GS.ph){gPastLoad();return `<p class="pzsmall">Loading…</p>`;}
+  const L=GS.ph[String(r)]||[];if(!L.length)return `<p class="pzsmall">No earlier Grands Prix at this circuit: it's new to the calendar.</p>`;
+  return `<div class="pzpastw">${L.map(([y,gp,pole,top])=>`<article class="pzpc"><header><b>${y}</b><span>${esc(gp)}</span></header>
+    <p class="pzpp"><i>Pole</i><span>${pole?esc(gSur(pole)):"–"}</span></p>
+    <ol>${top.map(([n,t],k)=>`<li><i>${k+1}</i><b title="${esc(n)}">${esc(gSur(n))}</b><small>${esc(t)}</small></li>`).join("")}</ol></article>`).join("")}</div>`;}
+async function gPastLoad(){if(GS._phl)return;GS._phl=1;try{GS.ph=await gJSON(`/data/game-history.json?v=${typeof GHV!=="undefined"?GHV:""}`);}catch(e){GS.ph={};}
+  const el=$("#gpast");if(el&&GS.round)el.innerHTML=gPastHtml(GS.round.r);}
 function gLbView(){return gWrap("game-lb",`${gTitle("Leaderboard","Season standings and every race. Tables update after each Grand Prix.")}
   <div class="pzlbtop" data-r style="--i:2">${gRankCard(true)}</div>
   <div class="pzcard" data-r style="--i:3"><div class="glbsel"><label class="pzkick" for="glbr">Table</label><select id="glbr"><option value="">Season ${GAMECFG.season||2026}</option>${gRounds().filter(x=>x.done).reverse().map(x=>`<option value="${x.r}">R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div><div id="glbt"><p class="pzsmall">Loading…</p></div></div>
