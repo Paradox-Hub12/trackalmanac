@@ -253,7 +253,7 @@ html.hb-hidden .hb{transform:translateY(calc(-100% - 12px))}
 .hmenu a[aria-current="page"]{color:var(--ink);box-shadow:inset 3px 0 0 var(--signal)}
 .hset{margin-left:2px}
 /* TOP: room kept in the bar so nothing moves when it appears */
-.htop{margin-left:4px;visibility:hidden;opacity:0;transition:opacity .2s,visibility .2s}
+.htop{margin-left:2px;visibility:hidden;opacity:0;transition:opacity .2s,visibility .2s}
 .htop.on{visibility:visible;opacity:1}
 .totop{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom,0px) + var(--totopb,0px));z-index:44;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--rule-2);background:var(--panel-2);color:var(--ink);font-size:20px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.35);display:none;visibility:hidden;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s,visibility .2s,bottom .2s}
 .totop.on{visibility:visible;opacity:1;transform:none}
@@ -384,7 +384,7 @@ body.pzmode::before{content:"";position:fixed;inset:-20vmax;z-index:-1;pointer-e
 .pzhr{grid-area:me;display:flex;justify-content:flex-end;min-width:0}
 .pznavw{position:sticky;top:8px;z-index:19;margin:8px 0 4px;pointer-events:none}
 .pznavw .pznav{pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-.pznav{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:4px;border:1px solid var(--pzl);border-radius:999px;background:color-mix(in srgb,var(--pzp) 80%,transparent);backdrop-filter:blur(8px);width:max-content;max-width:100%}
+.pznav{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:4px;border:2px solid transparent;border-radius:999px;background:linear-gradient(var(--pzp),var(--pzp)) padding-box,conic-gradient(from var(--pzang,0deg),var(--pza),var(--pzv),var(--pzh),var(--pza)) border-box;animation:pzspin 7s linear infinite;width:max-content;max-width:100%}
 .pznav::-webkit-scrollbar{display:none}
 .pznav a{flex:none;border:1px solid var(--pzl);white-space:nowrap;font-family:var(--f-body);font-weight:600;font-size:14.5px;padding:7px 14px;border-radius:999px;color:var(--pzi2)!important;text-decoration:none;transition:background .2s,color .2s}
 .pznav a:hover{color:var(--pzi)!important;background:var(--pzp2)}
@@ -596,7 +596,7 @@ body.gdragging{cursor:grabbing;user-select:none}
 .pzin [data-r]{animation:pzup .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*.08s)}
 .pzin .pzh{animation:pzup .6s cubic-bezier(.2,.8,.2,1) both}
 @keyframes pzup{from{opacity:0;transform:translateY(16px)}}
-@media (prefers-reduced-motion:reduce){body.pzmode::before,.pzw2,.pzauth,.pzs.sel::after{animation:none}.pzin [data-r],.pzin .pzh,.pzin .pzs,.pzin .pzpts i,.pzpop,.pzpop .pzsd b,.pzmenu{animation:none}}
+@media (prefers-reduced-motion:reduce){body.pzmode::before,.pzw2,.pzauth,.pznav,.pzs.sel::after{animation:none}.pzin [data-r],.pzin .pzh,.pzin .pzs,.pzin .pzpts i,.pzpop,.pzpop .pzsd b,.pzmenu{animation:none}}
 /* narrow screens */
 @media (max-width:900px){.pzhero{grid-template-columns:minmax(0,1fr);gap:18px}.pzheroR{max-width:560px}.pzheroL{display:contents}.pzlede{order:1;margin:0}.pzheroR{order:2}.pzdead{order:3}}
 @media (max-width:720px){
