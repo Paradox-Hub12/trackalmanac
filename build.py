@@ -658,13 +658,19 @@ WA_ICON = ('<svg class="waic" viewBox="0 0 24 24" aria-hidden="true" focusable="
 
 
 def wa_url(S): return (S.SITEINFO or {}).get("whatsapp", "")      # the one place it is set: const SITE in src/app.html
+def ig_url(S): return (S.SITEINFO or {}).get("instagram", "")
+
+
+IG_ICON = '<svg class="waic igic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5.2" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="12" r="4.1" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="17.3" cy="6.7" r="1.25" fill="currentColor"/></svg>'
 
 
 def wa_card(S, placement):
     """Same card as waCard() in the app, for the prerendered pages."""
     if not wa_url(S): return ""
-    return ('<aside class="wacard" aria-label="WhatsApp channel"><p><b>F1 stories, fun facts and wow stats you won\'t find elsewhere</b><span>Follow the Track Almanac channel on WhatsApp</span></p>'
-            '<a class="wabtn" href="%s" target="_blank" rel="noopener" data-wa="%s">%s<span>Follow on WhatsApp</span></a></aside>' % (esc(wa_url(S)), placement, WA_ICON))
+    return ('<aside class="wacard" aria-label="Follow Track Almanac"><p><b>F1 stories, fun facts and wow stats you won\'t find elsewhere</b><span>Follow Track Almanac on WhatsApp and Instagram</span></p><div class="wabtns">'
+            '<a class="wabtn" href="%s" target="_blank" rel="noopener" data-wa="%s">%s<span>WhatsApp</span></a>'
+            '<a class="wabtn igbtn" href="%s" target="_blank" rel="noopener" data-ig="%s">%s<span>Instagram</span></a></div></aside>'
+            % (esc(wa_url(S)), placement, WA_ICON, esc(ig_url(S)), placement, IG_ICON))
 
 
 def pred_history(H, D, n=5):
@@ -847,7 +853,8 @@ def build(out, data_path=DATA):
     assets = {"css": vhash(css_x), "data": vhash(data_x), "app": vhash(app_x)}
     S = Site(D, app); S.HIST = HIST
     assert wa_url(S), "src/app.html: const SITE needs whatsapp (the channel address)"
-    body = body.replace("__WHATSAPP__", esc(wa_url(S)))           # footer link
+    assert ig_url(S), "src/app.html: const SITE needs instagram"
+    body = body.replace("__WHATSAPP__", esc(wa_url(S))).replace("__INSTAGRAM__", esc(ig_url(S)))   # footer links
     last = S.done[-1] if S.done else S.RACES[0]                        # header: "Latest race"
     body = body.replace("__LATEST_HREF__", S.path("detail-%d" % last["r"])).replace("__LATEST_R__", str(last["r"]))
 
@@ -860,7 +867,7 @@ def build(out, data_path=DATA):
     add("season", "Track Almanac · Races. Drivers. Teams. Numbers.",
         "Formula 1 2026: calendar with session times, live standings, race results, qualifying, grids and lap-by-lap charts.%s" %
         (" Next: %s, %s." % (gp_name(nr), nr.get("days", "")) if nr else ""),
-        "2026 Formula 1 season", home_page(S), "2026 WORLD CHAMPIONSHIP", home, org_ld([wa_url(S)]))
+        "2026 Formula 1 season", home_page(S), "2026 WORLD CHAMPIONSHIP", home, org_ld([wa_url(S), ig_url(S)]))
     add("championship", "2026 F1 Championship Standings & Points Breakdown | Track Almanac",
         "2026 Formula 1 drivers' and constructors' standings after round %d, results grid for every Grand Prix, points progression and season statistics." % len(S.done),
         "2026 F1 Championship standings", championship_page(S), "2026 CHAMPIONSHIP · POINTS", home + [("2026 Championship", "/championship/")])
