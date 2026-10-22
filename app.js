@@ -1646,8 +1646,8 @@ function gMe(){if(!gameOn())return "";
 function gTop(k){const nav=[["game","Play"],["game-picks","My picks"],["game-lb","Leaderboard"],["game-leagues","Leagues"]];
   const land=k==="game";
   return `<header class="pzh${land?" pzhl":""}"><a class="pzbrand" href="${H("game")}" data-go="game" aria-label="Track Almanac Predictor"><${land?"h1":"span"} class="pzwm"><span class="pzw1">Track Almanac</span><span class="pzw2">Predictor</span></${land?"h1":"span"}></a>
-    <div class="pzhr">${gMe()}</div>
-    <nav class="pznav" aria-label="Predictor">${nav.map(([x,n])=>`<a href="${H(x)}" data-go="${x}"${x===k?' aria-current="page"':""}>${n}</a>`).join("")}</nav></header>`;}
+    <div class="pzhr">${gMe()}</div></header>
+    <div class="pznavw"><nav class="pznav" aria-label="Predictor">${nav.map(([x,n])=>`<a href="${H(x)}" data-go="${x}"${x===k?' aria-current="page"':""}>${n}</a>`).join("")}</nav></div>`;}
 function gFitWm(){document.querySelectorAll(".pzwm").forEach(w=>{[...w.children].forEach(el=>{el.style.fontSize="";let f=parseFloat(getComputedStyle(el).fontSize),n=0;const W=w.parentElement.clientWidth;while(el.scrollWidth>W&&f>12&&n++<60){f*=.95;el.style.fontSize=f.toFixed(1)+"px";}});});}
 try{document.fonts&&document.fonts.ready.then(()=>{if($(".pz"))gFitWm();});}catch(e){}
 addEventListener("resize",()=>{if($(".pz"))gFitWm();});
@@ -1766,13 +1766,13 @@ function gPicksView(){
      ${gRankCard(false)}</div>
    <div class="pzpick${locked?" locked":""}" data-r style="--i:3">
     <div class="pzcols">
-     <div class="pzleft"><div class="pzslots" role="group" aria-label="Your picks">${[0,1,2,3,4,5].map(slot).join("")}</div>
+     <div class="pzleft">${locked?"":`<div class="pzlh"><b>My picks</b><span>Pole, then 1st to 5th</span></div>`}<div class="pzslots" role="group" aria-label="Your picks">${[0,1,2,3,4,5].map(slot).join("")}</div>
       ${locked?`<div class="pznote" id="gmyscore"><p>${!ready?"Sign in to see your picks and score for this round.":GS.pick?"":"You didn't make picks for this round, so it scores 0."}</p></div>`:`
       <div class="pzprog" aria-hidden="true"><div class="pzprogt"><i style="--p:${done/6}"></i></div><span>${done} of 6</span></div>
       <div class="pzacts"><button class="gbtn gpri gbig gwide" data-gsave ${GS.dirty?"":"disabled"}>${saveLbl}</button>
         <div class="pzacts2">${ready?`<button class="gbtn gsm" data-gcopy>Copy my last picks</button>`:""}<button class="gbtn gsm gghost" data-gclear ${done?"":"disabled"}>Clear all</button></div>
         <p class="gmsg" role="status">${esc(GS.ask?"":GS.msg||(GS.pick&&GS.pick._saved?"Saved "+(GS.pick._savedAt||""):""))}</p></div>`}</div>
-     ${locked?"":`<div class="pzright"><div class="pzlh"><b>Drivers</b><span>${GS.sel>=0?`Tap to set <em>${GSLOT[GS.sel]}</em>`:"All set: tap a place to change it"}</span></div>
+     ${locked?"":`<div class="pzright"><div class="pzlh"><b>Drivers</b><span>${GS.sel>=0?`Tap to set <em>${GSLOT[GS.sel]}</em>`:"All set · tap a place to change"}</span></div>
       <div class="pzlistw"><div class="pzlist" role="listbox" aria-label="Drivers">${gTeamSort(cars).map((c,k,a)=>{const w=where(c.n),head=k===0||gTeamKey(a[k-1])!==gTeamKey(c)?`<div class="pzteam" style="--tc:${tcol(c.team)}">${c.standin?"Stand-ins":esc(c.team)}</div>`:"";return `${head}<button type="button" class="pzd${w.length?" used":""}" data-gcar="${c.n}" role="option" aria-selected="${!!w.length}" title="${esc(c.name)}${c.standin?" (stand-in)":""}" style="--tc:${tcol(c.team)}"><span class="pznum">${c.n}</span><span class="pzdn"><b>${esc(c.last)}</b>${c.standin?`<small>${esc(c.team)}</small>`:""}</span>${w.length?`<span class="pzbdg">${w.map(x=>`<i>${x}</i>`).join("")}</span>`:""}</button>`;}).join("")}</div></div>
       <p class="pzsmall pzhint">Tap a driver to fill the highlighted place, or drag one onto any place (on a phone: press, hold, then drag).</p></div>`}
     </div>
