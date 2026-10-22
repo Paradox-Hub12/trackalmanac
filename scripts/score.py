@@ -59,6 +59,20 @@ def season_table(per_round):
     return G.rank(rows)
 
 
+def standings(per_round):
+    """uid -> "pos|points|players". Players on the leaderboard get their season position; unconfirmed email
+    accounts get position 0 with their points so far."""
+    pub = {r: [x for x in rows if x["pos"] > 0] for r, rows in per_round.items()}
+    season = {r["uid"]: r for r in season_table({r: v for r, v in pub.items() if v})}
+    n, out, wait = len(season), {}, {}
+    for rows in per_round.values():
+        for r in rows:
+            if r["uid"] not in season: wait[r["uid"]] = wait.get(r["uid"], 0) + r["points"]
+    for u, r in season.items(): out[u] = "%d|%d|%d" % (r["pos"], r["points"], n)
+    for u, pts in wait.items(): out[u] = "0|%d|%d" % (pts, n)
+    return out
+
+
 def publish_files(D, per_round, offs):
     """The static tables (top 100), as file name -> text."""
     files = {}
@@ -245,7 +259,17 @@ def run_firebase(D, now=None):
         if not t or t.get("resultHash") != h or t.get("rows") != packed:
             table_writes.append(("tables", str(rnd), {"round": rnd, "resultHash": h, "official": off, "rows": packed}))
 
-    # 5. write: scores first, then the tables (a table doc marks its round as done, so an interrupted run is redone next time)
+    # 5. each player's season position, for the big number on the site (standings/{uid}, readable by that player only)
+    want = standings(per_round)
+    sref = db.collection("system").document("standings"); old = sref.get(); old = (old.to_dict() or {}).get("m", {}) if old.exists else {}
+    for u, v in want.items():
+        if old.get(u) != v:
+            pos, pts, n = map(int, v.split("|")); score_writes.append(("standings", u, {"pos": pos, "points": pts, "players": n, "updated": now}))
+    for u in old:
+        if u not in want: score_writes.append(("standings", u, None))
+    if want != old: score_writes.append(("system", "standings", {"m": want}))
+
+    # 6. write: scores first, then the tables (a table doc marks its round as done, so an interrupted run is redone next time)
     files = publish_files(D, per_round, offs)          # also computed before anything is written
     allw = writes + score_writes + table_writes
     batch, n = db.batch(), 0

@@ -738,7 +738,7 @@ def head(p, assets, fonts):
 <link rel="stylesheet" href="/style.css?v={assets['css']}">
 <style>html,body{{margin:0;padding:0}}[hidden]{{display:none!important}}img{{max-width:100%}}</style>
 {ld}</head>
-<body>
+<body{' class="pzmode"' if p["path"].startswith("/game/") else ""}>
 """
 
 

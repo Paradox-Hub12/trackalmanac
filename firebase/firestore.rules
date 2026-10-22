@@ -56,6 +56,7 @@ service cloud.firestore {
     // server-written
     match /rounds/{r} { allow read: if true; allow write: if false; }
     match /scores/{s} { allow read: if true; allow write: if false; }
+    match /standings/{u} { allow get: if signedIn() && uid() == u; allow list, write: if false; }   // your season position
     match /bans/{u}   { allow read, write: if false; }
     match /tables/{r} { allow read, write: if false; }   // full per-round tables, scorer only
     match /system/{d} { allow read, write: if false; }   // scorer state

@@ -1575,15 +1575,18 @@ function openHEngine(i){histIndexTeams();const e=HIST.eby[i];if(!e)return;
 /* ---------- PREDICTOR GAME: /game/ pages. Firebase Auth + Firestore (lite) loaded on demand from /js/firebase-game.js.
    Scoring is done by scripts/score.py in the results workflow; season and race tables are static JSON in /data/game/. ---------- */
 const GPTS=[5,3,2,1,1],GPOLE=3;
-const GS={fb:null,loading:null,user:undefined,profile:undefined,pend:0,ask:0,amode:"in",linkMsg:"",linkAlt:null,round:null,pick:null,sel:0,dirty:false,msg:"",tick:0,lb:null,lbr:{},leagues:null,league:null};
+const GS={fb:null,loading:null,user:undefined,profile:undefined,stand:undefined,flash:-1,anim:0,goPicks:0,pend:0,ask:0,amode:"in",linkMsg:"",linkAlt:null,round:null,pick:null,sel:0,dirty:false,msg:"",tick:0,lb:null,lbr:{},leagues:null,league:null};
 const GMAIL=()=>(typeof GAMECFG!=="undefined"&&GAMECFG.contact)||SITE.email;
 const gameOn=()=>!!(typeof GAMECFG!=="undefined"&&GAMECFG.firebase&&GAMECFG.firebase.apiKey);
 function gFB(){if(GS.fb)return Promise.resolve(GS.fb);if(!gameOn())return Promise.reject(new Error("not configured"));
   if(!GS.loading)GS.loading=import(`/js/firebase-game.js?v=${FBV}`).then(m=>{const app=m.initializeApp(GAMECFG.firebase),auth=m.getAuth(app),db=m.getFirestore(app);
     if(GAMECFG.emulator&&/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){m.connectAuthEmulator(auth,"http://127.0.0.1:9099",{disableWarnings:true});m.connectFirestoreEmulator(db,"127.0.0.1",8080);}
     GS.fb={m,auth,db};
-    m.onAuthStateChanged(auth,async u=>{GS.user=u||null;GS.profile=undefined;if(u){try{const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.exists()?s.data():null;}catch(e){GS.profile=null;}}else GS.profile=null;
-      gRerender();if(u&&GS.profile)gAfterReady();});
+    m.onAuthStateChanged(auth,async u=>{if(!u||!GS.user||u.uid!==GS.user.uid){GS.stand=undefined;GS._standFor=null;}
+      GS.user=u||null;GS.profile=undefined;GS.amode="in";if(u){try{const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.exists()?s.data():null;}catch(e){GS.profile=null;}}else GS.profile=null;
+      /* signed in from the Predictor's front page: straight to My picks */
+      if(u&&GS.profile&&GS.goPicks&&curKey()==="game"){GS.goPicks=0;GS.msg="";return go("game-picks");}
+      gRerender();if(u&&GS.profile){gLoadStand();gAfterReady();}});
     m.getRedirectResult(auth).catch(e=>{GS.msg=gErr(e);gRerender();});
     return GS.fb;}).catch(e=>{GS.loading=null;throw e;});
   return GS.loading;}
@@ -1592,9 +1595,6 @@ const gIsGuest=u=>!!(u&&u.isAnonymous);
 const gProv=u=>((u&&u.providerData)||[]).map(p=>p.providerId);
 const gNeedsVerify=u=>!!(u&&!u.isAnonymous&&!u.emailVerified&&gProv(u).includes("password")&&!gProv(u).includes("google.com"));
 const GWARN="Playing as a guest: your picks are saved on this device only. Clearing your browser or switching devices will lose them. Save your account to keep them.";
-function gGuestBox(here){return `<div class="gcard gguest" role="note"><p><b>${GWARN}</b></p>${here?"":`<a class="gbtn gpri" href="${H("game-account")}" data-go="game-account">Save my account</a>`}</div>`;}
-function gVerifyBox(){return `<div class="gcard gguest" role="note"><p><b>Confirm your email address to appear on the leaderboard.</b> We sent a link to ${esc(GS.user.email||"your inbox")}. Can't find it? Check the spam or junk folder. Your picks are saved and scored in the meantime.</p>
-  <div class="gacts"><button class="gbtn gsm" data-gverify>Send the email again</button><button class="gbtn gsm" data-greload>I've confirmed it</button></div></div>`;}
 /* picks made before signing in are kept here until the player has an account, then saved */
 function gPendKeep(){try{sessionStorage.setItem("ta-pend",JSON.stringify({r:GS.round.r,p:{top5:GS.pick.top5,pole:GS.pick.pole}}));}catch(e){}}
 function gPendTake(r){try{const j=JSON.parse(sessionStorage.getItem("ta-pend")||"null");if(j&&j.r===r)return j.p;}catch(e){}return null;}
@@ -1623,47 +1623,112 @@ function gCar(n){return gCars().find(c=>c.n===n)||{n,name:"#"+n,last:"#"+n,team:
 const gTime=d=>d.toLocaleString(undefined,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",hour12:CLOCK==="12"});
 function gLeft(d){let s=Math.max(0,Math.floor((d.getTime()-Date.now())/1000));const dd=Math.floor(s/86400);s%=86400;const h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60),x=s%60;
   return dd?`${dd}d ${h}h ${m}m`:h?`${h}h ${m}m ${String(x).padStart(2,"0")}s`:`${m}m ${String(x).padStart(2,"0")}s`;}
-function gTick(){clearInterval(GS.tick);GS.tick=setInterval(()=>{document.querySelectorAll("[data-lockcd]").forEach(el=>{const d=new Date(+el.dataset.lockcd);if(d.getTime()<=Date.now()){el.textContent="Locked";if(!el._re){el._re=1;setTimeout(gRerender,600);}}else el.textContent=gLeft(d);});},1000);}
-/* ---- shared page parts ---- */
-const gTabs=k=>`<nav class="gtabs" aria-label="Predictor">${[["game","How it works"],["game-picks","My picks"],["game-lb","Leaderboard"],["game-leagues","Leagues"],["game-account","Account"]].map(([x,n])=>`<a href="${H(x)}" data-go="${x}" ${x===k?'aria-current="page"':""}>${n}</a>`).join("")}</nav>`;
-function gHead(k,title,sub){return `<div class="game"><div class="ghero"><span class="lbl">Track Almanac Predictor · free to play</span><h1 class="gtitle">${title}</h1>${sub?`<p class="gsub">${sub}</p>`:""}${gTabs(k)}</div>`;}
-function gSignin(why){if(!gameOn())return `<div class="gcard gwarn"><b>The Predictor is being set up.</b><p>Sign-in opens soon. The rules are below.</p></div>`;
-  if(GS.user===undefined&&GS.fb)return `<div class="gcard"><p>Loading…</p></div>`;
-  const up=GS.amode==="up";
-  return `<div class="gcard gsign" id="gsign"><h3>${why||"Sign in to play"}</h3><p>Free, no prizes, no money.</p>
-    <div class="gsopts"><button class="gbtn gpri" data-gsign="google"><span aria-hidden="true">G</span> Continue with Google</button>
-    <button class="gbtn" data-gsign="guest">Play as a guest</button></div>
-    <p class="note2">Guest: pick a nickname and play straight away. Guest picks are kept on this device only; you can save the account later.</p>
-    <form class="gmail" data-gform="${up?"emailup":"emailin"}"><span class="lbl">${up?"Create an account with email":"Or sign in with email"}</span>
-      <label><span class="lbl">Email</span><input type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="${esc(GS.email||"")}"></label>
-      <label><span class="lbl">Password</span><input type="password" name="password" required minlength="${up?8:1}" autocomplete="${up?"new-password":"current-password"}"></label>
-      <div class="gacts"><button class="gbtn" type="submit">${up?"Create account":"Sign in"}</button>
-      ${up?`<button class="gbtn gghost" type="button" data-gmode="in">I have an account</button>`:`<button class="gbtn gghost" type="button" data-gmode="up">Create an account</button><button class="gbtn gghost" type="button" data-gforgot>Forgot password?</button>`}</div></form>
-    ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}<p class="note2">By continuing you agree to the game rules and the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>.</p></div>`;}
-const GCC="AE AR AT AU AZ BE BH BR CA CH CL CN CO CZ DE DK EG ES FI FR GB GR HK HU ID IE IL IN IT JP KR KW KZ LB LU MA MC MX MY NG NL NO NZ OM PE PH PK PL PT QA RO RS RU SA SE SG SI SK TH TR TW UA US UY VN ZA".split(" ");
+function gTick(){clearInterval(GS.tick);GS.tick=setInterval(()=>{document.querySelectorAll("[data-lockseg]").forEach(el=>{const d=new Date(+el.dataset.lockseg);el.innerHTML=gSeg(d);if(d.getTime()<=Date.now()&&!el._re){el._re=1;setTimeout(gRerender,600);}});document.querySelectorAll("[data-lockcd]").forEach(el=>{const d=new Date(+el.dataset.lockcd);if(d.getTime()<=Date.now()){el.textContent="Locked";if(!el._re){el._re=1;setTimeout(gRerender,600);}}else el.textContent=gLeft(d);});},1000);}
+/* ---- Predictor look: its own theme (body.pzmode), header with the big wordmark and the player menu ---- */
+const GSLOT=["Pole","1st","2nd","3rd","4th","5th"];
+const gUi=(P,i)=>i===0?P.pole:P.top5[i-1];
+function gUiSet(P,i,n){if(i===0)P.pole=n;else P.top5[i-1]=n;}
+const gEmptyPick=()=>({top5:[null,null,null,null,null],pole:null});
+const gNextEmpty=P=>{for(let i=0;i<6;i++)if(!gUi(P,i))return i;return -1;};
+function gSeg(d){let s=Math.max(0,Math.floor((d.getTime()-Date.now())/1000));const v=[Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60];
+  return ["days","hrs","min","sec"].map((l,i)=>`<span><b>${String(v[i]).padStart(2,"0")}</b><i>${l}</i></span>`).join("");}
+function gMe(){if(!gameOn())return "";
+  if(!GS.user||!GS.profile)return `<a class="pzsignin" href="${H("game")}" data-go="game">Sign in</a>`;
+  const n=GS.profile.displayName||"Player",g=gIsGuest(GS.user);
+  const item=(k,t)=>`<a role="menuitem" href="${H(k)}" data-go="${k}">${t}</a>`;
+  return `<div class="pzme"><button class="pzmeb" data-gme aria-haspopup="menu" aria-expanded="false" aria-controls="pzmenu"><span class="pzav" aria-hidden="true">${esc(n.slice(0,1).toUpperCase())}</span><span class="pzmen">${esc(n)}</span>${g?'<small class="gguesttag">Guest</small>':""}<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+    <div class="pzmenu" id="pzmenu" role="menu" hidden><div class="pzmh"><b>${esc(n)}</b><span>${g?"Guest · this device only":esc(GS.user.email||"")}</span></div>
+      ${item("game-picks","My picks")}${item("game-lb","Leaderboard")}${item("game-leagues","Leagues")}${item("game-account",g?"Account · Save my account":"Account")}${item("game","How it works &amp; rules")}
+      <button role="menuitem" class="pzout" data-gout>Sign out</button></div></div>`;}
+function gTop(k){const nav=[["game","Play"],["game-picks","My picks"],["game-lb","Leaderboard"],["game-leagues","Leagues"]];
+  const land=k==="game";
+  return `<header class="pzh${land?" pzhl":""}"><a class="pzbrand" href="${H("game")}" data-go="game" aria-label="Track Almanac Predictor"><${land?"h1":"span"} class="pzwm"><span class="pzw1">Track Almanac</span><span class="pzw2">Predictor</span></${land?"h1":"span"}></a>
+    <div class="pzhr">${gMe()}</div>
+    <nav class="pznav" aria-label="Predictor">${nav.map(([x,n])=>`<a href="${H(x)}" data-go="${x}"${x===k?' aria-current="page"':""}>${n}</a>`).join("")}</nav></header>`;}
+function gFitWm(){document.querySelectorAll(".pzwm").forEach(w=>{[...w.children].forEach(el=>{el.style.fontSize="";let f=parseFloat(getComputedStyle(el).fontSize),n=0;const W=w.parentElement.clientWidth-(el.classList.contains("pzw1")?($(".pzhr")||{offsetWidth:0}).offsetWidth+12:0);while(el.scrollWidth>W&&f>12&&n++<60){f*=.95;el.style.fontSize=f.toFixed(1)+"px";}});});}
+try{document.fonts&&document.fonts.ready.then(()=>{if($(".pz"))gFitWm();});}catch(e){}
+addEventListener("resize",()=>{if($(".pz"))gFitWm();});
+const gWrap=(k,body)=>`<div class="pz${GS.anim?" pzin":""}" data-k="${k}">${gTop(k)}<div class="pzbody">${body}</div></div>`;
+const gTitle=(t,sub)=>`<div class="pzph" data-r style="--i:1"><h${curKey()==="game"?2:1} class="pzt">${t}</h${curKey()==="game"?2:1}>${sub?`<p>${sub}</p>`:""}</div>`;
+/* ---- the sign-in panel: sign in / create account / guest (with what a guest gives up) / choose a name / signed in ---- */
+function gAuthPanel(why){
+  if(!gameOn())return `<div class="pzauth"><div class="pzauthi"><h3>The Predictor is being set up</h3><p>Sign-in opens soon. The rules are below.</p></div></div>`;
+  let inner;
+  if(GS.user===undefined&&GS.fb)inner=`<p class="pzload">Loading…</p>`;
+  else if(GS.user&&GS.profile===null)inner=gProfileForm(null);
+  else if(GS.user&&GS.profile)inner=`<span class="pzkick">Signed in</span><h3>Hi ${esc(GS.profile.displayName)}</h3>${gIsGuest(GS.user)?`<p class="pzwarnline">${GWARN}</p>`:""}
+    <a class="gbtn gpri gbig" href="${H("game-picks")}" data-go="game-picks">Go to my picks <span aria-hidden="true">→</span></a><p class="pzsmall"><a href="${H("game-lb")}" data-go="game-lb">Leaderboard</a> · <a href="${H("game-leagues")}" data-go="game-leagues">Leagues</a> · <a href="${H("game-account")}" data-go="game-account">Account</a></p>`;
+  else if(GS.amode==="guest")inner=`<span class="pzkick">Play as a guest</span><h3>Before you start</h3>
+    <p>Guest play is quick: pick a nickname and go. But a guest account has limits:</p>
+    <ul class="pzcons"><li>Your picks are saved <b>on this device only</b>.</li><li>Clearing your browser, signing out or switching devices <b>loses them for good</b>.</li><li>You can't sign in on your phone and your laptop with the same guest account.</li><li>You show on the leaderboard with a <b>Guest</b> tag.</li></ul>
+    <p>You can fix all of this later with <b>Save my account</b> (Google or email), and keep your points.</p>
+    <div class="pzbtns"><button class="gbtn gpri gbig" data-gsign="guest">I understand, play as a guest</button><button class="gbtn gghost" data-gmode="in">Back to sign in</button></div>`;
+  else{const up=GS.amode==="up";
+    inner=`<div class="pztabs" role="tablist"><button role="tab" data-gmode="in" aria-selected="${!up}">Sign in</button><button role="tab" data-gmode="up" aria-selected="${up}">Create account</button></div>
+    ${why?`<p class="pzwhy">${why}</p>`:""}
+    <button class="gbtn gwide gg" data-gsign="google"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6H1.4a12 12 0 0 0 0 10.9z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>${up?"Sign up":"Sign in"} with Google</button>
+    <div class="pzor"><span>or with email</span></div>
+    <form class="pzform" data-gform="${up?"emailup":"emailin"}">
+      <label><span>Email</span><input type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="${esc(GS.email||"")}"></label>
+      <label><span>Password${up?" · 8 characters or more":""}</span><input type="password" name="password" required minlength="${up?8:1}" autocomplete="${up?"new-password":"current-password"}"></label>
+      <button class="gbtn gpri gwide gbig" type="submit">${up?"Create account":"Sign in"}</button>
+      ${up?"":`<button class="pzlink" type="button" data-gforgot>Forgot password?</button>`}</form>
+    <div class="pzguest"><button class="gbtn gwide gghost" data-gmode="guest">Play as a guest</button><small>No account needed. Read what that means first.</small></div>`;}
+  return `<div class="pzauth" id="gsign"><div class="pzauthi">${inner}${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}
+    ${GS.user&&GS.profile?"":`<p class="pzfine">Free, no prizes, no money. By continuing you agree to the rules and the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>.</p>`}</div></div>`;}
 function gProfileForm(p){const dn=(()=>{try{return new Intl.DisplayNames([navigator.language||"en"],{type:"region"});}catch(e){return null;}})();const g=gIsGuest(GS.user);
-  return `${!p&&g?gGuestBox(true):""}<form class="gcard gprof" data-gform="${p?"rename":"profile"}"><h3>${p?(g?"Your nickname":"Your display name"):(g?"Choose a nickname":"Choose your display name")}</h3>
-   <p>Shown on leaderboards and in leagues${g?", with a small Guest tag":""}. 3 to 20 letters, numbers, spaces, dots, dashes or underscores. No email addresses or links.</p>
-   <label><span class="lbl">${g?"Nickname":"Display name"}</span><input name="name" required minlength="3" maxlength="20" pattern="[A-Za-z0-9 _.\\-]{3,20}" value="${esc(p?p.displayName:"")}" autocomplete="nickname"></label>
-   <label><span class="lbl">Country (optional)</span><select name="country"><option value="">Not shown</option>${GCC.map(c=>`<option value="${c}"${p&&p.country===c?" selected":""}>${esc(dn?dn.of(c):c)}</option>`).join("")}</select></label>
-   ${p?"":`<label class="gtick"><input type="checkbox" name="age" required> I am 13 or older (16 or older if I live in the EEA or the UK).</label>`}
-   <button class="gbtn gpri" type="submit">${p?"Save":GS.pend?"Start playing and save my picks":"Start playing"}</button>${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}</form>`;}
+  return `${!p?`<span class="pzkick">${g?"Guest":"Almost there"}</span>`:""}<form class="pzform gprof" data-gform="${p?"rename":"profile"}"><h3>${p?(g?"Your nickname":"Your display name"):(g?"Choose a nickname":"Choose your display name")}</h3>
+   ${!p&&g?`<p class="pzwarnline">${GWARN}</p>`:""}
+   <p class="pzsmall">Shown on leaderboards and in leagues${g?", with a small Guest tag":""}. 3 to 20 letters, numbers, spaces, dots, dashes or underscores.</p>
+   <label><span>${g?"Nickname":"Display name"}</span><input name="name" required minlength="3" maxlength="20" pattern="[A-Za-z0-9 _.\\-]{3,20}" value="${esc(p?p.displayName:"")}" autocomplete="nickname"></label>
+   <label><span>Country (optional)</span><select name="country"><option value="">Not shown</option>${GCC.map(c=>`<option value="${c}"${p&&p.country===c?" selected":""}>${esc(dn?dn.of(c):c)}</option>`).join("")}</select></label>
+   ${p?"":`<label class="gtick"><input type="checkbox" name="age" required> <span>I am 13 or older (16 or older if I live in the EEA or the UK).</span></label>`}
+   <button class="gbtn gpri ${p?"":"gwide gbig"}" type="submit">${p?"Save":GS.pend?"Start playing and save my picks":"Start playing"}</button></form>`;}
+const GCC="AE AR AT AU AZ BE BH BR CA CH CL CN CO CZ DE DK EG ES FI FR GB GR HK HU ID IE IL IN IT JP KR KW KZ LB LU MA MC MX MY NG NL NO NZ OM PE PH PK PL PT QA RO RS RU SA SE SG SI SK TH TR TW UA US UY VN ZA".split(" ");
 const GBLOCK=["fuck","shit","cunt","bitch","nigg","fag","rape","nazi","hitler","whore","slut","porn","dick","pussy","wank","twat","retard","kys","admin","moderator","official","trackalmanac"];
 function gNameOk(n){if(!/^[A-Za-z0-9 _.\-]{3,20}$/.test(n))return "Use 3 to 20 letters, numbers, spaces, dots, dashes or underscores.";
   if(/(www|https?|\.com|\.net|\.org|\.io)/i.test(n))return "No links, please.";const low=n.toLowerCase().replace(/[^a-z0-9]/g,"");if(GBLOCK.some(w=>low.includes(w)))return "Please choose a different name.";
   if(n.trim()!==n||/\s{2}/.test(n))return "No spaces at the start or end, and no double spaces.";return "";}
-/* ---- pages ---- */
-function gHow(){const R=gRounds(),nx=gNext();const last=[...R].reverse().find(x=>x.done);
-  return `${gHead("game","Predictor",`Pick the top five and the pole sitter for every Grand Prix. Score points for every exact hit, and see how you stack up against everyone else.`)}
-  <div class="ggrid">
-   <div class="gcard gnext">${nx?`<span class="lbl">Next deadline · round ${nx.r}</span><h3>${esc(nx.gp)}</h3><p>Picks lock at the start of qualifying: <b>${esc(gTime(nx.lock))}</b> <small>(your time)</small></p>
-     <div class="gcd"><b data-lockcd="${nx.lock.getTime()}">${gLeft(nx.lock)}</b><span>left to pick</span></div><a class="gbtn gpri" href="${H("game-picks")}" data-go="game-picks">Make your picks</a>`
-     :`<h3>The season is over</h3><p>See the final <a href="${H("game-lb")}" data-go="game-lb">leaderboard</a>.</p>`}</div>
-   <div class="gcard"><h3>How it works</h3><ol class="gsteps"><li><b>Sign in</b> with Google or email, or play as a guest straight away, and choose a display name. You only need to sign in when you save picks.</li><li><b>Pick</b> who finishes 1st to 5th in the Grand Prix, in order, and who takes pole. Change your mind as often as you like until qualifying starts.</li><li><b>Score</b> once the race result is official. Tables update on their own, even if the stewards change the result later.</li></ol></div>
-   <div class="gcard"><h3>Points</h3><table class="gpts"><tbody>${["P1","P2","P3","P4","P5"].map((p,i)=>`<tr><td>${p} exactly right</td><td><b>${GPTS[i]}</b></td></tr>`).join("")}<tr><td>Pole sitter right</td><td><b>${GPOLE}</b></td></tr><tr class="gtot"><td>Perfect weekend</td><td><b>15</b></td></tr></tbody></table><p class="note2">Exact matches only: a driver in the wrong position scores nothing for that slot.</p></div>
-  </div>
-  <div class="gcard grules"><h3>Rules</h3><ul>
-   <li>One set of picks per Grand Prix (sprints are not part of the game): the top five finishers in order (P1 to P5) and the pole sitter.</li>
+function gGuestBox(here){return `<div class="pznote" data-r style="--i:2"><p><b>${GWARN}</b></p>${here?"":`<a class="gbtn gpri" href="${H("game-account")}" data-go="game-account">Save my account</a>`}</div>`;}
+function gVerifyBox(){return `<div class="pznote" data-r style="--i:2"><p><b>Confirm your email address to appear on the leaderboard.</b> We sent a link to ${esc(GS.user.email||"your inbox")}. Can't find it? Check the spam or junk folder. Your picks are saved and scored in the meantime.</p>
+  <div class="gacts"><button class="gbtn gsm" data-gverify>Send the email again</button><button class="gbtn gsm" data-greload>I've confirmed it</button></div></div>`;}
+/* ---- your season position, big (from standings/{uid}, written by the scorer) ---- */
+function gRankCard(big){const s=GS.stand,ready=GS.user&&GS.profile;let n="–",sub="";
+  if(!gameOn())sub="Opens soon";
+  else if(!ready)sub=`<a href="${H("game")}" data-go="game">Sign in</a> to get on the board`;
+  else if(s===undefined)sub="Loading…";
+  else if(!s)sub=(()=>{const nx=gNext();return "No races scored yet"+(nx?`: your first position comes after the ${esc(nx.gp)}`:"");})();
+  else if(!s.pos)sub=`${s.points} points · confirm your email to get a position`;
+  else{n=s.pos;sub=`of ${s.players} · ${s.points} point${s.points===1?"":"s"}`;}
+  return `<div class="pzrank${big?" pzrankbig":""}" data-pzrank><span class="pzkick">Your season position</span><b class="pzrankn">${typeof n==="number"?`<small>P</small><span data-count="${n}">${n}</span>`:n}</b><span class="pzranks">${sub}</span></div>`;}
+async function gLoadStand(){if(!GS.fb||!GS.user||GS._standFor===GS.user.uid)return;GS._standFor=GS.user.uid;const {m,db}=GS.fb;
+  try{const s=await m.getDoc(m.doc(db,"standings",GS.user.uid));GS.stand=s.exists()?s.data():null;}catch(e){GS.stand=null;}
+  document.querySelectorAll("[data-pzrank]").forEach(el=>{const big=el.classList.contains("pzrankbig");el.outerHTML=gRankCard(big);});gCountUp();}
+function gCountUp(){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;document.querySelectorAll("[data-count]:not([data-counted])").forEach(el=>{el.dataset.counted=1;const to=+el.dataset.count,t0=performance.now();
+  const f=t=>{const k=Math.min(1,(t-t0)/900),e=1-Math.pow(1-k,3);el.textContent=Math.max(1,Math.round(to*e));if(k<1)requestAnimationFrame(f);};requestAnimationFrame(f);});}
+/* ---- landing: sign in, next deadline, how it works, points, rules ---- */
+function gHow(){const nx=gNext(),last=[...gRounds()].reverse().find(x=>x.done);
+  const pts=[["Pole",GPOLE],["1st",GPTS[0]],["2nd",GPTS[1]],["3rd",GPTS[2]],["4th",GPTS[3]],["5th",GPTS[4]]];
+  return gWrap("game",`
+  <section class="pzhero">
+    <div class="pzheroL" data-r style="--i:1">
+      <p class="pzlede">Pick the top five and the pole sitter for every Grand Prix. Every exact hit scores. <b>15 points</b> for a perfect weekend.</p>
+      ${nx?`<div class="pzdead"><span class="pzkick">Next deadline · Round ${nx.r}</span><h2>${esc(nx.gp)}</h2>
+        <div class="pzseg" data-lockseg="${nx.lock.getTime()}" aria-label="Time left to pick">${gSeg(nx.lock)}</div>
+        <p class="pzsmall">Picks lock when qualifying starts: <b>${esc(gTime(nx.lock))}</b>, your time.</p>
+        ${GS.user&&GS.profile?`<a class="gbtn gpri gbig" href="${H("game-picks")}" data-go="game-picks">Make your picks <span aria-hidden="true">→</span></a>`:""}</div>`
+      :`<div class="pzdead"><h2>The season is over</h2><p>See the final <a href="${H("game-lb")}" data-go="game-lb">leaderboard</a>.</p></div>`}
+    </div>
+    <div class="pzheroR" data-r style="--i:2">${gAuthPanel()}</div>
+  </section>
+  <section class="pzsec" data-r style="--i:3"><h2 class="pzst">How it works</h2><ol class="pzsteps">
+    <li><b>01</b><h3>Sign in</h3><p>With Google or email, or play as a guest straight away. Choose a display name.</p></li>
+    <li><b>02</b><h3>Pick</h3><p>Who takes pole, and who finishes 1st to 5th, in order. Change your mind as often as you like until qualifying starts.</p></li>
+    <li><b>03</b><h3>Score</h3><p>Points arrive when the result is official, and tables update on their own, even if the stewards change the result later.</p></li></ol></section>
+  <section class="pzsec" data-r style="--i:4"><h2 class="pzst">Points</h2><div class="pzpts">${pts.map(([l,v],i)=>`<div style="--v:${v};--i:${i}"><i></i><b>${v}</b><span>${l}</span></div>`).join("")}<div class="pzpt15"><b>15</b><span>Perfect weekend</span></div></div>
+    <p class="pzsmall">Exact matches only: a driver in the wrong position scores nothing for that slot. No bonuses.</p></section>
+  <section class="pzsec pzrules" data-r style="--i:5"><h2 class="pzst">Rules</h2><ul>
+   <li>One set of picks per Grand Prix (sprints are not part of the game): the pole sitter and the top five finishers in order.</li>
    <li>Picks lock when qualifying is scheduled to start. Until then you can edit them freely; after that they are read-only. If a session is moved, the deadline moves with it.</li>
    <li>Pole means P1 in the qualifying classification, before any grid penalties.</li>
    <li>The race result is the official classification as published on this site. If it changes later (stewards' penalties, corrections), that round is scored again automatically.</li>
@@ -1671,91 +1736,119 @@ function gHow(){const R=gRounds(),nx=gNext();const last=[...R].reverse().find(x=
    <li>A picked driver who doesn't start simply scores 0 for that slot.</li>
    <li>Ties, for the season and for each race, are split by: most correct race winners, then most exact positions, then the earliest final submission (for the season: earliest on average before each deadline).</li>
    <li>Free to play. There are no prizes and no money involved.</li>
-   <li>Questions about the game: <a href="mailto:${esc(GMAIL())}">${esc(GMAIL())}</a>.</li>
    <li>You must be 13 or older (16 or older in the EEA or the UK). Display names must be decent: offensive names, emails and links are not allowed and may be renamed or removed.</li>
-   <li>Your data: see the Predictor section of the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>. You can delete your account at any time from <a href="${H("game-account")}" data-go="game-account">Account</a>.</li></ul></div>
-  <div id="glbmini" class="gcard"><h3>Season leaders</h3><p class="note2">Loading…</p></div>${last?`<p class="note2">Last scored round: ${esc(last.gp)}. <a href="${H("game-lb")}" data-go="game-lb">Full tables</a></p>`:""}</div>`;}
+   <li>Your data: see the Predictor section of the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>. You can delete your account at any time from <a href="${H("game-account")}" data-go="game-account">Account</a>.</li>
+   <li>Questions about the game: <a href="mailto:${esc(GMAIL())}">${esc(GMAIL())}</a>.</li></ul></section>
+  <section class="pzsec" data-r style="--i:6"><div id="glbmini"><h2 class="pzst">Season leaders</h2><p class="pzsmall">Loading…</p></div>${last?`<p class="pzsmall">Last scored round: ${esc(last.gp)}. <a href="${H("game-lb")}" data-go="game-lb">Full tables</a></p>`:""}</section>`);}
+/* ---- my picks: pole and 1st-5th on the left, every driver on the right ---- */
 function gPickRound(){const R=gRounds(),q=new URLSearchParams(location.search).get("round");const pick=q?R.find(x=>x.r===+q):null;return pick||gNext()||R[R.length-1];}
-function gPicksView(){const head=gHead("game-picks","My picks","");
-  if(GS.user&&GS.profile===null)return head+gProfileForm(null)+"</div>";
-  const R=gRounds(),rd=GS.round;if(!rd)return head+`<div class="gcard"><p>No rounds left this season.</p></div></div>`;
+function gPicksView(){
+  if(GS.user&&GS.profile===null)return gWrap("game-picks",gTitle("My picks")+`<div class="pzsolo" data-r style="--i:2">${gAuthPanel()}</div>`);
+  const R=gRounds(),rd=GS.round;if(!rd)return gWrap("game-picks",gTitle("My picks","No rounds left this season."));
   const ready=!!(GS.user&&GS.profile),note=ready?(gIsGuest(GS.user)?gGuestBox():gNeedsVerify(GS.user)?gVerifyBox():""):"";
-  const locked=rd.lock.getTime()<=Date.now(),P=GS.pick||{top5:[null,null,null,null,null],pole:null};
-  const cars=gCars(),used=new Set([...P.top5.filter(Boolean)]);
-  const slot=(i,n,lab)=>{const c=n?gCar(n):null;return `<button type="button" class="gslot${GS.sel===i?" sel":""}${c?" full":""}" data-gslot="${i}" ${locked?"disabled":""} aria-label="${lab}${c?": "+esc(c.name):", empty"}" style="${c?`--tc:${tcol(c.team)}`:""}"><span class="gp">${lab}</span>${c?`<span class="gnum">${c.n}</span><b>${esc(c.last)}</b><small>${esc(c.team)}</small>`:`<em>${locked?"No pick":"Tap a driver"}</em>`}</button>`;};
+  const locked=rd.lock.getTime()<=Date.now(),P=GS.pick||gEmptyPick(),cars=gCars();
+  const where=n=>{const o=[];if(P.pole===n)o.push("Pole");const k=P.top5.indexOf(n);if(k>=0)o.push(GSLOT[k+1]);return o;};
+  const slot=i=>{const n=gUi(P,i),c=n?gCar(n):null,first=c&&c.name!==c.last?c.name.slice(0,c.name.length-c.last.length).trim():"";
+    return `<div class="pzs${c?" full":""}${!locked&&GS.sel===i?" sel":""}${GS.flash===i?" pzpop":""}${i===0?" pzpole":""}" data-gslot="${i}" role="button" tabindex="${locked?-1:0}" aria-label="${GSLOT[i]}${i?" place":""}: ${c?esc(c.name):"empty"}" style="--i:${i};${c?`--tc:${tcol(c.team)}`:""}">
+      <span class="pzl">${GSLOT[i]}${i?"<small>place</small>":""}</span>
+      <span class="pzsd">${c?`<small>${esc(first)}</small><b>${esc(c.last)}</b><em>${esc(c.team)}</em>`:`<em>${locked?"No pick":GS.sel===i?"Tap a driver →":"Empty"}</em>`}</span>${c?`<span class="pznum" aria-hidden="true">${c.n}</span>`:""}
+      ${c&&!locked?`<button class="pzx" data-gx="${i}" aria-label="Remove ${esc(c.name)} from ${GSLOT[i]}">×</button>`:""}</div>`;};
   const opts=R.filter(x=>x.lock.getTime()>Date.now()||x.r===rd.r||x.done).slice(-12);
-  const saveLbl=GS.pick&&GS.pick._saved&&!GS.dirty?"Saved":"Save picks";
-  return `${head}${note}<div class="gpick${locked?" locked":""}">
-   <div class="gcard gpickh"><div><label class="lbl" for="grsel">Grand Prix</label><select id="grsel">${opts.map(x=>`<option value="${x.r}"${x.r===rd.r?" selected":""}>R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div>
-     <div class="gdl">${locked?`<b>Picks locked</b><small>Qualifying started ${esc(gTime(rd.lock))}</small>`:`<span class="lbl">Locks in</span><b data-lockcd="${rd.lock.getTime()}">${gLeft(rd.lock)}</b><small>${esc(gTime(rd.lock))} · your time</small>`}</div></div>
-   <div class="gslots" role="group" aria-label="Your picks">${P.top5.map((n,i)=>slot(i,n,"P"+(i+1))).join("")}<span class="gsep"></span>${slot(5,P.pole,"Pole")}</div>
-   ${locked?`<div class="gcard" id="gmyscore"><p class="note2">${!ready?"Sign in to see your picks and score for this round.":GS.pick?"":"You didn't make picks for this round, so it scores 0."}</p></div>`:`
-   <div class="gacts"><button class="gbtn gpri" data-gsave ${GS.dirty?"":"disabled"}>${saveLbl}</button>${ready?`<button class="gbtn" data-gcopy>Copy my last picks</button>`:""}<button class="gbtn gghost" data-gclear>Clear</button>
-     <span class="gmsg" role="status">${esc(GS.ask?"":GS.msg||(GS.pick&&GS.pick._saved?"Saved "+(GS.pick._savedAt||""):""))}</span></div>
-   ${!ready&&GS.ask?gSignin("Sign in, or play as a guest, to save these picks"):""}
-   <p class="note2 ghint">${GS.sel===5?"Now choose the pole sitter.":`Choose your P${GS.sel+1}.`} Tap a driver, or drag one onto a slot. Tap a filled slot to select it, tap again to clear it.${ready?"":" You can make your picks now and sign in when you save them."}</p>
-   <div class="gdrivers" role="list">${cars.map(c=>`<button type="button" class="gdrv${used.has(c.n)?" used":""}${P.pole===c.n?" ispole":""}" role="listitem" data-gcar="${c.n}" title="${esc(c.name)}${c.standin?" (stand-in)":""}" style="--tc:${tcol(c.team)}"><span class="gnum">${c.n}</span><b>${esc(c.last)}</b><small>${esc(c.team)}${c.standin?" · stand-in":""}</small>${used.has(c.n)?`<i class="gin">P${P.top5.indexOf(c.n)+1}</i>`:""}${P.pole===c.n?`<i class="gpl">Pole</i>`:""}</button>`).join("")}</div>`}
-  </div></div>`;}
-function gLbView(){return `${gHead("game-lb","Leaderboard","Season standings and every race. Tables update after each Grand Prix.")}<div class="gcard"><div class="glbsel"><label class="lbl" for="glbr">Table</label><select id="glbr"><option value="">Season ${GAMECFG.season||2026}</option>${gRounds().filter(x=>x.done).reverse().map(x=>`<option value="${x.r}">R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div><div id="glbt"><p class="note2">Loading…</p></div></div>
-  <p class="note2">Names that break the rules can be reported: use the flag next to a name, or write to <a href="mailto:${esc(GMAIL())}">${esc(GMAIL())}</a>.</p></div>`;}
-function gLeaguesView(){const head=gHead("game-leagues","Leagues","Play against friends, colleagues or your group chat. Up to 50 players per league.");
-  if(!GS.user||!GS.profile)return head+(GS.user&&GS.profile===null?gProfileForm(null):gSignin("Sign in to create or join a league."))+"</div>";
-  return `${head}<div class="ggrid"><form class="gcard" data-gform="lcreate"><h3>Create a league</h3><label><span class="lbl">League name</span><input name="name" required minlength="3" maxlength="20" pattern="[A-Za-z0-9 _.\\-]{3,20}"></label><button class="gbtn gpri" type="submit">Create</button></form>
-   <form class="gcard" data-gform="ljoin"><h3>Join a league</h3><label><span class="lbl">Join code (8 characters)</span><input name="code" required minlength="8" maxlength="8" autocapitalize="characters" autocomplete="off" spellcheck="false" style="text-transform:uppercase"></label><button class="gbtn gpri" type="submit">Join</button></form></div>
-   ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}<div id="gleagues"><p class="note2">Loading your leagues…</p></div></div>`;}
-function gAccountView(){const head=gHead("game-account","Account","");if(!GS.user)return head+gSignin()+"</div>";if(GS.profile===null)return head+gProfileForm(null)+"</div>";if(!GS.profile)return head+`<div class="gcard"><p>Loading…</p></div></div>`;
+  const done=6-[0,1,2,3,4,5].filter(i=>!gUi(P,i)).length;
+  const saveLbl=GS.pick&&GS.pick._saved&&!GS.dirty?"Saved ✓":"Save picks";
+  return gWrap("game-picks",`${gTitle("My picks")}${note}
+   <div class="pzbar" data-r style="--i:2">
+     <div class="pzround"><label class="pzkick" for="grsel">Grand Prix</label><select id="grsel">${opts.map(x=>`<option value="${x.r}"${x.r===rd.r?" selected":""}>R${x.r} · ${esc(x.gp)}</option>`).join("")}</select>
+       ${locked?`<p class="pzlocked"><b>Picks locked</b> · qualifying started ${esc(gTime(rd.lock))}</p>`:`<div class="pzseg pzsegs" data-lockseg="${rd.lock.getTime()}" aria-label="Time left">${gSeg(rd.lock)}</div><p class="pzsmall">Locks ${esc(gTime(rd.lock))}, your time</p>`}</div>
+     ${gRankCard(false)}</div>
+   <div class="pzpick${locked?" locked":""}" data-r style="--i:3">
+    <div class="pzcols">
+     <div class="pzleft"><div class="pzslots" role="group" aria-label="Your picks">${[0,1,2,3,4,5].map(slot).join("")}</div>
+      ${locked?`<div class="pznote" id="gmyscore"><p>${!ready?"Sign in to see your picks and score for this round.":GS.pick?"":"You didn't make picks for this round, so it scores 0."}</p></div>`:`
+      <div class="pzprog" aria-hidden="true"><div class="pzprogt"><i style="--p:${done/6}"></i></div><span>${done} of 6</span></div>
+      <div class="pzacts"><button class="gbtn gpri gbig gwide" data-gsave ${GS.dirty?"":"disabled"}>${saveLbl}</button>
+        <div class="pzacts2">${ready?`<button class="gbtn gsm" data-gcopy>Copy my last picks</button>`:""}<button class="gbtn gsm gghost" data-gclear ${done?"":"disabled"}>Clear all</button></div>
+        <p class="gmsg" role="status">${esc(GS.ask?"":GS.msg||(GS.pick&&GS.pick._saved?"Saved "+(GS.pick._savedAt||""):""))}</p></div>`}</div>
+     ${locked?"":`<div class="pzright"><div class="pzlh"><b>Drivers</b><span>${GS.sel>=0?`Tap to set <em>${GSLOT[GS.sel]}</em>`:"All set: tap a place to change it"}</span></div>
+      <div class="pzlistw"><div class="pzlist" role="listbox" aria-label="Drivers">${cars.map(c=>{const w=where(c.n);return `<button type="button" class="pzd${w.length?" used":""}" data-gcar="${c.n}" role="option" aria-selected="${!!w.length}" title="${esc(c.name)}${c.standin?" (stand-in)":""}" style="--tc:${tcol(c.team)}"><span class="pznum">${c.n}</span><span class="pzdn"><b>${esc(c.last)}</b><small>${esc(c.team)}${c.standin?" · stand-in":""}</small></span>${w.map(x=>`<i>${x}</i>`).join("")}</button>`;}).join("")}</div></div>
+      <p class="pzsmall pzhint">Tap a driver to fill the highlighted place, or drag one onto any place (on a phone: press, hold, then drag).</p></div>`}
+    </div>
+    ${!ready&&GS.ask?`<div class="pzsolo">${gAuthPanel("Sign in, or play as a guest, to save these picks.")}</div>`:""}
+    ${!ready&&!GS.ask&&!locked?`<p class="pzsmall">You can make your picks now and sign in when you save them.</p>`:""}
+   </div>`);}
+function gLbView(){return gWrap("game-lb",`${gTitle("Leaderboard","Season standings and every race. Tables update after each Grand Prix.")}
+  <div class="pzlbtop" data-r style="--i:2">${gRankCard(true)}</div>
+  <div class="pzcard" data-r style="--i:3"><div class="glbsel"><label class="pzkick" for="glbr">Table</label><select id="glbr"><option value="">Season ${GAMECFG.season||2026}</option>${gRounds().filter(x=>x.done).reverse().map(x=>`<option value="${x.r}">R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div><div id="glbt"><p class="pzsmall">Loading…</p></div></div>
+  <p class="pzsmall">Names that break the rules can be reported: use the flag next to a name, or write to <a href="mailto:${esc(GMAIL())}">${esc(GMAIL())}</a>.</p>`);}
+function gLeaguesView(){const t=gTitle("Leagues","Play against friends, colleagues or your group chat. Up to 50 players per league.");
+  if(!GS.user||!GS.profile)return gWrap("game-leagues",t+`<div class="pzsolo" data-r style="--i:2">${gAuthPanel("Sign in to create or join a league.")}</div>`);
+  return gWrap("game-leagues",`${t}<div class="pzgrid2" data-r style="--i:2"><form class="pzcard pzform" data-gform="lcreate"><h3>Create a league</h3><label><span>League name</span><input name="name" required minlength="3" maxlength="20" pattern="[A-Za-z0-9 _.\\-]{3,20}"></label><button class="gbtn gpri" type="submit">Create</button></form>
+   <form class="pzcard pzform" data-gform="ljoin"><h3>Join a league</h3><label><span>Join code (8 characters)</span><input name="code" required minlength="8" maxlength="8" autocapitalize="characters" autocomplete="off" spellcheck="false" style="text-transform:uppercase"></label><button class="gbtn gpri" type="submit">Join</button></form></div>
+   ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}<div id="gleagues" data-r style="--i:3"><p class="pzsmall">Loading your leagues…</p></div>`);}
+function gAccountView(){const t=gTitle("Account");
+  if(!GS.user||GS.profile===null)return gWrap("game-account",t+`<div class="pzsolo" data-r style="--i:2">${gAuthPanel()}</div>`);
+  if(!GS.profile)return gWrap("game-account",t+`<p class="pzload">Loading…</p>`);
   const u=GS.user,g=gIsGuest(u),pw=gProv(u).includes("password");
-  const save=g?`<section class="gcard gsave" id="save"><h3>Save my account</h3><p>${GWARN}</p><p>Saving keeps your nickname, picks, points and leagues, and lets you sign in on any device.</p>
-    <div class="gsopts"><button class="gbtn gpri" data-glink="google"><span aria-hidden="true">G</span> Save with Google</button></div>
-    <form class="gmail" data-gform="linkemail"><span class="lbl">Or save with email and a password</span><label><span class="lbl">Email</span><input type="email" name="email" required autocomplete="email"></label>
-      <label><span class="lbl">Password (8 characters or more)</span><input type="password" name="password" required minlength="8" autocomplete="new-password"></label><button class="gbtn" type="submit">Save with email</button></form>
-    ${GS.linkMsg?`<div class="gmsg gwarnmsg" role="alert"><p>${esc(GS.linkMsg)}</p><button class="gbtn gsm gred" data-gswitch="${GS.linkAlt}">Delete this guest account and switch</button></div>`:""}</section>`:"";
-  return `${head}${g?"":gNeedsVerify(u)?gVerifyBox():""}<div class="ggrid">${save}${gProfileForm(GS.profile)}<div class="gcard"><h3>Signed in</h3><p>${g?"As a guest (this device only)":esc(u.email||"")}${gProv(u).includes("google.com")?" · Google":pw?" · email and password":""}</p><button class="gbtn" data-gout>Sign out</button>${g?`<p class="note2">Signing out of a guest account loses it for good. Save it first.</p>`:""}</div>
-   <form class="gcard gdanger" data-gform="delete"><h3>Delete my account</h3><p>Removes your profile, display name, all your picks and your league memberships (leagues you own are deleted), then your sign-in. Your scores disappear from the tables at the next update. This can't be undone.</p>
-   ${pw&&!g?`<label><span class="lbl">Your password</span><input type="password" name="password" required autocomplete="current-password"></label>`:""}<label><span class="lbl">Type DELETE to confirm</span><input name="confirm" required pattern="DELETE" autocomplete="off"></label><button class="gbtn gred" type="submit">Delete my account</button></form></div>
-   ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}</div>`;}
+  const save=g?`<section class="pzcard pzsave" id="save"><h3>Save my account</h3><p class="pzwarnline">${GWARN}</p><p class="pzsmall">Saving keeps your nickname, picks, points and leagues, and lets you sign in on any device.</p>
+    <button class="gbtn gwide gg" data-glink="google">Save with Google</button>
+    <div class="pzor"><span>or with email</span></div>
+    <form class="pzform" data-gform="linkemail"><label><span>Email</span><input type="email" name="email" required autocomplete="email"></label>
+      <label><span>Password · 8 characters or more</span><input type="password" name="password" required minlength="8" autocomplete="new-password"></label><button class="gbtn gpri gwide" type="submit">Save with email</button></form>
+    ${GS.linkMsg?`<div class="gwarnmsg" role="alert"><p>${esc(GS.linkMsg)}</p><button class="gbtn gsm gred" data-gswitch="${GS.linkAlt}">Delete this guest account and switch</button></div>`:""}</section>`:"";
+  return gWrap("game-account",`${t}${g?"":gNeedsVerify(u)?gVerifyBox():""}<div class="pzgrid2" data-r style="--i:2">${save}<div class="pzcard">${gProfileForm(GS.profile)}</div>
+   <div class="pzcard"><h3>Signed in</h3><p>${g?"As a guest (this device only)":esc(u.email||"")}${gProv(u).includes("google.com")?" · Google":pw?" · email and password":""}</p><button class="gbtn" data-gout>Sign out</button>${g?`<p class="pzsmall">Signing out of a guest account loses it for good. Save it first.</p>`:""}</div>
+   <form class="pzcard pzform gdanger" data-gform="delete"><h3>Delete my account</h3><p class="pzsmall">Removes your profile, display name, all your picks and your league memberships (leagues you own are deleted), then your sign-in. Your scores disappear from the tables at the next update. This can't be undone.</p>
+   ${pw&&!g?`<label><span>Your password</span><input type="password" name="password" required autocomplete="current-password"></label>`:""}<label><span>Type DELETE to confirm</span><input name="confirm" required pattern="DELETE" autocomplete="off"></label><button class="gbtn gred" type="submit">Delete my account</button></form></div>
+   ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}`);}
 /* ---- route ---- */
-function gameRoute(k,re){clearInterval(GS.tick);
-  if(!re){GS.msg="";GS.linkMsg="";if(k==="game-picks"){GS.round=gPickRound();GS.pick=null;GS.sel=0;GS.dirty=false;GS.ask=0;
-    const pp=GS.round&&gPendTake(GS.round.r);if(pp){GS.pick=pp;GS.dirty=true;GS.pend=1;GS.sel=5;}}}
+function gameRoute(k,re){clearInterval(GS.tick);document.body.classList.add("pzmode");
+  if(!re){GS.msg="";GS.linkMsg="";GS.anim=1;GS.amode="in";if(k==="game-picks"){GS.round=gPickRound();GS.pick=null;GS.sel=0;GS.dirty=false;GS.ask=0;
+    const pp=GS.round&&gPendTake(GS.round.r);if(pp){GS.pick=pp;GS.dirty=true;GS.pend=1;GS.sel=gNextEmpty(pp);}}}
   const v={"game":gHow,"game-picks":gPicksView,"game-lb":gLbView,"game-leagues":gLeaguesView,"game-account":gAccountView}[k];
-  if(k==="game-picks"&&re)gPaintPicks();else $("#app").innerHTML=v();
-  $("#sheetname").textContent="PREDICTOR";setNav("game");document.title=pageTitle(k);gTick();
+  if(k==="game-picks"&&re)gPaintPicks();else $("#app").innerHTML=v();GS.anim=0;gFitWm();
+  $("#sheetname").textContent="PREDICTOR";setNav("game");document.title=pageTitle(k);gTick();gCountUp();
   if(k==="game")gMini();if(k==="game-lb")gLb($("#glbr")?$("#glbr").value:"");
-  if(gameOn())gFB().then(()=>{if(k==="game-picks"&&GS.user&&GS.profile){if(GS.pend)gAfterReady();else if(!GS.pick&&!GS._loadingPick)gLoadPick();}if(k==="game-leagues"&&GS.user&&GS.profile)gLeagues();}).catch(()=>{});}
-function gPaintPicks(){const y=scrollY;$("#app").innerHTML=gPicksView();window.scrollTo(0,y);if(GS.round&&GS.round.lock.getTime()<=Date.now())gMyScore();}
+  if(gameOn())gFB().then(()=>{if(GS.user&&GS.profile)gLoadStand();if(k==="game-picks"&&GS.user&&GS.profile){if(GS.pend)gAfterReady();else if(!GS.pick&&!GS._loadingPick)gLoadPick();}if(k==="game-leagues"&&GS.user&&GS.profile)gLeagues();}).catch(()=>{});}
+function gPaintPicks(){const y=scrollY,l=$(".pzlist"),ly=l?l.scrollTop:0;$("#app").innerHTML=gPicksView();GS.flash=-1;gFitWm();window.scrollTo(0,y);const l2=$(".pzlist");if(l2)l2.scrollTop=ly;
+  gCountUp();if(GS.round&&GS.round.lock.getTime()<=Date.now())gMyScore();}
 async function gLoadPick(){const {m,db}=GS.fb,rd=GS.round;GS._loadingPick=1;try{const s=await m.getDoc(m.doc(db,"picks",`${rd.r}_${GS.user.uid}`));
-  GS.pick=s.exists()?Object.assign({},s.data(),{_saved:1}):null;GS.sel=GS.pick?5:0;}catch(e){GS.pick=null;}GS._loadingPick=0;if(curKey()==="game-picks")gPaintPicks();}
+  GS.pick=s.exists()?Object.assign({},s.data(),{_saved:1}):null;GS.sel=GS.pick?gNextEmpty(GS.pick):0;}catch(e){GS.pick=null;}GS._loadingPick=0;if(curKey()==="game-picks")gPaintPicks();}
 async function gMyScore(){const el=$("#gmyscore");if(!el||!GS.fb||!GS.user)return;const {m,db}=GS.fb;try{const s=await m.getDoc(m.doc(db,"scores",`${GS.round.r}_${GS.user.uid}`));
-  if(s.exists()){const d=s.data();el.innerHTML=`<div class="gscore"><b>${d.points}</b><span>points · ${d.pos?`P${d.pos} of the round`:"confirm your email address to appear on the leaderboard"}</span></div><p class="note2">Exact positions: ${d.exact} of 5 · pole ${d.pole?"right":"wrong"}.</p>`;}
-  else if(GS.pick)el.innerHTML=`<p class="note2">${GS.round.done?"Scores are added at the next update.":"Your picks are locked in. Scores appear after the race."}</p>`;}catch(e){}}
-function gPlace(n){const P=GS.pick=GS.pick||{top5:[null,null,null,null,null],pole:null};if(GS.sel===5){P.pole=P.pole===n?null:n;}
-  else{const was=P.top5.indexOf(n);if(was>=0&&was!==GS.sel){P.top5[was]=P.top5[GS.sel];}P.top5[GS.sel]=n;const nx=P.top5.findIndex(x=>!x);GS.sel=nx>=0?nx:(P.pole?GS.sel:5);}
-  GS.dirty=true;GS.msg="";gPaintPicks();}
-async function gSave(){const P=GS.pick,rd=GS.round;if(!P||P.top5.some(x=>!x)||!P.pole){GS.msg="Fill all five places and the pole sitter first.";return gPaintPicks();}
-  if(!GS.user||!GS.profile){GS.pend=1;GS.ask=1;gPendKeep();if(gameOn())gFB().catch(()=>{});gPaintPicks();const s=$("#gsign");if(s)s.scrollIntoView({block:"nearest",behavior:"smooth"});return;}
+  if(s.exists()){const d=s.data();el.innerHTML=`<div class="gscore"><b>${d.points}</b><span>points · ${d.pos?`P${d.pos} of the round`:"confirm your email address to appear on the leaderboard"}</span></div><p class="pzsmall">Exact positions: ${d.exact} of 5 · pole ${d.pole?"right":"wrong"}.</p>`;}
+  else if(GS.pick)el.innerHTML=`<p>${GS.round.done?"Scores are added at the next update.":"Your picks are locked in. Scores appear after the race."}</p>`;}catch(e){}}
+/* tap a driver: he goes into the highlighted place (moving from another place if needed), then the next empty place is highlighted */
+function gPlace(n){const P=GS.pick=GS.pick||gEmptyPick();let t=GS.sel;if(t<0)t=gNextEmpty(P);if(t<0)t=0;
+  if(t===0)P.pole=n;else{const was=P.top5.indexOf(n),i=t-1;if(was>=0&&was!==i)P.top5[was]=P.top5[i];P.top5[i]=n;}
+  GS.flash=t;const nx=gNextEmpty(P);GS.sel=nx;GS.dirty=true;GS.msg="";gPaintPicks();}
+async function gSave(){const P=GS.pick,rd=GS.round;if(!P||P.top5.some(x=>!x)||!P.pole){GS.msg="Fill the pole and all five places first.";return gPaintPicks();}
+  if(!GS.user||!GS.profile){GS.pend=1;GS.ask=1;gPendKeep();if(gameOn())gFB().catch(()=>{});gPaintPicks();const s=$("#gsign");if(s)s.scrollIntoView({block:"start",behavior:"smooth"});return;}
   const {m,db}=GS.fb;try{await m.setDoc(m.doc(db,"picks",`${rd.r}_${GS.user.uid}`),{uid:GS.user.uid,round:rd.r,top5:P.top5.map(Number),pole:Number(P.pole),updatedAt:m.serverTimestamp()});
     P._saved=1;P._savedAt=new Date().toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:CLOCK==="12"});GS.dirty=false;GS.msg="";GS.pend=0;gPendClear();}catch(e){GS.msg=gErr(e);}gPaintPicks();}
 async function gCopy(){const {m,db}=GS.fb;try{const q=await m.getDocs(m.query(m.collection(db,"picks"),m.where("uid","==",GS.user.uid)));
   const L=q.docs.map(d=>d.data()).filter(d=>d.round!==GS.round.r).sort((a,b)=>b.round-a.round);if(!L.length){GS.msg="You have no earlier picks to copy.";return gPaintPicks();}
-  const allowed=new Set(gCars().map(c=>c.n));const src=L[0];GS.pick={top5:src.top5.map(n=>allowed.has(n)?n:null),pole:allowed.has(src.pole)?src.pole:null};GS.dirty=true;GS.sel=Math.max(0,GS.pick.top5.findIndex(x=>!x));if(GS.sel<0||GS.pick.top5.every(Boolean))GS.sel=GS.pick.pole?0:5;GS.msg=`Copied from round ${src.round}. Remember to save.`;}catch(e){GS.msg=gErr(e);}gPaintPicks();}
-/* drag a driver (or a filled slot) onto a slot. Mouse: drag after a few pixels. Touch: press and hold briefly, then drag. */
+  const allowed=new Set(gCars().map(c=>c.n));const src=L[0];GS.pick={top5:src.top5.map(n=>allowed.has(n)?n:null),pole:allowed.has(src.pole)?src.pole:null};GS.dirty=true;GS.sel=gNextEmpty(GS.pick);GS.msg=`Copied from round ${src.round}. Remember to save.`;}catch(e){GS.msg=gErr(e);}gPaintPicks();}
+/* drag a driver (or a filled place) onto a place. Mouse: drag after a few pixels. Touch: press and hold briefly, then drag. */
 function gDragInit(){let D=null,timer=0;
   const start=(e,src)=>{D={src,x:e.clientX,y:e.clientY,on:false,id:e.pointerId,touch:e.pointerType!=="mouse"};if(D.touch)timer=setTimeout(()=>{if(D){D.on=true;ghost(e);}},220);};
-  const ghost=e=>{const n=+(D.src.dataset.gcar||(GS.pick&&(D.src.dataset.gslot==="5"?GS.pick.pole:GS.pick.top5[+D.src.dataset.gslot])));if(!n){D=null;return;}D.n=n;const c=gCar(n);
-    const g=document.createElement("div");g.className="gghostd";g.style.setProperty("--tc",tcol(c.team));g.innerHTML=`<span class="gnum">${c.n}</span><b>${esc(c.last)}</b>`;document.body.appendChild(g);D.g=g;move(e);document.body.classList.add("gdragging");};
-  const move=e=>{if(!D||!D.g)return;D.g.style.transform=`translate(${e.clientX-40}px,${e.clientY-24}px)`;const t=document.elementFromPoint(e.clientX,e.clientY);document.querySelectorAll(".gslot.over").forEach(s=>s.classList.remove("over"));const s=t&&t.closest(".gslot");if(s)s.classList.add("over");};
-  document.addEventListener("pointerdown",e=>{if(!$(".gpick:not(.locked)"))return;const src=e.target.closest(".gdrv,.gslot.full");if(!src)return;start(e,src);});
+  const ghost=e=>{const P=GS.pick||gEmptyPick(),n=+(D.src.dataset.gcar||gUi(P,+D.src.dataset.gslot));if(!n){D=null;return;}D.n=n;const c=gCar(n);
+    const g=document.createElement("div");g.className="gghostd";g.style.setProperty("--tc",tcol(c.team));g.innerHTML=`<span class="pznum">${c.n}</span><b>${esc(c.last)}</b>`;document.body.appendChild(g);D.g=g;move(e);document.body.classList.add("gdragging");};
+  const move=e=>{if(!D||!D.g)return;D.g.style.transform=`translate(${e.clientX-44}px,${e.clientY-26}px)`;const t=document.elementFromPoint(e.clientX,e.clientY);document.querySelectorAll(".pzs.over").forEach(s=>s.classList.remove("over"));const s=t&&t.closest(".pzs");if(s)s.classList.add("over");};
+  document.addEventListener("pointerdown",e=>{if(!$(".pzpick:not(.locked)")||e.target.closest(".pzx"))return;const src=e.target.closest(".pzd,.pzs.full");if(!src)return;start(e,src);});
   document.addEventListener("pointermove",e=>{if(!D||e.pointerId!==D.id)return;const dx=e.clientX-D.x,dy=e.clientY-D.y;
     if(!D.on){if(Math.hypot(dx,dy)>8){if(D.touch){clearTimeout(timer);D=null;return;}D.on=true;ghost(e);}return;}e.preventDefault();move(e);},{passive:false});
-  const end=e=>{clearTimeout(timer);if(!D)return;const d=D;D=null;if(!d.on||!d.g)return;d.g.remove();document.body.classList.remove("gdragging");document.querySelectorAll(".gslot.over").forEach(s=>s.classList.remove("over"));
-    const t=document.elementFromPoint(e.clientX,e.clientY),s=t&&t.closest(".gslot");GS._nodrop=Date.now();if(!s)return;const to=+s.dataset.gslot;
-    const P=GS.pick=GS.pick||{top5:[null,null,null,null,null],pole:null};
-    if(d.src.dataset.gslot!=null){const from=+d.src.dataset.gslot;if(from<5&&to<5){[P.top5[from],P.top5[to]]=[P.top5[to],P.top5[from]];}else if(to===5){P.pole=d.n;}else{GS.sel=to;gPlace(d.n);return;}GS.dirty=true;gPaintPicks();return;}
+  const end=e=>{clearTimeout(timer);if(!D)return;const d=D;D=null;if(!d.on||!d.g)return;d.g.remove();document.body.classList.remove("gdragging");document.querySelectorAll(".pzs.over").forEach(s=>s.classList.remove("over"));
+    const t=document.elementFromPoint(e.clientX,e.clientY),s=t&&t.closest(".pzs");GS._nodrop=Date.now();if(!s)return;const to=+s.dataset.gslot;
+    const P=GS.pick=GS.pick||gEmptyPick();
+    if(d.src.dataset.gslot!=null){const from=+d.src.dataset.gslot;if(from===to)return;
+      if(from>0&&to>0){[P.top5[from-1],P.top5[to-1]]=[P.top5[to-1],P.top5[from-1]];GS.flash=to;GS.dirty=true;GS.sel=gNextEmpty(P);gPaintPicks();return;}}
     GS.sel=to;gPlace(d.n);};
   document.addEventListener("pointerup",end);document.addEventListener("pointercancel",e=>{clearTimeout(timer);if(D&&D.g){D.g.remove();document.body.classList.remove("gdragging");}D=null;});
-  document.addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest(".gdrv,.gslot"))e.preventDefault();});}
+  document.addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest(".pzd,.pzs"))e.preventDefault();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){const m=$("#pzmenu");if(m&&!m.hidden)gMenu(false);}
+    const s=e.target.closest&&e.target.closest(".pzs[data-gslot]");if(s&&(e.key==="Enter"||e.key===" ")&&!e.target.closest(".pzx")){e.preventDefault();s.click();}});}
 gDragInit();
+function gMenu(open){const m=$("#pzmenu"),b=$("[data-gme]");if(!m||!b)return;m.hidden=!open;b.setAttribute("aria-expanded",String(open));if(open){const a=m.querySelector("a");a&&a.focus({preventScroll:true});}}
+
 /* ---- leaderboards (static JSON) ---- */
 async function gJSON(u){const r=await fetch(u,{cache:"no-cache"});if(!r.ok)throw new Error(r.status);return r.json();}
 function gTable(rows,round){if(!rows.length)return `<p class="note2">No scores yet.</p>`;const me=GS.profile&&GS.profile.displayName;
@@ -1764,13 +1857,13 @@ function gTable(rows,round){if(!rows.length)return `<p class="note2">No scores y
 async function gLb(r){const box=$("#glbt");if(!box)return;try{if(!r){const j=GS.lb||(GS.lb=await gJSON(`/data/game/leaderboard-${GAMECFG.season||2026}.json`));box.innerHTML=`<p class="note2">${j.players} players · ${j.rounds.length} race${j.rounds.length===1?"":"s"} scored · top 100</p>`+gTable(j.top,false);}
   else{const j=GS.lbr[r]||(GS.lbr[r]=await gJSON(`/data/game/round-${r}.json`));const o=j.official;box.innerHTML=`<p class="note2">Official result: ${o.top5.map((n,i)=>`P${i+1} ${esc(gCar(n).last)}`).join(" · ")} · pole ${esc(gCar(o.pole).last)} · ${j.players} players</p>`+gTable(j.top,true);}}
   catch(e){box.innerHTML=`<p class="note2">No scores yet. Tables appear after the first scored Grand Prix.</p>`;}}
-async function gMini(){const el=$("#glbmini");if(!el)return;try{const j=GS.lb||(GS.lb=await gJSON(`/data/game/leaderboard-${GAMECFG.season||2026}.json`));el.innerHTML=`<h3>Season leaders</h3>${gTable(j.top.slice(0,10),false)}<a href="${H("game-lb")}" data-go="game-lb">Full leaderboard →</a>`;}catch(e){el.innerHTML=`<h3>Season leaders</h3><p class="note2">No scores yet: the table starts after the first Grand Prix of the game.</p>`;}}
+async function gMini(){const el=$("#glbmini");if(!el)return;try{const j=GS.lb||(GS.lb=await gJSON(`/data/game/leaderboard-${GAMECFG.season||2026}.json`));el.innerHTML=`<h2 class="pzst">Season leaders</h2>${gTable(j.top.slice(0,10),false)}<p><a href="${H("game-lb")}" data-go="game-lb">Full leaderboard →</a></p>`;}catch(e){el.innerHTML=`<h2 class="pzst">Season leaders</h2><p class="pzsmall">No scores yet: the table starts after the first Grand Prix of the game.</p>`;}}
 /* ---- leagues ---- */
 const GCODE="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 function gCodeNew(){const a=new Uint32Array(8);crypto.getRandomValues(a);return [...a].map(x=>GCODE[x%GCODE.length]).join("");}
 async function gLeagues(){const el=$("#gleagues");if(!el)return;const {m,db}=GS.fb;try{const q=await m.getDocs(m.query(m.collection(db,"leagues"),m.where("members","array-contains",GS.user.uid)));
   GS.leagues=q.docs.map(d=>Object.assign({id:d.id},d.data()));if(!GS.leagues.length){el.innerHTML=`<p class="note2">You're not in any league yet.</p>`;return;}
-  el.innerHTML=GS.leagues.map(L=>`<section class="gcard glg" data-glg="${L.id}"><div class="glgh"><h3>${esc(L.name)}</h3><span class="lbl">${L.members.length} of 50 · code <b class="gcode">${esc(L.joinCode)}</b> <button class="gbtn gsm" data-gcopycode="${esc(L.joinCode)}">Copy</button></span></div><div class="glgt"><p class="note2">Loading table…</p></div>
+  el.innerHTML=GS.leagues.map(L=>`<section class="pzcard glg" data-glg="${L.id}"><div class="glgh"><h3>${esc(L.name)}</h3><span class="lbl">${L.members.length} of 50 · code <b class="gcode">${esc(L.joinCode)}</b> <button class="gbtn gsm" data-gcopycode="${esc(L.joinCode)}">Copy</button></span></div><div class="glgt"><p class="note2">Loading table…</p></div>
     <div class="gacts">${L.ownerUid===GS.user.uid?`<button class="gbtn gsm" data-glrename="${L.id}">Rename</button><button class="gbtn gsm gred" data-gldel="${L.id}">Delete league</button>`:`<button class="gbtn gsm" data-glleave="${L.id}">Leave</button>`}</div></section>`).join("");
   GS.leagues.forEach(gLeagueTable);}catch(e){el.innerHTML=`<p class="gmsg">${esc(gErr(e))}</p>`;}}
 async function gLeagueTable(L){const box=document.querySelector(`[data-glg="${L.id}"] .glgt`);if(!box)return;const {m,db}=GS.fb;try{
@@ -1784,7 +1877,7 @@ async function gLeagueTable(L){const box=document.querySelector(`[data-glg="${L.
 /* ---- actions ---- */
 async function gSignGoogle(){const {m,auth}=await gFB();try{await m.signInWithPopup(auth,new m.GoogleAuthProvider());}catch(e){if(e&&e.code==="auth/popup-blocked"){return m.signInWithRedirect(auth,new m.GoogleAuthProvider());}GS.msg=gErr(e);gRerender();}}
 async function gSignGuest(){const {m,auth}=await gFB();try{await m.signInAnonymously(auth);GS.msg="";}catch(e){GS.msg=gErr(e);gRerender();}}
-async function gEmail(f,up){const email=f.email.value.trim(),pw=f.password.value;GS.email=email;const {m,auth}=await gFB();GS.msg="";
+async function gEmail(f,up){const email=f.email.value.trim(),pw=f.password.value;GS.email=email;if(curKey()==="game")GS.goPicks=1;const {m,auth}=await gFB();GS.msg="";
   try{if(up){const c=await m.createUserWithEmailAndPassword(auth,email,pw);try{await m.sendEmailVerification(c.user);}catch(e){}GS.msg="Account created. We've emailed you a link: confirm your address to appear on the leaderboard. If it isn't in your inbox, check the spam or junk folder.";}
     else await m.signInWithEmailAndPassword(auth,email,pw);}catch(e){GS.msg=gErr(e);}gRerender();}
 async function gForgot(){const i=document.querySelector("#gsign input[name=email]"),email=(i&&i.value.trim())||GS.email||"";GS.email=email;if(!email){GS.msg="Type your email address above, then choose Forgot password.";return gRerender();}
@@ -1818,7 +1911,8 @@ async function gSaveProfile(f,isNew){const {m,db}=GS.fb,u=GS.user,name=f.name.va
     const prof=isNew?{displayName:name,createdAt:m.serverTimestamp(),ageOk:true}:{displayName:name};if(country)prof.country=country;
     if(isNew)b.set(m.doc(db,"users",u.uid),prof);else b.update(m.doc(db,"users",u.uid),Object.assign({country:country||""},prof));
     b.set(m.doc(db,"pub",u.uid),{name,guest:gIsGuest(u)});await b.commit();const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.data();GS.msg=isNew&&!gNeedsVerify(u)?"":isNew?GS.msg:"Saved.";}catch(e){GS.msg=gErr(e);}
-  gRerender();if(isNew&&GS.profile)gAfterReady();}
+  if(isNew&&GS.profile&&curKey()==="game"&&!GS.pend){GS.goPicks=0;GS.msg="";gLoadStand();return go("game-picks");}
+  gRerender();if(isNew&&GS.profile){gLoadStand();gAfterReady();}}
 async function gDelete(f){const {m,auth}=GS.fb,u=auth.currentUser,pv=gProv(u),pw=f.password?f.password.value:"";
   try{/* confirm who it is first (while the click still counts as the user's action, so a Google window may open) */
     if(!u.isAnonymous&&pv.includes("password")&&pw)await m.reauthenticateWithCredential(u,m.EmailAuthProvider.credential(u.email,pw));
@@ -1840,21 +1934,23 @@ document.addEventListener("submit",e=>{const f=e.target.closest("form[data-gform
     m.updateDoc(m.doc(db,"leagues",code),{members:m.arrayUnion(GS.user.uid)}).then(()=>{GS.msg="You've joined the league.";gRerender();}).catch(e=>{GS.msg=e.code==="not-found"?"No league has that code.":e.code==="permission-denied"?"You can't join that league: you may already be in it, or it is full.":gErr(e);gRerender();});}});
 document.addEventListener("change",e=>{if(e.target.id==="grsel"){const r=gRounds().find(x=>x.r===+e.target.value);GS.round=r;GS.pick=null;GS.sel=0;GS.dirty=false;GS.msg="";history.replaceState(null,"",PATHMODE?keyToPath("game-picks")+"?round="+r.r:location.hash);gPaintPicks();if(GS.fb&&GS.user)gLoadPick();}
   if(e.target.id==="glbr")gLb(e.target.value);});
-function gClick(e){if(!$(".game"))return false;
-  const gs=e.target.closest("[data-gsign]");if(gs){if(gs.dataset.gsign==="guest")gSignGuest();else gSignGoogle();return true;}
-  const gm=e.target.closest("[data-gmode]");if(gm){GS.amode=gm.dataset.gmode;GS.msg="";gRerender();return true;}
+function gClick(e){if(!$(".pz"))return false;
+  const mb=e.target.closest("[data-gme]"),menu=$("#pzmenu");if(mb){gMenu(menu&&menu.hidden);return true;}
+  if(menu&&!menu.hidden&&!e.target.closest(".pzmenu"))gMenu(false);
+  const gs=e.target.closest("[data-gsign]");if(gs){if(curKey()==="game")GS.goPicks=1;if(gs.dataset.gsign==="guest")gSignGuest();else gSignGoogle();return true;}
+  const gm=e.target.closest("[data-gmode]");if(gm){GS.amode=gm.dataset.gmode;GS.msg="";gRerender();const p=$("#gsign");if(p&&gm.dataset.gmode==="guest")p.scrollIntoView({block:"nearest",behavior:"smooth"});return true;}
   if(e.target.closest("[data-gforgot]")){gForgot();return true;}
-  if(e.target.closest("[data-gout]")){if(GS.fb&&(!gIsGuest(GS.user)||confirm("You're playing as a guest. If you sign out, this guest account and its picks can't be recovered. Sign out anyway?")))GS.fb.m.signOut(GS.fb.auth);return true;}
+  if(e.target.closest("[data-gout]")){gMenu(false);if(GS.fb&&(!gIsGuest(GS.user)||confirm("You're playing as a guest. If you sign out, this guest account and its picks can't be recovered. Sign out anyway?"))){GS.stand=undefined;GS._standFor=null;GS.fb.m.signOut(GS.fb.auth);}return true;}
   if(e.target.closest("[data-glink]")&&GS.fb){gLink("google");return true;}
   const sw=e.target.closest("[data-gswitch]");if(sw&&GS.fb){gSwitch(sw.dataset.gswitch);return true;}
   if(e.target.closest("[data-gverify]")&&GS.fb){gVerifyAgain();return true;}
   if(e.target.closest("[data-greload]")&&GS.fb){gVerifyCheck();return true;}
-  const sl=e.target.closest("[data-gslot]");if(sl&&!sl.disabled){if(GS._nodrop&&Date.now()-GS._nodrop<350)return true;const i=+sl.dataset.gslot,P=GS.pick;
-    if(GS.sel===i&&P&&(i===5?P.pole:P.top5[i])){if(i===5)P.pole=null;else P.top5[i]=null;GS.dirty=true;}GS.sel=i;gPaintPicks();return true;}
+  const gx=e.target.closest("[data-gx]");if(gx&&GS.pick){const i=+gx.dataset.gx;gUiSet(GS.pick,i,null);GS.sel=i;GS.dirty=true;GS.msg="";gPaintPicks();return true;}
+  const sl=e.target.closest("[data-gslot]");if(sl&&!sl.closest(".locked")){if(GS._nodrop&&Date.now()-GS._nodrop<350)return true;GS.sel=+sl.dataset.gslot;gPaintPicks();return true;}
   const dc=e.target.closest("[data-gcar]");if(dc){if(GS._nodrop&&Date.now()-GS._nodrop<350)return true;gPlace(+dc.dataset.gcar);return true;}
   if(e.target.closest("[data-gsave]")){gSave();return true;}
   if(e.target.closest("[data-gcopy]")){gCopy();return true;}
-  if(e.target.closest("[data-gclear]")){GS.pick={top5:[null,null,null,null,null],pole:null};GS.sel=0;GS.dirty=true;gPaintPicks();return true;}
+  if(e.target.closest("[data-gclear]")){GS.pick=gEmptyPick();GS.sel=0;GS.dirty=true;GS.msg="";gPaintPicks();return true;}
   const cc=e.target.closest("[data-gcopycode]");if(cc){navigator.clipboard&&navigator.clipboard.writeText(cc.dataset.gcopycode).then(()=>{cc.textContent="Copied";});return true;}
   if(!GS.fb)return false;const {m,db}=GS.fb;
   const lr=e.target.closest("[data-glrename]");if(lr){const L=GS.leagues.find(x=>x.id===lr.dataset.glrename);const n=prompt("New league name",L.name);if(n&&!gNameOk(n.trim()))m.updateDoc(m.doc(db,"leagues",L.id),{name:n.trim()}).then(gLeagues).catch(err=>alert(gErr(err)));else if(n)alert(gNameOk(n.trim()));return true;}
@@ -2296,7 +2392,7 @@ function freezeCols(){document.querySelectorAll(".tw>table.t").forEach(tb=>{cons
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(run);if(document.fonts)document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",run);}
 function pinSizes(){const p=$(".dnav.pin"),j=$(".jump"),R=document.documentElement.style;R.setProperty("--pinh",(p?p.offsetHeight:0)+"px");R.setProperty("--jumph",(j?j.offsetHeight:0)+"px");}
 window.addEventListener("resize",()=>pinSizes());
-function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body.classList.remove("fs-lock");document.title="Track Almanac · Races. Drivers. Teams. Numbers.";
+function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body.classList.remove("fs-lock","pzmode");document.title="Track Almanac · Races. Drivers. Teams. Numbers.";
   document.querySelectorAll("[data-clock]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.clock===CLOCK));
   document.querySelectorAll("[data-unit]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.unit===UNIT));
   document.querySelectorAll("[data-theme-set]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.themeSet===THEME));
