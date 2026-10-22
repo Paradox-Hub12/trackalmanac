@@ -30,7 +30,7 @@
 <meta name="twitter:image" content="https://trackalmanac.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Unbounded:wght@600;800;900&display=swap">
-<link rel="stylesheet" href="/style.css?v=3b843c8f4e">
+<link rel="stylesheet" href="/style.css?v=0245e6f75f">
 <style>html,body{margin:0;padding:0}[hidden]{display:none!important}img{max-width:100%}</style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://trackalmanac.com/"},{"@type":"ListItem","position":2,"name":"Archive","item":"https://trackalmanac.com/archive/"},{"@type":"ListItem","position":3,"name":"1984","item":"https://trackalmanac.com/archive/1984/"}]}</script>
 </head>
@@ -39,20 +39,24 @@
   <header class="hb" id="hb">
     <a class="hlogo logo" href="/" data-go="season" aria-label="Track Almanac home"><img fetchpriority="high" src="/img/9d3dc2641f06.png" alt="Track Almanac" width="900" height="356"></a>
     <nav class="hnav" aria-label="Sections">
+      <a class="hbtn" href="/" data-go="season">Home</a>
       <div class="hdd" data-nav="y26"><button class="hbtn" type="button" data-dd="dd26" aria-expanded="false" aria-controls="dd26">2026<i aria-hidden="true">▾</i></button><div class="hmenu" id="dd26" hidden><a href="/" data-go="season">Season overview</a><a href="/races/2026/singapore/" data-detail="17" data-latest>Latest race</a><a href="/calendar/" data-go="calendar">Calendar &amp; session times</a><a href="/championship/" data-go="championship">Championship</a><a href="/drivers/" data-go="drivers">Drivers</a><a href="/teams/" data-go="teams">Teams</a></div></div>
       <a class="hbtn" href="/archive/2027/" data-year="2027" data-nav="y27">2027</a>
-      <div class="hdd" data-nav="hist" data-cur><button class="hbtn" type="button" data-dd="ddh" aria-expanded="false" aria-controls="ddh">History<i aria-hidden="true">▾</i></button><div class="hmenu" id="ddh" hidden><a href="/archive/" data-go="archive">Season archive (1950–2025)</a><a href="/archive/1946-1949/" data-go="archive-1946-1949">1946–1949</a><a href="/history/" data-go="history">Drivers</a><a href="/history/constructors/" data-go="hcons">Constructors</a><a href="/history/circuits/" data-go="hcirc">Circuits</a><a href="/history/regulations/" data-go="hregs">Regulations</a><a href="/dictionary/" data-go="dictionary">F1 Dictionary</a></div></div>
+      <div class="hdd" data-nav="hist" data-cur><button class="hbtn" type="button" data-dd="ddh" aria-expanded="false" aria-controls="ddh">All about F1<i aria-hidden="true">▾</i></button><div class="hmenu" id="ddh" hidden><a href="/archive/" data-go="archive">Season archive (1950–2025)</a><a href="/archive/1946-1949/" data-go="archive-1946-1949">1946–1949</a><a href="/history/" data-go="history">All-time drivers</a><a href="/history/constructors/" data-go="hcons">Constructors</a><a href="/history/circuits/" data-go="hcirc">Circuits</a><a href="/history/regulations/" data-go="hregs">Regulations</a><a href="/dictionary/" data-go="dictionary">F1 Dictionary</a></div></div>
     </nav>
     <a class="hpred" href="/game/" data-go="game" data-nav="game"><span class="hpt">Predictor</span><b class="hbadge" id="hbadge" aria-live="off"></b></a>
+    <button class="hbtn htop" type="button" data-totop aria-hidden="true" tabindex="-1">Top <span aria-hidden="true">↑</span></button>
     <div class="hset"><button class="hgear" type="button" data-dd="ddset" aria-expanded="false" aria-controls="ddset" aria-label="Settings: clock, units, theme"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L4.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button><div class="hmenu hsetp" id="ddset" hidden><div class="clock" role="group" aria-label="Time format"><span class="lbl">Clock</span><button data-clock="12">12h</button><button data-clock="24">24h</button></div><div class="clock" role="group" aria-label="Distance units"><span class="lbl">Units</span><button data-unit="km">KM</button><button data-unit="mi">MI</button></div><div class="clock" role="group" aria-label="Colour theme"><span class="lbl">Theme</span><button data-theme-set="dark">Dark</button><button data-theme-set="light">Light</button></div></div></div>
     <button class="hburger" type="button" data-burger aria-expanded="false" aria-controls="hmob" aria-label="Menu"><span></span><span></span><span></span></button>
     <span class="mono" id="sheetname" hidden>2026 WORLD CHAMPIONSHIP</span>
   </header>
+  <button class="totop" type="button" data-totop aria-label="Back to top" aria-hidden="true" tabindex="-1">↑</button>
   <div class="hmob" id="hmob" hidden><div class="hmobi" role="dialog" aria-modal="true" aria-label="Menu">
     <div class="hmobh"><b>Menu</b><button class="hclose" type="button" data-burger-close aria-label="Close menu">✕</button></div>
+    <a class="hmobhome" href="/" data-go="season">Home</a>
     <section data-nav="y26"><h2>2026</h2><a href="/" data-go="season">Season overview</a><a href="/races/2026/singapore/" data-detail="17" data-latest>Latest race</a><a href="/calendar/" data-go="calendar">Calendar &amp; session times</a><a href="/championship/" data-go="championship">Championship</a><a href="/drivers/" data-go="drivers">Drivers</a><a href="/teams/" data-go="teams">Teams</a></section>
     <section data-nav="y27"><h2>2027</h2><a href="/archive/2027/" data-year="2027">2027 season calendar</a></section>
-    <section data-nav="hist" data-cur><h2>History</h2><a href="/archive/" data-go="archive">Season archive (1950–2025)</a><a href="/archive/1946-1949/" data-go="archive-1946-1949">1946–1949</a><a href="/history/" data-go="history">Drivers</a><a href="/history/constructors/" data-go="hcons">Constructors</a><a href="/history/circuits/" data-go="hcirc">Circuits</a><a href="/history/regulations/" data-go="hregs">Regulations</a><a href="/dictionary/" data-go="dictionary">F1 Dictionary</a></section>
+    <section data-nav="hist" data-cur><h2>All about F1</h2><a href="/archive/" data-go="archive">Season archive (1950–2025)</a><a href="/archive/1946-1949/" data-go="archive-1946-1949">1946–1949</a><a href="/history/" data-go="history">All-time drivers</a><a href="/history/constructors/" data-go="hcons">Constructors</a><a href="/history/circuits/" data-go="hcirc">Circuits</a><a href="/history/regulations/" data-go="hregs">Regulations</a><a href="/dictionary/" data-go="dictionary">F1 Dictionary</a></section>
     <section data-nav="game"><h2>Predictor</h2><a href="/game/" data-go="game">Play the Predictor</a><a href="/game/picks/" data-go="game-picks">My picks</a><a href="/game/leaderboard/" data-go="game-lb">Leaderboard</a></section>
     <section class="hmobset"><h2>Settings</h2><div class="clock" role="group" aria-label="Time format"><span class="lbl">Clock</span><button data-clock="12">12h</button><button data-clock="24">24h</button></div><div class="clock" role="group" aria-label="Distance units"><span class="lbl">Units</span><button data-unit="km">KM</button><button data-unit="mi">MI</button></div><div class="clock" role="group" aria-label="Colour theme"><span class="lbl">Theme</span><button data-theme-set="dark">Dark</button><button data-theme-set="light">Light</button></div></section>
   </div></div>
@@ -68,6 +72,6 @@
 
 <script>window.TA_PATHS=1</script>
 <script src="/data.js?v=27f9b65b8a"></script>
-<script src="/app.js?v=bf672fd149"></script>
+<script src="/app.js?v=47ad52c73c"></script>
 </body>
 </html>

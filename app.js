@@ -376,7 +376,7 @@ function viewLive(n){
   const jumps=[["weekend","Weekend"],["practice","Practice"],...(r.sprint?[["sq","Sprint quali"],["sprint","Sprint"]]:[]),["quali","Qualifying"],["grid","Grid"],["race","Race"],["after","Standings"]];
   const tbl=(k,f)=>sesRows(n,k)?f(sesRows(n,k)):soonBox(n,k);
   return `
-  <div class="dnav pin">${pv}<span class="dmid"><button class="navbtn" data-go="season">Home</button><button class="navbtn" data-top>Top ↑</button></span>${nb}</div>
+  <div class="dnav pin">${pv}<span class="dmid"></span>${nb}</div>
   <section class="dhero">
     <div class="info">
       <span class="lbl">Round ${r.r} of ${RACES.length} · ${esc(r.days)} 2026${r===nextRace?" · race weekend":""}</span>
@@ -415,7 +415,7 @@ function viewLive(n){
       <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th>Driver</th><th class="n">Pts</th></tr></thead><tbody>${DRIVERS.slice(0,10).map((d,k)=>`<tr><td class="n">${k+1}</td><td><span class="sw" style="background:${tcol(d[2])}"></span>${esc(d[0])}</td><td class="n">${d[3]}</td></tr>`).join("")}</tbody></table></div>
       <div class="tw"><table class="t" style="min-width:0"><thead><tr><th class="n">Pos</th><th>Constructor</th><th class="n">Pts</th></tr></thead><tbody>${CONSTRUCTORS.map((c,k)=>`<tr><td class="n">${k+1}</td><td><span class="sw" style="background:${tcol(c[0])}"></span>${esc(c[0])}</td><td class="n">${c[1]}</td></tr>`).join("")}</tbody></table></div>
     </div>${waCard("race")}</section>
-  <div class="dnav" style="margin-top:28px">${pv}<span class="dmid"><button class="navbtn" data-go="season">Home</button><button class="navbtn" data-top>Top ↑</button></span>${nb}</div>`;}
+  <div class="dnav" style="margin-top:28px">${pv}<span class="dmid"></span>${nb}</div>`;}
 function scrollHome(sel){const go2=()=>{const el=$(sel);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});};if($(".home"))go2();else{go("season");setTimeout(go2,120);}}
 
 /* ---------- DETAIL PAGE ---------- */
@@ -566,7 +566,7 @@ function viewDetail(n){
   const gain=(prev,z)=>{const p=prev.find(y=>y[0]===z[0]);const g=z[1]-(p?p[1]:0);return g>0?`<span class="gain">+${g}</span>`:'<span style="color:var(--ink-3)">–</span>';};
   const mv=(list,prev,name,k)=>{if(!prev.length)return"–";const j=prev.findIndex(z=>z[0]===name);if(j<0)return"–";const d=j-k;return d>0?`<span class="up">▲${d}</span>`:d<0?`<span class="dn">▼${-d}</span>`:"–";};
   return `
-  <div class="dnav pin">${pv}<span class="dmid"><button class="navbtn" data-go="season">Home</button><button class="navbtn" data-top>Top ↑</button></span>${nx}</div>
+  <div class="dnav pin">${pv}<span class="dmid"></span>${nx}</div>
   <section class="dhero">
     <div class="info">
       <span class="lbl">Round ${r.r} of ${RACES.length} · ${fmt(r.date,{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</span>
@@ -646,7 +646,7 @@ function viewDetail(n){
   </section>
 
 
-  <div class="dnav" style="margin-top:28px">${pv}<span class="dmid"><button class="navbtn" data-go="season">Home</button><button class="navbtn" data-top>Top ↑</button></span>${nx}</div>`;
+  <div class="dnav" style="margin-top:28px">${pv}<span class="dmid"></span>${nx}</div>`;
 }
 
 /* ---------- full-screen chart boxes ---------- */
@@ -1656,7 +1656,7 @@ function gTop(k){const nav=[["game","Play"],["game-picks","My picks"],["game-lb"
   return `<header class="pzh${land?" pzhl":""}"><a class="pzbrand" href="${H("game")}" data-go="game" aria-label="Track Almanac Predictor"><${land?"h1":"span"} class="pzwm"><span class="pzw1">Track Almanac</span><span class="pzw2">Predictor</span></${land?"h1":"span"}></a>
     <div class="pzhr">${gMe()}</div></header>
     <div class="pznavw"><nav class="pznav" aria-label="Predictor">${nav.map(([x,n])=>`<a href="${H(x)}" data-go="${x}"${x===k?' aria-current="page"':""}>${n}</a>`).join("")}</nav></div>`;}
-function gFitWm(){document.querySelectorAll(".pzwm").forEach(w=>{[...w.children].forEach(el=>{el.style.fontSize="";let f=parseFloat(getComputedStyle(el).fontSize),n=0;const W=w.parentElement.clientWidth;while(el.scrollWidth>W&&f>12&&n++<60){f*=.95;el.style.fontSize=f.toFixed(1)+"px";}});});}
+function gFitWm(){document.querySelectorAll(".pznav").forEach(n=>{const c=n.querySelector("[aria-current]");if(c&&n.scrollWidth>n.clientWidth){const l=c.offsetLeft-n.offsetLeft,r=l+c.offsetWidth;if(r>n.scrollLeft+n.clientWidth)n.scrollLeft=r-n.clientWidth+4;else if(l<n.scrollLeft)n.scrollLeft=l-4;}});document.querySelectorAll(".pzwm").forEach(w=>{[...w.children].forEach(el=>{el.style.fontSize="";let f=parseFloat(getComputedStyle(el).fontSize),n=0;const W=w.parentElement.clientWidth;while(el.scrollWidth>W&&f>12&&n++<60){f*=.95;el.style.fontSize=f.toFixed(1)+"px";}});});}
 try{document.fonts&&document.fonts.ready.then(()=>{if($(".pz"))gFitWm();});}catch(e){}
 addEventListener("resize",()=>{if($(".pz"))gFitWm();});
 const gWrap=(k,body)=>`<div class="pz${GS.anim?" pzin":""}" data-k="${k}">${gTop(k)}<div class="pzbody">${body}</div></div>`;
@@ -2368,14 +2368,21 @@ document.addEventListener("keydown",e=>{
 });
 /* phones: the bar hides while scrolling down and comes back on a small scroll up (always shown near the top) */
 const HB_AUTOHIDE=true;   /* set to false to keep the bar always visible on phones too */
-const hbPhone=matchMedia("(max-width:759px)");let hbY=scrollY,hbQ=0;
+const hbPhone=matchMedia("(max-width:999px)");let hbY=scrollY,hbQ=0;
 function hbShow(){document.documentElement.classList.remove("hb-hidden");}
 function hbScroll(){hbQ=0;const y=scrollY,menu=document.querySelector(".hmenu:not([hidden])")||($("#hmob")&&!$("#hmob").hidden);
   if(!HB_AUTOHIDE||!hbPhone.matches||menu||y<120){hbShow();}
   else if(y>hbY+8)document.documentElement.classList.add("hb-hidden");
   else if(y<hbY-8)hbShow();
   if(Math.abs(y-hbY)>8||y<120)hbY=y;}
-addEventListener("scroll",()=>{if(!hbQ)hbQ=requestAnimationFrame(hbScroll);},{passive:true});
+/* TOP ↑ (bar on desktop, round button on phones): shown after about one screen of scrolling */
+function topUpdate(){const on=scrollY>innerHeight*0.9;document.querySelectorAll("[data-totop]").forEach(b=>{if(b.classList.contains("on")!==on){b.classList.toggle("on",on);b.setAttribute("aria-hidden",String(!on));b.tabIndex=on?0:-1;}});
+  /* the phone button sits above the cookie banner / first-visit note, never on them */
+  const o=[...document.querySelectorAll(".consent,.setnote")].reduce((m,e)=>Math.max(m,innerHeight-e.getBoundingClientRect().top),0);document.documentElement.style.setProperty("--totopb",o?o+"px":"0px");}
+document.addEventListener("click",e=>{if(e.target.closest("[data-totop]")){window.scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});const h=$(".hlogo");h&&h.focus({preventScroll:true});}});
+new MutationObserver(()=>topUpdate()).observe(document.body,{childList:true});
+addEventListener("resize",topUpdate);
+addEventListener("scroll",()=>{if(!hbQ)hbQ=requestAnimationFrame(()=>{hbScroll();topUpdate();});},{passive:true});
 hbPhone.addEventListener&&hbPhone.addEventListener("change",hbShow);
 /* animations wait while the tab is in the background */
 document.addEventListener("visibilitychange",()=>document.documentElement.classList.toggle("tab-hidden",document.hidden));
