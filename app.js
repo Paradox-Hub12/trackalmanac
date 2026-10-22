@@ -1583,7 +1583,7 @@ function openHEngine(i){histIndexTeams();const e=HIST.eby[i];if(!e)return;
 /* ---------- PREDICTOR GAME: /game/ pages. Firebase Auth + Firestore (lite) loaded on demand from /js/firebase-game.js.
    Scoring is done by scripts/score.py in the results workflow; season and race tables are static JSON in /data/game/. ---------- */
 const GPTS=[5,3,2,1,1],GPOLE=3;
-const GS={fb:null,loading:null,user:undefined,profile:undefined,stand:undefined,flash:-1,anim:0,goPicks:0,pend:0,ask:0,amode:"in",linkMsg:"",linkAlt:null,round:null,pick:null,sel:0,dirty:false,msg:"",tick:0,lb:null,lbr:{},leagues:null,league:null};
+const GS={fb:null,loading:null,user:undefined,profile:undefined,stand:undefined,flash:-1,anim:0,goPicks:0,pend:0,ask:0,amode:"in",eopen:0,linkMsg:"",linkAlt:null,round:null,pick:null,sel:0,dirty:false,msg:"",tick:0,lb:null,lbr:{},leagues:null,league:null};
 const GMAIL=()=>(typeof GAMECFG!=="undefined"&&GAMECFG.contact)||SITE.email;
 const gameOn=()=>!!(typeof GAMECFG!=="undefined"&&GAMECFG.firebase&&GAMECFG.firebase.apiKey);
 function gFB(){if(GS.fb)return Promise.resolve(GS.fb);if(!gameOn())return Promise.reject(new Error("not configured"));
@@ -1674,17 +1674,20 @@ function gAuthPanel(why){
     <ul class="pzcons"><li>Your picks are saved <b>on this device only</b>.</li><li>Clearing your browser, signing out or switching devices <b>loses them for good</b>.</li><li>You can't sign in on your phone and your laptop with the same guest account.</li><li>You show on the leaderboard with a <b>Guest</b> tag.</li></ul>
     <p>You can fix all of this later with <b>Save my account</b> (Google or email), and keep your points.</p>
     <div class="pzbtns"><button class="gbtn gpri gbig" data-gsign="guest">I understand, play as a guest</button><button class="gbtn gghost" data-gmode="in">Back to sign in</button></div>`;
-  else{const up=GS.amode==="up";
-    inner=`<div class="pztabs" role="tablist"><button role="tab" data-gmode="in" aria-selected="${!up}">Sign in</button><button role="tab" data-gmode="up" aria-selected="${up}">Create account</button></div>
-    ${why?`<p class="pzwhy">${why}</p>`:""}
-    <button class="gbtn gwide gg" data-gsign="google"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6H1.4a12 12 0 0 0 0 10.9z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>${up?"Sign up":"Sign in"} with Google</button>
-    <div class="pzor"><span>or with email</span></div>
+  else{const up=GS.amode==="up",eo=!!GS.eopen;
+    inner=`${why?`<p class="pzwhy">${why}</p>`:""}
+    <div class="pzopts" role="group" aria-label="How do you want to play?">
+      <button class="gbtn pzopt" data-gmode="guest"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Play as a guest</span></button>
+      <button class="gbtn pzopt gg" data-gsign="google"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6H1.4a12 12 0 0 0 0 10.9z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg><span>Sign in with Google</span></button>
+      <button class="gbtn pzopt${eo?" on":""}" data-gemail aria-expanded="${eo}" aria-controls="gemail"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span>Use email</span></button>
+    </div>
+    <p class="pzoptn">Guest needs no account. Google or email keeps your picks on every device.</p>
+    ${eo?`<div class="pzemail" id="gemail"><div class="pztabs" role="tablist"><button role="tab" data-gmode="in" aria-selected="${!up}">Sign in</button><button role="tab" data-gmode="up" aria-selected="${up}">Create account</button></div>
     <form class="pzform" data-gform="${up?"emailup":"emailin"}">
       <label><span>Email</span><input type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="${esc(GS.email||"")}"></label>
       <label><span>Password${up?" · 8 characters or more":""}</span><input type="password" name="password" required minlength="${up?8:1}" autocomplete="${up?"new-password":"current-password"}"></label>
       <button class="gbtn gpri gwide gbig" type="submit">${up?"Create account":"Sign in"}</button>
-      ${up?"":`<button class="pzlink" type="button" data-gforgot>Forgot password?</button>`}</form>
-    <div class="pzguest"><button class="gbtn gwide gghost" data-gmode="guest">Play as a guest</button><small>No account needed. Read what that means first.</small></div>`;}
+      ${up?"":`<button class="pzlink" type="button" data-gforgot>Forgot password?</button>`}</form></div>`:""}`;}
   return `<div class="pzauth" id="gsign"><div class="pzauthi">${inner}${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}
     ${GS.user&&GS.profile?"":`<p class="pzfine">Free, no prizes, no money. By continuing you agree to the rules and the <a href="${H("privacy")}" data-go="privacy">Privacy Policy</a>.</p>`}</div></div>`;}
 function gProfileForm(p){const dn=(()=>{try{return new Intl.DisplayNames([navigator.language||"en"],{type:"region"});}catch(e){return null;}})();const g=gIsGuest(GS.user);
@@ -1823,7 +1826,7 @@ function gAccountView(){const t=gTitle("Account");
    ${GS.msg?`<p class="gmsg" role="status">${esc(GS.msg)}</p>`:""}`);}
 /* ---- route ---- */
 function gameRoute(k,re){clearInterval(GS.tick);document.body.classList.add("pzmode");
-  if(!re){GS.msg="";GS.linkMsg="";GS.anim=1;GS.amode="in";if(k==="game-picks"){GS.round=gPickRound();GS.pick=null;GS.sel=0;GS.dirty=false;GS.ask=0;
+  if(!re){GS.msg="";GS.linkMsg="";GS.anim=1;GS.amode="in";GS.eopen=0;if(k==="game-picks"){GS.round=gPickRound();GS.pick=null;GS.sel=0;GS.dirty=false;GS.ask=0;
     const pp=GS.round&&gPendTake(GS.round.r);if(pp){GS.pick=pp;GS.dirty=true;GS.pend=1;GS.sel=gNextEmpty(pp);}}}
   const v={"game":gHow,"game-picks":gPicksView,"game-lb":gLbView,"game-leagues":gLeaguesView,"game-account":gAccountView}[k];
   if(k==="game-picks"&&re)gPaintPicks();else $("#app").innerHTML=v();GS.anim=0;gFitWm();
@@ -1922,7 +1925,7 @@ async function gWipe(u){const {m,db}=GS.fb;
   for(const d of lg.docs){if(d.data().ownerUid===u.uid)await m.deleteDoc(d.ref);else await m.updateDoc(d.ref,{members:m.arrayRemove(u.uid)});}
   const b=m.writeBatch(db);if(GS.profile&&GS.profile.displayName)b.delete(m.doc(db,"names",GS.profile.displayName.toLowerCase()));b.delete(m.doc(db,"pub",u.uid));b.delete(m.doc(db,"users",u.uid));await b.commit();}
 async function gSwitch(kind){if(!confirm("Delete this guest account and its picks, and switch to your existing account?"))return;const {m,auth}=GS.fb,u=auth.currentUser;
-  try{await gWipe(u);try{await m.deleteUser(u);}catch(e){await m.signOut(auth);}GS.linkMsg="";GS.amode="in";GS.msg="Guest account deleted. Sign in to your existing account.";if(kind==="google")await gSignGoogle();else gRerender();}catch(e){GS.msg=gErr(e);gRerender();}}
+  try{await gWipe(u);try{await m.deleteUser(u);}catch(e){await m.signOut(auth);}GS.linkMsg="";GS.amode="in";GS.eopen=kind!=="google";GS.msg="Guest account deleted. Sign in to your existing account.";if(kind==="google")await gSignGoogle();else gRerender();}catch(e){GS.msg=gErr(e);gRerender();}}
 async function gSaveProfile(f,isNew){const {m,db}=GS.fb,u=GS.user,name=f.name.value.trim(),country=f.country.value;const bad=gNameOk(name);if(bad){GS.msg=bad;return gRerender();}
   if(isNew&&!f.age.checked){GS.msg="Please confirm your age.";return gRerender();}
   try{const low=name.toLowerCase(),old=GS.profile&&GS.profile.displayName,taken=await m.getDoc(m.doc(db,"names",low));
@@ -1959,6 +1962,7 @@ function gClick(e){if(!$(".pz"))return false;
   const mb=e.target.closest("[data-gme]"),menu=$("#pzmenu");if(mb){gMenu(menu&&menu.hidden);return true;}
   if(menu&&!menu.hidden&&!e.target.closest(".pzmenu"))gMenu(false);
   const gs=e.target.closest("[data-gsign]");if(gs){if(curKey()==="game")GS.goPicks=1;if(gs.dataset.gsign==="guest")gSignGuest();else gSignGoogle();return true;}
+  const ge=e.target.closest("[data-gemail]");if(ge){GS.eopen=!GS.eopen;GS.msg="";gRerender();if(GS.eopen){const i=document.querySelector("#gemail input[name=email]");if(i)i.focus({preventScroll:true});const f=$("#gemail");if(f)f.scrollIntoView({block:"nearest",behavior:"smooth"});}return true;}
   const gm=e.target.closest("[data-gmode]");if(gm){GS.amode=gm.dataset.gmode;GS.msg="";gRerender();const p=$("#gsign");if(p&&gm.dataset.gmode==="guest")p.scrollIntoView({block:"nearest",behavior:"smooth"});return true;}
   if(e.target.closest("[data-gforgot]")){gForgot();return true;}
   if(e.target.closest("[data-gout]")){gMenu(false);if(GS.fb&&(!gIsGuest(GS.user)||confirm("You're playing as a guest. If you sign out, this guest account and its picks can't be recovered. Sign out anyway?"))){GS.stand=undefined;GS._standFor=null;GS.fb.m.signOut(GS.fb.auth);}return true;}
