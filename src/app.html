@@ -382,6 +382,9 @@ body.pzmode::before{content:"";position:fixed;inset:-20vmax;z-index:-1;pointer-e
 .pzpole{border-color:color-mix(in srgb,var(--pza) 55%,var(--pzl))}
 .pzpole.full{border-color:var(--pza);background:linear-gradient(100deg,color-mix(in srgb,var(--pza) 20%,var(--pzp)),var(--pzp) 85%)}
 .pzpole .pznum{color:var(--pza)!important}
+.pzs.full .pzsd b{color:color-mix(in srgb,var(--tc) 50%,#fff)}
+:root[data-theme="light"] .pzs.full .pzsd b{color:color-mix(in srgb,var(--tc) 55%,#000)}
+.pzs.full:not(.pzpole) .pznum{color:color-mix(in srgb,var(--tc) 45%,var(--pzi3))}
 .pzs.sel{border-color:var(--pza);box-shadow:0 0 0 3px color-mix(in srgb,var(--pza) 30%,transparent),0 10px 30px color-mix(in srgb,var(--pza) 14%,transparent)}
 .pzs.sel::after{content:"";position:absolute;inset:-1px;border-radius:16px;border:1.5px solid var(--pza);animation:pzpulse 1.6s ease-out infinite;pointer-events:none}
 @keyframes pzpulse{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(1.04)}}
@@ -421,6 +424,7 @@ body.pzmode::before{content:"";position:fixed;inset:-20vmax;z-index:-1;pointer-e
 .pzd:hover{background:var(--pzp2);transform:translateX(2px)}
 .pzd .pznum{font-family:var(--pzf);font-weight:900;font-size:16px;text-align:center;color:var(--tc)}
 .pzdn{display:flex;flex-direction:column;min-width:0}.pzdn b{font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pzdn small{font-size:11.5px;color:var(--pzi3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pzbdg{display:flex;flex-wrap:nowrap;gap:4px;justify-content:flex-end}
 .pzd i{font-style:normal;font-family:var(--f-data);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:999px;background:var(--pza);color:var(--pzat);margin-left:2px}
 .pzd.used{background:color-mix(in srgb,var(--pza) 8%,transparent)}
 .pzhint{margin:0}
@@ -475,7 +479,7 @@ body.gdragging{cursor:grabbing;user-select:none}
   .pzs .pznum{display:none}.pzs .pzx{position:absolute;top:4px;right:4px}
   .pzx{width:22px;height:22px;font-size:14px}
   .pzlistw{min-height:300px}
-  .pzd{grid-template-columns:28px minmax(0,1fr);row-gap:0;padding:7px 6px 7px 0}.pzd .pznum{font-size:14px}.pzd i{grid-column:2;justify-self:start;margin:3px 3px 0 0;font-size:9.5px;padding:2px 6px}
+  .pzd{grid-template-columns:28px minmax(0,1fr);row-gap:0;padding:7px 6px 7px 0}.pzd .pznum{font-size:14px}.pzbdg{grid-column:2;justify-content:flex-start;margin-top:3px}.pzd i{margin:0;font-size:9.5px;padding:2px 6px}
   .pzdn b{font-size:14px}
   .pzpts{grid-template-columns:repeat(6,minmax(0,1fr));min-height:150px}.pzpt15{grid-column:1/-1;flex-direction:row!important;gap:12px!important;padding:10px}.pzpts i{height:calc(var(--v)*16px)}
   .pzauthi{padding:18px 16px 16px}
@@ -3146,7 +3150,7 @@ function gPicksView(){
   const locked=rd.lock.getTime()<=Date.now(),P=GS.pick||gEmptyPick(),cars=gCars();
   const where=n=>{const o=[];if(P.pole===n)o.push("Pole");const k=P.top5.indexOf(n);if(k>=0)o.push(GSLOT[k+1]);return o;};
   const slot=i=>{const n=gUi(P,i),c=n?gCar(n):null,first=c&&c.name!==c.last?c.name.slice(0,c.name.length-c.last.length).trim():"";
-    return `<div class="pzs${c?" full":""}${!locked&&GS.sel===i?" sel":""}${GS.flash===i?" pzpop":""}${i===0?" pzpole":""}" data-gslot="${i}" role="button" tabindex="${locked?-1:0}" aria-label="${GSLOT[i]}${i?" place":""}: ${c?esc(c.name):"empty"}" style="--i:${i}">
+    return `<div class="pzs${c?" full":""}${!locked&&GS.sel===i?" sel":""}${GS.flash===i?" pzpop":""}${i===0?" pzpole":""}" data-gslot="${i}" role="button" tabindex="${locked?-1:0}" aria-label="${GSLOT[i]}${i?" place":""}: ${c?esc(c.name):"empty"}" style="--i:${i}${c?`;--tc:${tcol(c.team)}`:""}">
       <span class="pzl">${GSLOT[i]}${i?"<small>place</small>":""}</span>
       <span class="pzsd">${c?`<small>${esc(first)}</small><b>${esc(c.last)}</b><em>${esc(c.team)}</em>`:`<em>${locked?"No pick":GS.sel===i?"Tap a driver →":"Empty"}</em>`}</span>${c?`<span class="pznum" aria-hidden="true">${c.n}</span>`:""}
       ${c&&!locked?`<button class="pzx" data-gx="${i}" aria-label="Remove ${esc(c.name)} from ${GSLOT[i]}">×</button>`:""}</div>`;};
@@ -3167,7 +3171,7 @@ function gPicksView(){
         <div class="pzacts2">${ready?`<button class="gbtn gsm" data-gcopy>Copy my last picks</button>`:""}<button class="gbtn gsm gghost" data-gclear ${done?"":"disabled"}>Clear all</button></div>
         <p class="gmsg" role="status">${esc(GS.ask?"":GS.msg||(GS.pick&&GS.pick._saved?"Saved "+(GS.pick._savedAt||""):""))}</p></div>`}</div>
      ${locked?"":`<div class="pzright"><div class="pzlh"><b>Drivers</b><span>${GS.sel>=0?`Tap to set <em>${GSLOT[GS.sel]}</em>`:"All set: tap a place to change it"}</span></div>
-      <div class="pzlistw"><div class="pzlist" role="listbox" aria-label="Drivers">${gTeamSort(cars).map((c,k,a)=>{const w=where(c.n),head=k===0||gTeamKey(a[k-1])!==gTeamKey(c)?`<div class="pzteam" style="--tc:${tcol(c.team)}">${c.standin?"Stand-ins":esc(c.team)}</div>`:"";return `${head}<button type="button" class="pzd${w.length?" used":""}" data-gcar="${c.n}" role="option" aria-selected="${!!w.length}" title="${esc(c.name)}${c.standin?" (stand-in)":""}" style="--tc:${tcol(c.team)}"><span class="pznum">${c.n}</span><span class="pzdn"><b>${esc(c.last)}</b><small>${esc(c.team)}${c.standin?" · stand-in":""}</small></span>${w.map(x=>`<i>${x}</i>`).join("")}</button>`;}).join("")}</div></div>
+      <div class="pzlistw"><div class="pzlist" role="listbox" aria-label="Drivers">${gTeamSort(cars).map((c,k,a)=>{const w=where(c.n),head=k===0||gTeamKey(a[k-1])!==gTeamKey(c)?`<div class="pzteam" style="--tc:${tcol(c.team)}">${c.standin?"Stand-ins":esc(c.team)}</div>`:"";return `${head}<button type="button" class="pzd${w.length?" used":""}" data-gcar="${c.n}" role="option" aria-selected="${!!w.length}" title="${esc(c.name)}${c.standin?" (stand-in)":""}" style="--tc:${tcol(c.team)}"><span class="pznum">${c.n}</span><span class="pzdn"><b>${esc(c.last)}</b>${c.standin?`<small>${esc(c.team)}</small>`:""}</span>${w.length?`<span class="pzbdg">${w.map(x=>`<i>${x}</i>`).join("")}</span>`:""}</button>`;}).join("")}</div></div>
       <p class="pzsmall pzhint">Tap a driver to fill the highlighted place, or drag one onto any place (on a phone: press, hold, then drag).</p></div>`}
     </div>
     ${!ready&&GS.ask?`<div class="pzsolo">${gAuthPanel("Sign in, or play as a guest, to save these picks.")}</div>`:""}
