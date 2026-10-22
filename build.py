@@ -760,8 +760,12 @@ NAVKEY = {"/": "season", "/championship/": "championship", "/drivers/": "drivers
 def page_html(p, body_tpl, assets, fonts):
     body = body_tpl.replace('<main id="app"></main>', '<main id="app">%s</main>' % p["main"])
     body = re.sub(r'(<span class="mono" id="sheetname">)[^<]*(</span>)', lambda m: m.group(1) + esc(p["sheet"]) + m.group(2), body)
-    nk = "archive" if p["path"].startswith("/archive/") else ("season" if p["path"].startswith("/races/") else NAVKEY.get(p["path"]))
-    if nk: body = body.replace('data-go="%s" id="n-%s"' % (nk, nk), 'data-go="%s" id="n-%s" aria-current="page"' % (nk, nk))
+    pth = p["path"]
+    grp = ("game" if pth.startswith("/game/") else "y27" if pth.startswith("/archive/2027/") else
+           "hist" if pth.startswith(("/archive/", "/history/", "/dictionary/")) else
+           "y26" if pth == "/" or pth.startswith(("/races/", "/championship/", "/drivers/", "/teams/", "/calendar/")) else "")
+    if grp: body = body.replace('data-nav="%s"' % grp, 'data-nav="%s" data-cur' % grp)
+    body = body.replace('<a href="%s" data-' % pth, '<a aria-current="page" href="%s" data-' % pth)
     return head(p, assets, fonts) + body + ('<script>window.TA_PATHS=1</script>\n<script src="/data.js?v=%s"></script>\n<script src="/app.js?v=%s"></script>\n</body>\n</html>\n' % (assets["data"], assets["app"]))
 
 
@@ -844,6 +848,8 @@ def build(out, data_path=DATA):
     S = Site(D, app); S.HIST = HIST
     assert wa_url(S), "src/app.html: const SITE needs whatsapp (the channel address)"
     body = body.replace("__WHATSAPP__", esc(wa_url(S)))           # footer link
+    last = S.done[-1] if S.done else S.RACES[0]                        # header: "Latest race"
+    body = body.replace("__LATEST_HREF__", S.path("detail-%d" % last["r"])).replace("__LATEST_R__", str(last["r"]))
 
     home = [("Home", "/")]
     pages = []

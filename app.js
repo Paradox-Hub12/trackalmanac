@@ -161,13 +161,16 @@ function teamStandingsAfter(r){const tot={};Object.keys(TEAMS).forEach(t=>tot[t]
 /* ---------- SEASON ---------- */
 const RCODE={1:"AUS",2:"CHN",3:"JPN",4:"MIA",5:"CAN",6:"MON",7:"BCN",8:"AUT",9:"GBR",10:"BEL",11:"HUN",12:"NED",13:"ITA",14:"MAD",15:"AZE",16:"BHR",17:"SGP",18:"USA",19:"MEX",20:"BRA",21:"LVG",22:"QAT",23:"ABU"};
 const TODAY=new Date();
-let CLOCK="12";try{CLOCK=localStorage.getItem("ta-clock")||"12";}catch(e){}
+/* first visit (nothing saved): 12h if the browser's locale uses it, km unless the locale is in the US; these defaults are not saved */
+const LOC_H12=(()=>{try{return !!new Intl.DateTimeFormat(undefined,{hour:"numeric"}).resolvedOptions().hour12;}catch(e){return false;}})();
+const LOC_US=(()=>{try{const l=navigator.language||"";let r="";try{r=new Intl.Locale(l).maximize().region||"";}catch(e){r=(l.split("-")[1]||"").toUpperCase();}return r==="US";}catch(e){return false;}})();
+let CLOCK=LOC_H12?"12":"24";try{CLOCK=localStorage.getItem("ta-clock")||CLOCK;}catch(e){}
 /* distance units: KM (default) or MI; distances in km and speeds in km/h are converted when MI is chosen */
 /* colour theme: dark (default) or light; build.py applies a saved choice before the page draws */
 let THEME=document.documentElement.getAttribute("data-theme")==="light"?"light":"dark";
 function setTheme(t){THEME=t==="light"?"light":"dark";if(THEME==="light")document.documentElement.setAttribute("data-theme","light");else document.documentElement.removeAttribute("data-theme");
   try{localStorage.setItem("ta-theme",THEME)}catch(e){}const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=THEME==="light"?"#f3f5f8":"#000000";}
-let UNIT="km";try{UNIT=localStorage.getItem("ta-unit")==="mi"?"mi":"km";}catch(e){}
+let UNIT=LOC_US?"mi":"km";try{const u=localStorage.getItem("ta-unit");if(u)UNIT=u==="mi"?"mi":"km";}catch(e){}
 const KM2MI=0.621371;
 const dist=(km,d)=>UNIT==="mi"?(km*KM2MI).toFixed(d)+" mi":km.toFixed(d)+" km";
 const spd=(kmh,d)=>UNIT==="mi"?(kmh*KM2MI).toFixed(d)+" mph":kmh.toFixed(d)+" km/h";
@@ -226,14 +229,16 @@ function viewSeason(){
         <div style="color:var(--ink-2)">${esc(nr.circuit)}, ${esc(nr.city)}</div>
         <div><span class="tag sig">${esc(nr.days)}</span>${nr.sprint?'<span class="tag">Sprint</span>':""}<span class="tag">Night</span></div>
         <div class="cdx" id="cdx" aria-live="off"></div>
+        <div class="pcm">${pcard()}</div>
         <div class="spec"><div><span class="lbl">Lap</span><b>${dist(nr.len,3)}</b></div><div><span class="lbl">Laps</span><b>${nr.laps}</b></div><div><span class="lbl">Distance</span><b>${dist(nr.len*nr.laps,1)}</b></div></div>
-        ${tyreBlock(nr.r)}
         <button class="navbtn" data-quick="${nr.r}" style="align-self:flex-start">Weekend schedule →</button>
       </div>
       <div class="r">
         <span class="corner" style="top:8px;left:12px">FIG. ${String(nr.r).padStart(2,"0")}</span>
         ${plan(nr.track,{big:true,label:nr.circuit,len:nr.len,sectors:true})}
         ${mapLegend(nr.track)}
+        <div class="rtyre">${tyreBlock(nr.r)}</div>
+        <div class="pcd">${pcard()}</div>
       </div>
     <div class="wk">
         <div class="wkh"><span class="lbl">Weekend schedule</span><span class="lbl">Select a session for full results</span></div>
@@ -2314,9 +2319,75 @@ function consentBanner(force){let c=null;try{c=localStorage.getItem("ta-consent"
   document.querySelectorAll(".consent").forEach(x=>x.remove());document.body.appendChild(d);}
 
 
+hbBadge();setInterval(hbBadge,20000);
+/* ---- first visit: a slim note about the settings in use (never with the cookie banner, never again once closed or changed) ---- */
+function setNoteSeen(){try{localStorage.setItem("ta-setnote","1");}catch(e){}document.querySelectorAll(".setnote").forEach(n=>n.remove());}
+function maybeSetNote(){let seen=null,any=null;try{seen=localStorage.getItem("ta-setnote");any=localStorage.getItem("ta-clock")||localStorage.getItem("ta-unit")||localStorage.getItem("ta-theme");}catch(e){return;}
+  if(seen||any||$(".consent")||$(".setnote"))return;
+  const d=document.createElement("div");d.className="setnote";d.setAttribute("role","status");
+  d.innerHTML=`<span>Showing times in <b>${CLOCK}h</b>, distances in <b>${UNIT}</b>, <b>${THEME}</b> theme</span><button type="button" data-setnote="change">Change</button><button type="button" data-setnote="close" aria-label="Close">✕</button>`;
+  document.body.appendChild(d);}
+document.addEventListener("click",e=>{const n=e.target.closest("[data-setnote]");
+  if(n){const ch=n.dataset.setnote==="change";setNoteSeen();if(ch){if(hbPhone.matches){hbMob(true);const s=$(".hmobset");s&&s.scrollIntoView({block:"start"});}else{const g=$('[data-dd="ddset"]');g&&setTimeout(()=>hbOpen(g,true),0);}}return;}
+  if(e.target.closest("[data-clock],[data-unit],[data-theme-set]"))setNoteSeen();
+  if(e.target.closest("[data-consent]"))setTimeout(maybeSetNote,50);},true);
+
 /* ---------- ROUTER ---------- */
 let t=null;
-function setNav(k){["season","championship","drivers","teams","archive","history","game"].forEach(x=>{const b=$("#n-"+x);if(!b)return;if(x===k)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
+/* ---------- HEADER: slim pinned bar, dropdowns, phone menu, Predictor badge ---------- */
+const NAVGRP=k=>{if(!k)return "";if(k.startsWith("game"))return "game";if(k==="archive-2027")return "y27";
+  if(/^(archive|history|hcons|hcirc|heng|hregs|dictionary)/.test(k))return "hist";
+  if(/^(season|race-|detail-|championship|drivers|driver-|teams|team-|calendar)/.test(k))return "y26";return "";};
+function setNav(){const k=curKey(),g=NAVGRP(k),here=location.pathname;
+  document.querySelectorAll("[data-nav]").forEach(el=>{if(el.dataset.nav===g)el.setAttribute("data-cur","");else el.removeAttribute("data-cur");});
+  document.querySelectorAll(".hmenu a,.hmobi a").forEach(a=>{const p=a.getAttribute("href");if(PATHMODE&&p===here||!PATHMODE&&a.dataset.go===k)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});}
+/* "Latest race" points at the last race with a result (the build fills it in for the static pages) */
+{const L=done[done.length-1];document.querySelectorAll("[data-latest]").forEach(a=>{if(L){a.href=H("detail-"+L.r);a.dataset.detail=L.r;}});}
+function hbClose(except){document.querySelectorAll("[data-dd]").forEach(b=>{if(b.dataset.dd===except)return;const m=document.getElementById(b.dataset.dd);if(m&&!m.hidden){m.hidden=true;b.setAttribute("aria-expanded","false");}});}
+function hbOpen(b,focusFirst){hbClose(b.dataset.dd);const m=document.getElementById(b.dataset.dd);m.hidden=false;b.setAttribute("aria-expanded","true");if(focusFirst){const f=m.querySelector("a,button");f&&f.focus();}}
+function hbMob(open){const m=$("#hmob"),b=$("[data-burger]");if(!m)return;m.hidden=!open;b.setAttribute("aria-expanded",String(open));document.body.classList.toggle("hmob-open",open);
+  if(open){hbShow();const c=m.querySelector(".hclose");c&&c.focus();}else b.focus({preventScroll:true});}
+document.addEventListener("click",e=>{
+  const dd=e.target.closest("[data-dd]");if(dd){const m=document.getElementById(dd.dataset.dd);if(m.hidden)hbOpen(dd,false);else hbClose();return;}
+  if(!e.target.closest(".hmenu"))hbClose();else if(e.target.closest("a"))hbClose();
+  if(e.target.closest("[data-burger]")){hbMob(true);return;}
+  if(e.target.closest("[data-burger-close]")||e.target.id==="hmob"||(e.target.closest(".hmobi a")&&!$("#hmob").hidden)){hbMob(false);}
+},true);
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){if($("#hmob")&&!$("#hmob").hidden){hbMob(false);return;}const open=[...document.querySelectorAll("[data-dd]")].find(b=>b.getAttribute("aria-expanded")==="true");if(open){hbClose();open.focus();}return;}
+  const b=e.target.closest&&e.target.closest("[data-dd]");
+  if(b&&(e.key==="ArrowDown"||e.key==="Enter"||e.key===" ")&&e.target===b){e.preventDefault();hbOpen(b,true);return;}
+  const m=e.target.closest&&e.target.closest(".hmenu:not(.hsetp)");
+  if(m&&(e.key==="ArrowDown"||e.key==="ArrowUp")){e.preventDefault();const it=[...m.querySelectorAll("a")],i=it.indexOf(document.activeElement);const n=e.key==="ArrowDown"?Math.min(it.length-1,i+1):i-1;
+    if(n<0){hbClose();const bb=m.parentElement.querySelector("[data-dd]");bb&&bb.focus();}else it[n].focus();}
+  if(m&&e.key==="Tab"){setTimeout(()=>{if(!m.contains(document.activeElement))hbClose();},0);}
+});
+/* phones: the bar hides while scrolling down and comes back on a small scroll up (always shown near the top) */
+const HB_AUTOHIDE=true;   /* set to false to keep the bar always visible on phones too */
+const hbPhone=matchMedia("(max-width:759px)");let hbY=scrollY,hbQ=0;
+function hbShow(){document.documentElement.classList.remove("hb-hidden");}
+function hbScroll(){hbQ=0;const y=scrollY,menu=document.querySelector(".hmenu:not([hidden])")||($("#hmob")&&!$("#hmob").hidden);
+  if(!HB_AUTOHIDE||!hbPhone.matches||menu||y<120){hbShow();}
+  else if(y>hbY+8)document.documentElement.classList.add("hb-hidden");
+  else if(y<hbY-8)hbShow();
+  if(Math.abs(y-hbY)>8||y<120)hbY=y;}
+addEventListener("scroll",()=>{if(!hbQ)hbQ=requestAnimationFrame(hbScroll);},{passive:true});
+hbPhone.addEventListener&&hbPhone.addEventListener("change",hbShow);
+/* animations wait while the tab is in the background */
+document.addEventListener("visibilitychange",()=>document.documentElement.classList.toggle("tab-hidden",document.hidden));
+/* ---- the Predictor's state, from the schedule only: picks open / live (locked, no result yet) / results / off-season ---- */
+function predState(now=Date.now()){if(typeof gRounds!=="function")return {s:""};const R=gRounds();if(!R.length)return {s:"off"};
+  const past=R.filter(x=>x.lock.getTime()<=now),cur=past[past.length-1],nx=R.find(x=>x.lock.getTime()>now);
+  if(cur&&!cur.done&&(nx||now<cur.lock.getTime()+14*864e5))return {s:"live",r:cur,next:nx};   /* (a final result that never arrives ends the season after two weeks) */
+  const race=cur&&RACES.find(x=>x.r===cur.r),rstart=race?Date.parse(race.start):0;
+  if(cur&&cur.done&&now<rstart+48*3600e3)return {s:"results",r:cur,next:nx};
+  if(nx)return {s:"open",r:nx,lock:nx.lock,next:nx};
+  return {s:"off"};}
+function predLeft(ms,short){const m=Math.max(0,Math.floor(ms/60000)),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mm=m%60;
+  return d?`${d}d ${h}h`:h?`${h}h ${String(mm).padStart(2,"0")}m`:`${mm}m`;}
+function hbBadge(){const el=$("#hbadge");if(!el)return;const st=predState(),narrow=matchMedia("(max-width:380px)").matches,sep=narrow?" ":" · ";
+  const t=st.s==="open"?"OPEN"+sep+predLeft(st.lock.getTime()-Date.now()):st.s==="live"?"LIVE":st.s==="results"?"RESULTS":st.s==="off"?"2027":"";
+  if(el.textContent!==t)el.textContent=t;el.dataset.s=st.s||"";const a=$(".hpred");if(a)a.setAttribute("aria-label","Predictor"+(t?": "+(st.s==="open"?"picks open, "+predLeft(st.lock.getTime()-Date.now())+" left":t.toLowerCase()):""));}
 /* the race bar and section tabs stay pinned: the tabs sit just under the bar */
 /* wide tables and charts: a copy of the horizontal scrollbar stays at the bottom of the screen while the table is in view */
 const HSEL=".tw,.mx,.tyrechart";
@@ -2324,7 +2395,8 @@ const HSEL=".tw,.mx,.tyrechart";
    (a copy, because tables scroll sideways inside their own box, where CSS sticky can't reach the page) */
 const SHSEL=".tw>table,.mx>table";
 function headTop(){let t=0;
-  const p=$(".dnav.pin");if(p){const r=p.getBoundingClientRect();if(r.top<=1)t=Math.max(t,r.bottom);}
+  const hb=$("#hb");if(hb&&!document.documentElement.classList.contains("hb-hidden")){const r=hb.getBoundingClientRect();if(r.bottom>0)t=Math.max(t,r.bottom);}const o=t;
+  const p=$(".dnav.pin");if(p){const r=p.getBoundingClientRect();if(r.top<=o+1)t=Math.max(t,r.bottom);}
   const j=$(".jump");if(j&&getComputedStyle(j).position==="sticky"){const r=j.getBoundingClientRect();if(r.top<=parseFloat(getComputedStyle(j).top||0)+1)t=Math.max(t,r.bottom);}
   return t;}
 function hsWrap(el){let w=el.parentElement&&el.parentElement.classList.contains("hsw")?el.parentElement:null;
@@ -2439,7 +2511,7 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
   else if(h==="teams"||h.startsWith("team-")){$("#app").innerHTML=viewTeams();$("#sheetname").textContent="2026 TEAMS";setNav("teams");document.title="2026 Teams · Track Almanac";if(h.startsWith("team-")){const k=teamByKey(h.slice(5));if(k)openTeam(k);}}
   else if(h==="championship"){$("#app").innerHTML=viewChampionship();drawCharts();{const l=$("#cstl");if(l){const f=()=>l.parentElement.classList.toggle("end",l.scrollTop+l.clientHeight>=l.scrollHeight-4);l.addEventListener("scroll",f,{passive:true});f();}}$("#sheetname").textContent="2026 CHAMPIONSHIP · POINTS";setNav("championship");}
   else if(h.startsWith("detail-")){const [nn,jk]=h.slice(7).split("-");const n=+nn;lapSel=new Set();$("#app").innerHTML=viewDetail(n);drawLapChart();if(jk)jumpTo(jk);const r=RACES.find(x=>x.r===n);$("#sheetname").textContent=r?`R${n} · ${r.gp.toUpperCase()}`:"";setNav("season");}
-  else{$("#app").innerHTML=viewSeason();tower("d");countdown();$("#sheetname").textContent="2026 WORLD CHAMPIONSHIP";setNav("season");
+  else{PC.sig="";$("#app").innerHTML=viewSeason();tower("d");countdown();pcardFirebase();$("#sheetname").textContent="2026 WORLD CHAMPIONSHIP";setNav("season");
     if(h.startsWith("race-"))openRace(+h.slice(5));}
   {const app=$("#app"),t1=h1Text(h);if(t1&&!app.querySelector("h1"))app.insertAdjacentHTML("afterbegin",`<h1 class="sr">${esc(t1)}</h1>`);}
   if(PATHMODE&&NAVD){document.title=pageTitle(h);const c=document.querySelector('link[rel="canonical"]');if(c)c.href=location.origin+location.pathname;}
@@ -2451,17 +2523,50 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
 function cdParts(ms,sm){let s=Math.max(0,Math.floor(ms/1000));const v=[Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60];
   return v.map((n,i)=>(sm&&i===0&&!n)?"":`<b>${String(n).padStart(2,"0")}</b><i>${["d","h","m","s"][i]}</i>`).join("");}
 function countdown(){const box=$("#cdx");if(!box)return;const S=SCHED[nextRace.r]?SCHED[nextRace.r][1]:[["Grand Prix",nextRace.start,0]];
-  const lab=n=>n==="Grand Prix"?"Race":n;
+  const lab=n=>n==="Grand Prix"?"Race":n;let sig="";
+  const lights=on=>`<span class="lgt${on?"":" off"}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>`;
   const tick=()=>{const now=Date.now(),end=x=>Date.parse(x[1])+(x[2]||120)*60000;
     const live=S.find(x=>now>=Date.parse(x[1])&&now<end(x)),nxt=S.find(x=>Date.parse(x[1])>now),gp=S.find(x=>x[0]==="Grand Prix")||S[S.length-1];
-    let h="";
-    if(live)h+=`<div class="cdrow live"><span class="lbl"><span class="pulse"></span>Live now</span><b class="cdname">${esc(lab(live[0]))}</b><span class="when">Ends about ${tfmt(new Date(end(live)).toISOString(),null,{hour:"2-digit",minute:"2-digit"})} your time</span></div>`;
-    if(nxt&&nxt[0]!=="Grand Prix")h+=`<div class="cdrow ses"><span class="lbl">Next session in</span><b class="cdname">${esc(lab(nxt[0]))}</b><div class="cd">${cdParts(Date.parse(nxt[1])-now,true)}</div><span class="when">${tfmt(nxt[1],null)} your time</span></div>`;
-    if(now<Date.parse(gp[1]))h+=`<div class="cdrow gp"><span class="lbl">Lights out in</span><div class="cd">${cdParts(Date.parse(gp[1])-now)}</div><span class="when">${tfmt(gp[1],null)} your time</span></div>`;
-    else if(!live)h+=`<div class="cdrow gp"><span class="lbl">Grand Prix</span><b class="cdname">Chequered flag</b><span class="when">Results will appear here shortly.</span></div>`;
-    box.innerHTML=h;
+    const gs=Date.parse(gp[1]),raceLive=now>=gs&&now<gs+3*3600e3&&!nextRace.res;     /* RACE LIVE until the result is in, 3 h at most */
+    const rows=[];
+    if(live&&!(raceLive&&live===gp))rows.push(["live",`<div class="cdrow live"><span class="lbl"><span class="pulse"></span>Live now</span><b class="cdname">${esc(lab(live[0]))}</b><span class="when">Ends about ${tfmt(new Date(end(live)).toISOString(),null,{hour:"2-digit",minute:"2-digit"})} your time</span></div>`]);
+    if(nxt&&nxt[0]!=="Grand Prix")rows.push(["ses"+nxt[0],`<div class="cdrow ses"><span class="lbl">Next session in</span><b class="cdname">${esc(lab(nxt[0]))}</b><div class="cd" data-cdt="${Date.parse(nxt[1])}" data-sm="1">${cdParts(Date.parse(nxt[1])-now,true)}</div><span class="when">${tfmt(nxt[1],null)} your time</span></div>`]);
+    if(now<gs)rows.push(["gp",`<div class="cdrow gp"><div class="lgtrow"><span class="lgo">Lights out in</span>${lights(true)}</div><div class="cd" data-cdt="${gs}">${cdParts(gs-now)}</div><span class="when">${tfmt(gp[1],null)} your time</span></div>`]);
+    else if(raceLive)rows.push(["racelive",`<div class="cdrow gp rlive"><div class="lgtrow"><span class="lgo">Race live</span>${lights(false)}</div><span class="when">Lights went out ${tfmt(gp[1],null,{hour:"2-digit",minute:"2-digit"})} your time. Results here after the chequered flag.</span></div>`]);
+    else if(!live)rows.push(["flag",`<div class="cdrow gp"><span class="lbl">Grand Prix</span><b class="cdname">Chequered flag</b><span class="when">Results will appear here shortly.</span></div>`]);
+    const k=rows.map(r=>r[0]).join("|");
+    /* rebuild only when the rows change, so the start lights keep running; otherwise just the numbers */
+    if(k!==sig){sig=k;box.innerHTML=rows.map(r=>r[1]).join("");}
+    else box.querySelectorAll("[data-cdt]").forEach(el=>{const v=cdParts(+el.dataset.cdt-now,!!el.dataset.sm);if(el.innerHTML!==v)el.innerHTML=v;});
+    pcardTick(now);
     document.querySelectorAll(".nxs .nr[data-t]").forEach(r=>{const a=+r.dataset.t,e=a+(+r.dataset.d)*60000;r.classList.toggle("past",now>=e);r.classList.toggle("live",now>=a&&now<e);r.classList.toggle("nextup",!!nxt&&!live&&a===Date.parse(nxt[1]));});};
   tick();t=setInterval(tick,1000);}
+/* ---- home: the Predictor card beside the next race ---- */
+const PNAME={lusail:"Qatar",miami:"Miami",catalunya:"Barcelona",rbring:"Austria",spa:"Spa",hungaro:"Hungary",sepang:"Sepang",albert:"Melbourne",monaco:"Monaco",yas:"Abu Dhabi",interlagos:"São Paulo",cota:"Austin",mexico:"Mexico City",vegas:"Las Vegas"};
+const pName=r=>{const R=RACES.find(x=>x.r===r);return R?(PNAME[R.track]||R.city):"";};
+const PC={sig:"",pick:undefined,pts:undefined,uid:null};
+const pcard=()=>`<aside class="pcard" data-pcard aria-live="polite"></aside>`;
+function pcardBody(now){const st=predState(now),signed=gameOn()&&GS.user&&GS.profile;
+  if(st.s==="off"||!st.s)return ["off",`<span class="lbl">Track Almanac Predictor</span><h3>Predictor returns in 2027</h3><p>Thanks for playing this season. <a href="${H("game-lb")}" data-go="game-lb">Final leaderboard →</a></p>`];
+  if(st.s==="live")return ["live",`<span class="lbl">Track Almanac Predictor · ${esc(pName(st.r.r))}</span><h3>Picks locked</h3><p>Results after the race.${signed?(PC.pick===true?" Your picks are in ✓":PC.pick===false?" You didn't pick this time.":""):""}</p><a class="pcbtn ghost" href="${H("game-lb")}" data-go="game-lb">Leaderboard →</a>`];
+  if(st.s==="results")return ["results"+(PC.pts==null?"":PC.pts),`<span class="lbl">Track Almanac Predictor · ${esc(pName(st.r.r))}</span><h3>${esc(pName(st.r.r))}: the scores are in</h3>${signed&&PC.pts!=null?`<p class="pcpts"><b>${PC.pts}</b> point${PC.pts===1?"":"s"} for you</p>`:""}<a class="pcbtn" href="${H("game-lb")}" data-go="game-lb">See how everyone scored →</a>${st.next?`<p class="pcnext">Next: <a href="${H("game-picks")}" data-go="game-picks">make your picks for ${esc(pName(st.next.r))} →</a></p>`:""}`];
+  const mine=signed?(PC.pick===true?`<p class="pcst ok">Your picks are in ✓</p>`:PC.pick===false?`<p class="pcst">You haven't picked yet</p>`:""):"";
+  return ["open"+(signed?PC.pick:""),`<span class="lbl">Track Almanac Predictor</span><h3>Who wins in ${esc(pName(st.r.r))}? <em>Make your picks</em></h3>
+    <p>Pick your top 5 and pole · Picks close in</p><div class="cd" data-pcd="${st.lock.getTime()}">${pcdParts(st.lock.getTime()-now)}</div>${mine}
+    <a class="pcbtn" href="${H("game-picks")}" data-go="game-picks">${PC.pick===true&&signed?"Change your picks →":"Make your picks →"}</a>`];}
+function pcdParts(ms){let m=Math.max(0,Math.floor(ms/60000));const v=[Math.floor(m/1440),Math.floor(m%1440/60),m%60];return v.map((n,i)=>(i===0&&!n)?"":`<b>${i?String(n).padStart(2,"0"):n}</b><i>${["d","h","m"][i]}</i>`).join("");}
+function pcardTick(now){const els=document.querySelectorAll("[data-pcard]");if(!els.length)return;const [k,h]=pcardBody(now);
+  if(k!==PC.sig){PC.sig=k;els.forEach(el=>el.innerHTML=h);}
+  else els.forEach(el=>{const c=el.querySelector("[data-pcd]");if(c){const v=pcdParts(+c.dataset.pcd-now);if(c.innerHTML!==v)c.innerHTML=v;}});}
+/* signed-in status: Firebase loads on the home page only, after the page has fully loaded */
+function pcardFirebase(){if(!gameOn()||curKey()!=="season")return;
+  const go=()=>setTimeout(()=>{if(curKey()!=="season")return;gFB().then(async({m,db})=>{for(let i=0;i<40&&GS.user===undefined;i++)await new Promise(r=>setTimeout(r,150));
+    for(let i=0;i<20&&GS.user&&GS.profile===undefined;i++)await new Promise(r=>setTimeout(r,150));
+    if(!GS.user||!GS.profile)return;const st=predState();try{
+      if(st.s==="open"||st.s==="live"){const s=await m.getDoc(m.doc(db,"picks",`${st.r.r}_${GS.user.uid}`));PC.pick=s.exists();}
+      if(st.s==="results"){const s=await m.getDoc(m.doc(db,"scores",`${st.r.r}_${GS.user.uid}`));PC.pts=s.exists()?s.data().points:null;}}catch(e){}
+    PC.sig="";pcardTick(Date.now());}).catch(()=>{});},300);
+  if(document.readyState==="complete")go();else addEventListener("load",go,{once:true});}
 document.addEventListener("click",e=>{
   if(gClick(e))return;
   {const A=e.target.closest("a[data-go],a[data-detail],a[data-year],a[data-driver],a[data-team]");if(A){if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||e.button>0)return;e.preventDefault();}}
@@ -2562,3 +2667,4 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$(".moremenu")&&!$(
 if(PATHMODE){window.addEventListener("popstate",()=>{NAVD=true;route();});window.addEventListener("hashchange",()=>{if(location.pathname==="/"&&isLegacy(location.hash.slice(1)))route();});}else window.addEventListener("hashchange",route);
 route();
 consentBanner();
+maybeSetNote();
