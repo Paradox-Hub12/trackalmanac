@@ -24,7 +24,7 @@ jobs:
     env:
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: pip install --quiet --disable-pip-version-check firebase-admin
       - name: Publish the Firestore security rules
         run: python3 scripts/firebase_tasks.py deploy-rules

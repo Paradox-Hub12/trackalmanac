@@ -1612,7 +1612,12 @@ function gRerender(){const k=curKey();if(gKeys.includes(k))gameRoute(k,true);}
 function gLock(r){const s=SCHED[String(r)];if(!s)return null;const q=s[1].find(x=>x[0]==="Qualifying");return q?new Date(q[1]):null;}
 function gRounds(){return RACES.map(r=>({r:r.r,gp:r.gp.replace(" (Sepang)",""),short:r.short,days:r.days,lock:gLock(r.r),done:!!(SEASON[String(r.r)]&&(SEASON[String(r.r)].race||[]).length)})).filter(x=>x.lock);}
 function gNext(){const now=Date.now();return gRounds().find(x=>x.lock.getTime()>now)||null;}
-function gCars(){const m={};Object.values(BIO).forEach(b=>{if(b.num!=null){const d=DRIVERS.find(x=>sur(x[0]).toLowerCase()===String(b.last).toLowerCase());m[b.num]={n:b.num,name:d?d[0]:b.name,last:b.last,team:d?d[2]:"",iso:b.iso2,pos:d?DRIVERS.indexOf(d):99};}});
+const gKey=n=>String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+function gCars(){const m={},full=n=>DRIVERS.find(x=>gKey(sur(x[0]))===gKey(n));
+  Object.values(BIO).forEach(b=>{if(b.num!=null){const d=full(b.last);m[b.num]={n:b.num,name:d?d[0]:b.name,last:b.last,team:d?d[2]:"",iso:b.iso2,pos:d?DRIVERS.indexOf(d):99};}});
+  /* stand-ins (e.g. a driver who replaced someone for a few rounds): after the 22 regulars, full name from DRIVERS */
+  Object.keys(SEASON).sort((a,b)=>a-b).forEach(r=>{const S=SEASON[r];[...(S.race||[]),...(S.quali||[])].forEach(row=>{const n=+row[1];if(!n||m[n])return;const last=String(row[2]).split(" ").pop(),d=full(last);
+    m[n]={n,name:d?d[0]:String(row[2]),last,team:d?d[2]:"",pos:1000+n,standin:true};});});
   return Object.values(m).sort((a,b)=>a.pos-b.pos||a.n-b.n);}
 function gCar(n){return gCars().find(c=>c.n===n)||{n,name:"#"+n,last:"#"+n,team:""};}
 const gTime=d=>d.toLocaleString(undefined,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",hour12:CLOCK==="12"});
@@ -1689,7 +1694,7 @@ function gPicksView(){const head=gHead("game-picks","My picks","");
      <span class="gmsg" role="status">${esc(GS.ask?"":GS.msg||(GS.pick&&GS.pick._saved?"Saved "+(GS.pick._savedAt||""):""))}</span></div>
    ${!ready&&GS.ask?gSignin("Sign in, or play as a guest, to save these picks"):""}
    <p class="note2 ghint">${GS.sel===5?"Now choose the pole sitter.":`Choose your P${GS.sel+1}.`} Tap a driver, or drag one onto a slot. Tap a filled slot to select it, tap again to clear it.${ready?"":" You can make your picks now and sign in when you save them."}</p>
-   <div class="gdrivers" role="list">${cars.map(c=>`<button type="button" class="gdrv${used.has(c.n)?" used":""}${P.pole===c.n?" ispole":""}" role="listitem" data-gcar="${c.n}" style="--tc:${tcol(c.team)}"><span class="gnum">${c.n}</span><b>${esc(c.last)}</b><small>${esc(c.team)}</small>${used.has(c.n)?`<i class="gin">P${P.top5.indexOf(c.n)+1}</i>`:""}${P.pole===c.n?`<i class="gpl">Pole</i>`:""}</button>`).join("")}</div>`}
+   <div class="gdrivers" role="list">${cars.map(c=>`<button type="button" class="gdrv${used.has(c.n)?" used":""}${P.pole===c.n?" ispole":""}" role="listitem" data-gcar="${c.n}" title="${esc(c.name)}${c.standin?" (stand-in)":""}" style="--tc:${tcol(c.team)}"><span class="gnum">${c.n}</span><b>${esc(c.last)}</b><small>${esc(c.team)}${c.standin?" · stand-in":""}</small>${used.has(c.n)?`<i class="gin">P${P.top5.indexOf(c.n)+1}</i>`:""}${P.pole===c.n?`<i class="gpl">Pole</i>`:""}</button>`).join("")}</div>`}
   </div></div>`;}
 function gLbView(){return `${gHead("game-lb","Leaderboard","Season standings and every race. Tables update after each Grand Prix.")}<div class="gcard"><div class="glbsel"><label class="lbl" for="glbr">Table</label><select id="glbr"><option value="">Season ${GAMECFG.season||2026}</option>${gRounds().filter(x=>x.done).reverse().map(x=>`<option value="${x.r}">R${x.r} · ${esc(x.gp)}</option>`).join("")}</select></div><div id="glbt"><p class="note2">Loading…</p></div></div>
   <p class="note2">Names that break the rules can be reported: use the flag next to a name, or write to <a href="mailto:${esc(GMAIL())}">${esc(GMAIL())}</a>.</p></div>`;}

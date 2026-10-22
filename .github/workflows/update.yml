@@ -35,7 +35,7 @@ jobs:
       BACKFILL: ${{ inputs.backfill && '--backfill' || '' }}
       HAS_FIREBASE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install the Predictor scorer
         if: env.SELFTEST == '' && env.HAS_FIREBASE == 'true'

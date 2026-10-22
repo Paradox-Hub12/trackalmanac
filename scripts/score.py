@@ -183,7 +183,8 @@ def run_firebase(D, now=None):
         rnd = R["r"]; lock = G.lock_at(D, rnd)
         if not lock: continue
         status = "scored" if G.official(D, rnd) else ("locked" if now >= lock else "open")
-        want = {"round": rnd, "gp": R["gp"], "lockAt": lock, "status": status, "cars": sorted(allowed), "drivers": {str(k): v for k, v in allowed.items()}}
+        want = {"round": rnd, "gp": R["gp"], "lockAt": lock, "status": status, "cars": sorted(allowed), "drivers": {str(k): v for k, v in allowed.items()},
+                "standins": G.standins(D)}
         if have.get(str(rnd)) != want:
             writes.append(("rounds", str(rnd), want)); print("rounds/%d: lock %s, %s" % (rnd, lock.isoformat(), status))
 

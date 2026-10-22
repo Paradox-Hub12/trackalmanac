@@ -3,7 +3,7 @@
 Each Grand Prix a player picks the top five finishers in order and the pole sitter.
 Exact matches only: P1 5, P2 3, P3 2, P4 1, P5 1, pole 3 (15 for a perfect weekend).
 """
-import datetime, hashlib, json
+import datetime, hashlib, json, unicodedata
 
 SEASON = 2026
 SLOT_POINTS = [5, 3, 2, 1, 1]
@@ -36,18 +36,25 @@ def official(D, rnd):
 
 
 def cars(D, rnd=None):
-    """Car numbers a player may pick, with names: every driver in BIO, plus anyone who has
-    taken part this season (stand-ins), from the latest classification."""
-    out = {}
-    full = {d[0].split()[-1].lower(): d[0] for d in (D.get("DRIVERS") or [])}
+    """Car numbers a player may pick, with full names: the 22 regular drivers (BIO) first, by number,
+    then anyone who has stood in this season (from the classifications), by number."""
+    key = lambda n: "".join(c for c in unicodedata.normalize("NFD", str(n)) if not unicodedata.combining(c)).lower()
+    full = {key(d[0].split()[-1]): d[0] for d in (D.get("DRIVERS") or [])}
+    reg, extra = {}, {}
     for b in (D.get("BIO") or {}).values():
-        if b.get("num") is not None: out[int(b["num"])] = full.get(str(b.get("last", "")).lower()) or b.get("name") or b.get("last")
+        if b.get("num") is not None: reg[int(b["num"])] = full.get(key(b.get("last", ""))) or b.get("name") or b.get("last")
     for r, S in sorted((D.get("SEASON") or {}).items(), key=lambda kv: int(kv[0])):
         for row in (S.get("race") or []) + (S.get("quali") or []):
             try: n = int(row[1])
             except (TypeError, ValueError): continue
-            out.setdefault(n, row[2])
-    return dict(sorted(out.items()))
+            if n not in reg: extra.setdefault(n, full.get(key(str(row[2]).split()[-1])) or row[2])
+    return dict(sorted(reg.items()) + sorted(extra.items()))
+
+
+def standins(D):
+    """Car numbers in cars() that are not regular drivers."""
+    reg = {int(b["num"]) for b in (D.get("BIO") or {}).values() if b.get("num") is not None}
+    return [n for n in cars(D) if n not in reg]
 
 
 def valid_pick(pick, allowed):
