@@ -1066,6 +1066,10 @@ body.fs-lock{overflow:hidden}
 .tcard .th .ps{text-align:right;font-family:var(--f-display);font-weight:900;font-size:30px;line-height:1}
 .tcard .th .ps small{display:block;font-family:var(--f-data);font-size:10px;font-weight:400;color:var(--ink-3);letter-spacing:.1em}
 .tcard .ent{padding:0 14px;font-size:12.5px;color:var(--ink-3)}
+.tcard .tcar{margin-top:8px;padding:4px 10px 0;background:linear-gradient(180deg,transparent 15%,color-mix(in srgb,var(--tc) 26%,transparent));border-bottom:1px solid color-mix(in srgb,var(--tc) 45%,transparent)}
+.tcard .tcar img{display:block;width:100%;height:auto;transition:transform .35s ease}
+.tcard:hover .tcar img,.tcard:focus-visible .tcar img{transform:translateX(6px)}
+@media (prefers-reduced-motion:reduce){.tcard .tcar img{transition:none}.tcard:hover .tcar img{transform:none}}
 .tcard .duo{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px}
 .tcard .duo div{display:flex;align-items:center;gap:8px;min-width:0}
 .tcard .duo img{width:46px;height:46px;object-fit:cover;object-position:top;background:var(--tc);flex:none}
@@ -1114,6 +1118,10 @@ body.fs-lock{overflow:hidden}
 .tcrest{display:flex;align-items:center;justify-content:center;min-height:200px;background:var(--tc);position:relative;overflow:hidden}
 .tcrest b{font-family:var(--f-display);font-weight:900;font-size:clamp(34px,5vw,50px);max-width:100%;white-space:nowrap;position:relative;text-transform:uppercase;color:#fff;text-shadow:0 3px 18px rgba(0,0,0,.45);line-height:.85;text-align:center;padding:10px}
 .tcrest b small{display:block;font-family:var(--f-data);font-size:11px;letter-spacing:.16em;font-weight:400;text-shadow:none;margin-bottom:6px}
+.tcrest.hascar{flex-direction:column;gap:6px;padding:16px 12px 12px}
+.tcrest.hascar b{font-size:clamp(26px,3.4vw,36px);padding:0}
+.tcrest img{position:relative;display:block;width:100%;height:auto;filter:drop-shadow(0 10px 12px rgba(0,0,0,.35))}
+@media (min-width:641px){.modal .mhero:has(.tcrest.hascar){grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
 .tcrest::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(0,0,0,.12) 0 2px,transparent 2px 14px)}
 .dsort{display:flex;gap:0;border:1px solid var(--rule-2)}
 .dsort button{background:none;border:0;padding:6px 10px;cursor:pointer;font-family:var(--f-data);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}

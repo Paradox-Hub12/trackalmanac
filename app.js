@@ -1138,6 +1138,7 @@ function teamStats26(team){const o={wins:0,pod:0,poles:0,onetwo:0,best:null};
     if(ps.includes(1)&&ps.includes(2))o.onetwo++;
     const q=(S.quali||[])[0];if(q&&teamAt(q[2],r.r)===team)o.poles++;});
   return o;}
+const carSrc=team=>{const k=(TEAMBIO[team]||{}).key;return k&&typeof CARS!=="undefined"&&CARS[k]||"";};
 const pimg=(code3,alt)=>PORTRAIT[code3]?`<img src="${PORTRAIT[code3]}" alt="${esc(alt)}" loading="lazy">`:"";
 let driverSort="team";try{driverSort=localStorage.getItem("ta-dsort")||"team";}catch(e){}
 function driverCard(d){const b=bioOf(d[0]),i=DRIVERS.indexOf(d),[fn,ln]=nameParts(d[0]);
@@ -1158,6 +1159,7 @@ function teamCard(c,i){const [team,pts]=c,tb=TEAMBIO[team]||{},ds=grid26.filter(
   return `<a class="tcard" href="${H("team-"+(tb.key||""))}" data-team="${esc(team)}" style="--tc:${tcol(team)}"><div class="tbar"></div>
    <div class="th"><div><span class="lbl">P${i+1} · Constructors</span><h3>${esc(tb.name||team)}</h3></div><div class="ps">${pts}<small>PTS</small></div></div>
    <div class="ent"><span>${esc(tb.entry||"")}</span>${TEAMNAT[team]?`<span class="ctry">${TEAMNAT[team][1]}${flagOf(TEAMNAT[team][0],"big")}</span>`:""}</div>
+   ${carSrc(team)?`<div class="tcar"><img src="${carSrc(team)}" alt="" loading="lazy" decoding="async" width="600" height="128"></div>`:""}
    <div class="duo">${ds.map(d=>{const b=bioOf(d[0]);return `<div>${pimg(b.code,d[0])}<span>${esc(nameParts(d[0])[0])}<b>${esc(sur(d[0]))}</b></span></div>`;}).join("")}</div>
    <div class="tf"><div><span class="lbl">Chassis</span><b>${esc(tb.chassis||"—")}</b></div><div><span class="lbl">Power unit</span><b>${esc(tb.power||"—")}</b></div><div><span class="lbl">Titles</span><b>${tb.constructors_titles??"—"}</b></div></div></a>`;}
 function viewTeams(){return `<div class="pagehead"><div><span class="lbl">2026 Formula 1 World Championship</span><h2 class="h1">Teams</h2>
@@ -1221,7 +1223,8 @@ function openTeam(team){const tb=TEAMBIO[team];if(!tb)return;
   const pv=i>0?`<button class="navbtn" data-team="${esc(seq[i-1])}">← ${esc((TEAMBIO[seq[i-1]]||{}).name||seq[i-1])}</button>`:`<span></span>`;
   const nx=i<seq.length-1?`<button class="navbtn" data-team="${esc(seq[i+1])}">${esc((TEAMBIO[seq[i+1]]||{}).name||seq[i+1])} →</button>`:`<span></span>`;
   const ds=grid26.filter(d=>d[2]===team);
-  const inner=`<div class="mhero"><div class="tcrest"><b><small>2026 car</small>${esc(tb.chassis)}</b></div>
+  const car=carSrc(team);
+  const inner=`<div class="mhero"><div class="tcrest${car?" hascar":""}"><b><small>2026 car</small>${esc(tb.chassis)}</b>${car?`<img src="${car}" alt="${esc(tb.name||team)} 2026 car, the ${esc(tb.chassis)}" decoding="async" width="600" height="128">`:""}</div>
    <div class="tx"><span class="lbl">P${ci+1} in 2026 · ${pts} pts</span><h2><small>${esc(tb.entry)}</small>${esc(tb.name)}</h2>
     <div style="color:var(--ink-2)">${TEAMNAT[team]?`<span class="ctry2">${flagOf(TEAMNAT[team][0],"big")}${TEAMNAT[team][1]}</span> · `:""}${esc(tb.base)}</div></div></div>
   <div class="mb">
