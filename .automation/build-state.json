@@ -127,24 +127,24 @@
  ],
  "pages": {
   "/": {
-   "hash": "c08462f1797633abcde387fe89f7aeffcb7e3673",
-   "lastmod": "2026-10-22"
+   "hash": "9d1a0c0df551b708b8283c83a39c18253631e78c",
+   "lastmod": "2026-10-25"
   },
   "/championship/": {
-   "hash": "a56a6bc7abd725bb81938a88e7cc3b935cd6a306",
+   "hash": "da2d57db8d8cc68340b381e7d0018ab1d297f2e8",
    "lastmod": "2026-10-25"
   },
   "/drivers/": {
-   "hash": "2a277831ffbbe3b278782b31e26e719de132fdad",
-   "lastmod": "2026-10-11"
+   "hash": "39572d21a49819d5e2cdb83a57f98fae85d1e6b6",
+   "lastmod": "2026-10-25"
   },
   "/teams/": {
-   "hash": "6b1fb6ce1709781836032212ba8bb4cff9666b65",
-   "lastmod": "2026-10-11"
+   "hash": "29a0d53fe3a0a427e3ed5d8e67ab3a45dd02cc3c",
+   "lastmod": "2026-10-25"
   },
   "/calendar/": {
-   "hash": "fc4874ed9b4fb11997e262654cb28e6434676bf5",
-   "lastmod": "2026-10-11"
+   "hash": "f49ae3071ac6135570e128edaa350882a0aee280",
+   "lastmod": "2026-10-25"
   },
   "/races/2026/australia/": {
    "hash": "232406087e5ca18f8cb3ccae28ba4a1595a828d3",
@@ -215,7 +215,7 @@
    "lastmod": "2026-10-22"
   },
   "/races/2026/usa/": {
-   "hash": "4eb7095be0e11ce7506c154c552aad4408c92da7",
+   "hash": "9fa3413a997f4f1339e80e9f666baed5a613a695",
    "lastmod": "2026-10-25"
   },
   "/races/2026/mexico/": {
@@ -239,20 +239,20 @@
    "lastmod": "2026-10-22"
   },
   "/history/": {
-   "hash": "43bf8e41f59dc7157fb35ffd1558b1f928a25d8b",
-   "lastmod": "2026-10-20"
+   "hash": "b21125853a8fcacea9c566b2b26ad6a58cb0af2d",
+   "lastmod": "2026-10-25"
   },
   "/history/circuits/": {
-   "hash": "1ebb21bb92941e02df440cd4f6c17f5b524d111d",
-   "lastmod": "2026-10-20"
+   "hash": "2acf33d43e1de93d7989cffc26bbcdc7e6372820",
+   "lastmod": "2026-10-25"
   },
   "/history/regulations/": {
    "hash": "120f719baa438a3f7417bfc96a2e5e230ad70e27",
    "lastmod": "2026-10-21"
   },
   "/history/constructors/": {
-   "hash": "02d851c42226528d8297ec94e57bc4db758b3c79",
-   "lastmod": "2026-10-20"
+   "hash": "694ee43c96b96c6f7ed8aef6c9b580862c0b910f",
+   "lastmod": "2026-10-25"
   },
   "/archive/": {
    "hash": "0fba4e458b3c36f0b0c34261d1239919724a390e",
@@ -263,7 +263,7 @@
    "lastmod": "2026-10-19"
   },
   "/archive/2026/": {
-   "hash": "2f1498b93600460679b74400329a2df2a7944622",
+   "hash": "df8ce7f6c112fb5ad7c8a4781dd113b94e35a4f0",
    "lastmod": "2026-10-25"
   },
   "/archive/2025/": {
@@ -583,8 +583,8 @@
    "lastmod": "2026-10-21"
   },
   "/game/leaderboard/": {
-   "hash": "2c00d37561ded43bb220081e23e8dea3c18f4e78",
-   "lastmod": "2026-10-21"
+   "hash": "a1426fb0c4ba3f31d71533658be590daf0a6c793",
+   "lastmod": "2026-10-25"
   },
   "/game/picks/": {
    "hash": "b447b2fe979a37ccee0187cbfc7882aa0a1d805e",
