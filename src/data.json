@@ -9774,13 +9774,13 @@
     [13, 87, "Bearman"],
     [14, 41, "Lindblad"],
     [15, 31, "Ocon"],
-    [16, 18, "Stroll"],
-    [17, 55, "Sainz"],
-    [18, 23, "Albon"],
-    [19, 11, "Perez"],
-    [20, 77, "Bottas"],
-    [21, 43, "Colapinto"],
-    [22, 5, "Bortoleto"]
+    [16, 55, "Sainz"],
+    [17, 23, "Albon"],
+    [18, 11, "Perez"],
+    [19, 77, "Bottas"],
+    [20, 43, "Colapinto"],
+    [21, 5, "Bortoleto"],
+    ["PL", 18, "Stroll"]
    ],
    "tyres": "234",
    "race": [
@@ -9798,7 +9798,7 @@
     ["12", 41, "Lindblad", 55, "+1 lap", 0, 14],
     ["13", 5, "Bortoleto", 55, "+1 lap", 0, 21],
     ["14", 31, "Ocon", 55, "+1 lap", 0, 15],
-    ["15", 18, "Stroll", 55, "+1 lap", 0, 22],
+    ["15", 18, "Stroll", 55, "+1 lap", 0, "PL"],
     ["16", 14, "Alonso", 55, "+1 lap", 0, 12],
     ["17", 23, "Albon", 55, "+1 lap", 0, 17],
     ["18", 55, "Sainz", 55, "+1 lap", 0, 16],
@@ -11023,7 +11023,7 @@
   "15": "Alonso (30 places) and Stroll (20 places): power unit penalties. Sainz: 5 places for not slowing for yellow flags. Pérez: 3 places for impeding.",
   "16": "Colapinto: 5 places for causing a collision at the previous round plus 10 for power unit elements. Lindblad: 30 places and Hadjar: 5 places for power unit elements.",
   "17": "Russell starts from the back after a 40-place grid penalty for using additional power unit elements. Alonso starts from the pit lane after Aston Martin changed his turbocharger under parc fermé. Stroll starts from the pit lane for a parc fermé breach, as his car was still uncovered in the garage after the post-qualifying time limit. Hadjar starts from the pit lane after Red Bull changed his engine, exhaust and turbocharger; he had set no time in qualifying.",
-  "18": "Lindblad drops five places from ninth to 14th for using a sixth internal combustion engine. Colapinto takes a 10-place grid penalty for a fourth control electronics unit and starts 21st. Bortoleto starts from the back after Audi fitted a completely new power unit, including his fourth energy store and control electronics."
+  "18": "Lindblad drops five places from ninth to 14th for using a sixth internal combustion engine. Colapinto takes a 10-place grid penalty for a fourth control electronics unit and starts 20th. Bortoleto starts from the back of the grid after Audi fitted a completely new power unit, including his fourth energy store and control electronics. Stroll starts from the pit lane after Aston Martin changed his power unit and set-up and repaired damage under parc fermé."
  },
  "SCHED": {
   "17": [
