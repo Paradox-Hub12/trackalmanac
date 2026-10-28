@@ -6940,7 +6940,8 @@
     "time": "1:35:16.650",
     "pod": [["Kimi Antonelli", "Winner"], ["Charles Leclerc", "+13.078s"], ["Max Verstappen", "+17.485s"]],
     "pole": "Kimi Antonelli",
-    "fl": ["Charles Leclerc", "1:37.976", 42, 202.568]
+    "fl": ["Charles Leclerc", "1:37.976", 42, 202.568],
+    "cls": "Antonelli converted pole into his ninth win of the season, leading from the start on a one-stop, medium-to-hard strategy. Leclerc took second on a two-stop, passing Verstappen late on, while Verstappen recovered from a slow getaway to third. Russell, given a five-second penalty for a clash with Piastri, finished eighth, and Bortoleto climbed from the back of the grid to 13th. Antonelli now leads by 123 points: he is champion in Mexico unless Russell wins there with Antonelli 10th or lower, or Hamilton wins with Antonelli out of the points."
    }
   },
   {
@@ -9832,7 +9833,8 @@
     "43": [["H", 1, 30, 0], ["S", 31, 35, 0]],
     "87": [["S", 1, 13, 0], ["H", 14, 22, 0], ["M", 23, 24, 0]]
    },
-   "wxm": [[26.9, 29.9, 38.8, 43.2, 0, 5.5], [26.7, 29.9, 36.3, 42.8, 0, 5.6], [26.6, 27.6, 34.1, 39.3, 0, 3.9]]
+   "wxm": [[26.9, 29.9, 38.8, 43.2, 0, 5.5], [26.7, 29.9, 36.3, 42.8, 0, 5.6], [26.6, 27.6, 34.1, 39.3, 0, 3.9]],
+   "wxnote": "Dry and warm all weekend, with no rain: air 27–30°C and track up to 43°C on Friday; race day was a little cooler, with track temperatures up to 39°C."
   },
   "19": {"tyres": "345"},
   "20": {"tyres": "345"}
