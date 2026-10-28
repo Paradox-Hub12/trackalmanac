@@ -2286,27 +2286,41 @@ function champTop(st){const L=DRIVERS,lead=L[0],wins=Object.fromEntries(st.map(z
 function titleWatch(wins){const L=DRIVERS,lead=L[0],first=lead[0].split(" ")[0];
   const left=RACES.filter(r=>!r.res),sprintLeft=left.filter(r=>r.sprint===true).length;
   const maxLeft=left.length*25+sprintLeft*8;
-  const rivals=L.slice(1).filter(d=>lead[3]-d[3]<=maxLeft);
+  const lw0=wins[lead[0]]||0,tieOk=d=>(wins[d[0]]||0)+left.length<lw0;
+  const rivals=L.slice(1).filter(d=>lead[3]-d[3]<maxLeft||(lead[3]-d[3]===maxLeft&&!tieOk(d)));
   const nm=d=>esc(sur(d[0]));
   if(!left.length||!rivals.length){return `<div class="tw2"><p class="tbig">${esc(lead[0])} is the ${2026} world champion.</p><p>${left.length?`With ${maxLeft} points left, nobody can catch him.`:"The season is over."}</p></div>`;}
   const after=k=>left.slice(k+1).reduce((a,r)=>a+25+(r.sprint===true?8:0),0);
   /* a rival allowed at most `pts` points: where he must finish */
   const posTxt=pts=>pts<1?"outside the points":`${ordinal(GPPTS.findIndex(v=>v<=pts)+1)} or lower`;
-  /* next race: exact finishing conditions */
-  const r0=left[0],need0=after(0);
-  const p0=[];for(let k=0;k<GPPTS.length;k++){const P=GPPTS[k];const conds=rivals.map(d=>{const allow=P+lead[3]-d[3]-need0-1;return [d,allow];});
-    if(conds.some(([d,a])=>a<0))continue;const nextPts=GPPTS[k+1]??0;p0.push([k,conds.filter(([d,a])=>a<nextPts)]);}
-  const nextBlock=p0.length?`<p><b>Champion at the ${esc(r0.gp)}</b> (${esc(r0.days||"")}) if he finishes:</p><ul class="tws">${p0.map(([k,cs])=>`<li><b>${ordinal(k+1)}</b>${cs.length?`, with ${cs.map(([d,a])=>`${nm(d)} ${posTxt(a)}`).join(" and ")}`:" — whatever the others do"}</li>`).join("")}</ul>`
-    :`<p>He can't clinch it at the ${esc(r0.gp)}: even a win leaves ${nm(rivals.find(d=>25+lead[3]-d[3]-need0-1<0)||rivals[0])} in with a chance.</p>`;
+  /* a tie on points goes to the driver with more wins: if a rival can't reach the leader's win count, a tie is enough */
+  const lw=lw0,slack=d=>tieOk(d)?0:1;
+  /* rival allowed at most `a` points in the next race: how to say it */
+  const cond=cs=>{if(!cs.length)return "";const join=a=>a.length<3?a.join(" and "):a.slice(0,-1).join(", ")+" and "+a[a.length-1];
+    const winOnly=cs.filter(([d,a])=>a>=GPPTS[1]).map(([d])=>nm(d)),by={};
+    cs.filter(([d,a])=>a<GPPTS[1]).forEach(([d,a])=>{(by[posTxt(a)]=by[posTxt(a)]||[]).push(nm(d));});
+    const parts=[];if(winOnly.length)parts.push(`unless ${winOnly.length<3?winOnly.join(" or "):winOnly.slice(0,-1).join(", ")+" or "+winOnly[winOnly.length-1]} wins`);
+    const lim=Object.entries(by).map(([t,ns])=>`${join(ns)} ${ns.length>1?"finish":"finishes"} ${t}`);
+    if(lim.length)parts.push(`as long as ${join(lim)}`);return parts.join(", and ");};
+  /* next race: one row per group of finishing positions with the same conditions */
+  const r0=left[0],need0=after(0),rows0=[];
+  for(let k=0;k<=GPPTS.length;k++){const P=GPPTS[k]??0;const conds=rivals.map(d=>[d,P+lead[3]-d[3]-need0-slack(d)]);
+    if(conds.some(([d,a])=>a<0))continue;const best=k===0?GPPTS[1]:GPPTS[0];const txt=cond(conds.filter(([d,a])=>a<best));
+    const last=rows0[rows0.length-1];if(last&&last.txt===txt&&last.to===k-1)last.to=k;else rows0.push({from:k,to:k,txt});}
+  const finTxt=({from,to})=>to===GPPTS.length?(from===0?"Anywhere, even if he doesn't finish":from===to?"Finishes outside the points or retires":`Finishes ${ordinal(from+1)} or lower, or retires`)
+    :"Finishes "+(from===0?(to===0?"1st":`${ordinal(to+1)} or higher`):from===to?ordinal(from+1):`${ordinal(from+1)} to ${ordinal(to+1)}`);
+  const nextBlock=rows0.length?`<p><b>What ${esc(first)} needs at the ${esc(r0.gp)}</b> (${esc(r0.days||"")}):</p><ul class="tws">${rows0.map(r=>`<li><b>${finTxt(r)}</b> → champion${r.txt?` ${r.txt}`:""}</li>`).join("")}</ul>`
+    :`<p>He can't clinch it at the ${esc(r0.gp)}: even a win leaves ${nm(rivals.find(d=>25+lead[3]-d[3]-need0-slack(d)<0)||rivals[0])} with a chance.</p>`;
   /* the races after: lead he needs to hold */
+  const allTie=rivals.every(tieOk);
   const later=left.slice(1).map((r,j)=>{const k=j+1,need=after(k),span=left.slice(0,k+1).map(x=>esc(x.short));
-    const cs=rivals.map(d=>[d,lead[3]-d[3]-need-1]).filter(([d,a])=>a<25*(k+1)).sort((x,y)=>x[1]-y[1]).slice(0,2);
+    const cs=rivals.map(d=>[d,lead[3]-d[3]-need-slack(d)]).filter(([d,a])=>a<25*(k+1)).sort((x,y)=>x[1]-y[1]).slice(0,2);
     const over=span.length>2?`${span[0]} to ${span[span.length-1]}`:span.join(" and ");
-    return `<li><b>${esc(r.short)}</b><span>${need?`Lead of more than ${need} after this race`:"Ahead on points at the finale"}${cs.length?` — across ${over} he can lose ${cs.map(([d,a])=>a>=0?`up to ${a} point${a===1?"":"s"} to ${nm(d)}`:`nothing to ${nm(d)} and must gain ${-a}`).join(" and ")}`:""}.</span><small>${esc(r.days||"")}</small></li>`;}).join("");
+    return `<li><b>${esc(r.short)}</b><span>${need?`A lead of ${allTie?"at least":"more than"} ${need} points after this race`:(allTie?"Level or ahead on points at the finale":"Ahead on points at the finale")}${cs.length?`. From ${over}, ${cs.map(([d,a])=>a>=0?`he can afford to lose up to ${a} point${a===1?"":"s"} to ${nm(d)}`:`he must outscore ${nm(d)} by at least ${-a} point${a===-1?"":"s"}`).join("; ")}`:""}.</span><small>${esc(r.days||"")}</small></li>`;}).join("");
   return `<div class="tw2"><div class="tnums"><div><b>${lead[3]-L[1][3]}</b><span>point lead over ${nm(L[1])}</span></div><div><b>${maxLeft}</b><span>points left · ${left.length} race${left.length>1?"s":""}${sprintLeft?` · ${sprintLeft} sprint${sprintLeft>1?"s":""}`:""}</span></div><div><b>${rivals.length}</b><span>rival${rivals.length>1?"s":""} still in it</span></div></div>
     ${nextBlock}
-    <p style="margin-top:12px"><b>Or later.</b> To be sure of the title after each race, ${esc(first)} needs:</p><ul class="twl">${later}</ul>
-    <p class="note2">Counted from today's standings: ${GPPTS[0]} points for a win, ${left.some(r=>r.sprint===true)?"8 for a sprint win, ":""}no fastest-lap point. Still in it: ${rivals.map(d=>`${nm(d)} (−${lead[3]-d[3]})`).join(", ")}. If drivers end level on points, the title goes to the one with more wins (${esc(sur(lead[0]))} has ${wins[lead[0]]||0}).</p></div>`;}
+    <p style="margin-top:12px"><b>If not, at a later race.</b> To be sure of the title after each race, ${esc(first)} needs:</p><ul class="twl">${later}</ul>
+    <p class="note2">Counted from today's standings: ${GPPTS[0]} points for a win, ${left.some(r=>r.sprint===true)?"8 for a sprint win, ":""}no fastest-lap point. Still in it: ${rivals.map(d=>`${nm(d)} (−${lead[3]-d[3]})`).join(", ")}. If drivers end level on points, the title goes to the one with more wins: ${esc(sur(lead[0]))} has ${lw}, so ${rivals.filter(tieOk).length===rivals.length?"a tie would go to him":"a tie could go either way"}.</p></div>`;}
 /* shared: interpolate a series [[x,y]...] at fractional x */
 function interpAt(pts,p){if(p<=pts[0][0])return pts[0][1];for(let i=1;i<pts.length;i++){if(p<=pts[i][0]){const a=pts[i-1],b=pts[i],f=(p-a[0])/((b[0]-a[0])||1);return a[1]+(b[1]-a[1])*f;}}return pts[pts.length-1][1];}
 let ANIM_SPEED=1;
