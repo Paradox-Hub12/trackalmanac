@@ -3569,13 +3569,17 @@ async function gSwitch(kind){if(!await gAsk({title:"Switch accounts?",text:"This
   try{await gWipe(u);try{await m.deleteUser(u);}catch(e){await m.signOut(auth);}GS.linkMsg="";GS.amode="in";GS.eopen=kind!=="google";GS.msg="Guest account deleted. Sign in to your existing account.";if(kind==="google")await gSignGoogle();else gRerender();}catch(e){GS.msg=gErr(e);gRerender();}}
 async function gSaveProfile(f,isNew){const {m,db}=GS.fb,u=GS.user,name=f.name.value.trim(),country=f.country.value;const bad=gNameOk(name);if(bad){GS.msg=bad;return gRerender();}
   if(isNew&&!f.age.checked){GS.msg="Please confirm your age.";return gRerender();}
-  try{const low=name.toLowerCase(),old=GS.profile&&GS.profile.displayName,taken=await m.getDoc(m.doc(db,"names",low));
+  let step="checking the name";
+  try{if(isNew){step="reading your profile";const ex=await m.getDoc(m.doc(db,"users",u.uid));
+      if(ex.exists()){GS.profile=ex.data();GS.msg="";gRerender();gLoadStand();gAfterReady();return;}}   /* a profile that was there all along (it failed to load earlier) */
+    step="checking the name";const low=name.toLowerCase(),old=GS.profile&&GS.profile.displayName,taken=await m.getDoc(m.doc(db,"names",low));
     if(taken.exists()&&taken.data().uid!==u.uid){GS.msg="That name is taken. Try another.";return gRerender();}
     const b=m.writeBatch(db);if(!taken.exists())b.set(m.doc(db,"names",low),{uid:u.uid});
     if(old&&old.toLowerCase()!==low)b.delete(m.doc(db,"names",old.toLowerCase()));
     const prof=isNew?{displayName:name,createdAt:m.serverTimestamp(),ageOk:true}:{displayName:name};if(country)prof.country=country;
     if(isNew)b.set(m.doc(db,"users",u.uid),prof);else b.update(m.doc(db,"users",u.uid),Object.assign({country:country||""},prof));
-    b.set(m.doc(db,"pub",u.uid),{name,guest:gIsGuest(u)});await b.commit();const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.data();GS.msg=isNew&&!gNeedsVerify(u)?"":isNew?GS.msg:"Saved.";}catch(e){GS.msg=gErr(e);}
+    b.set(m.doc(db,"pub",u.uid),{name,guest:gIsGuest(u)});step="saving your profile";await b.commit();step="loading your profile";const s=await m.getDoc(m.doc(db,"users",u.uid));GS.profile=s.data();GS.msg=isNew&&!gNeedsVerify(u)?"":isNew?GS.msg:"Saved.";}
+  catch(e){console.warn("Predictor profile:",step,e);GS.msg=(e&&e.code==="permission-denied"?"That didn't work":gErr(e).replace(/\.$/,""))+` (while ${step}${e&&e.code?": "+e.code:""}). Please try again, and if it keeps happening, email ${GMAIL()}.`;}
   if(isNew&&GS.profile&&curKey()==="game"&&!GS.pend){GS.goPicks=0;GS.msg="";gLoadStand();return go("game-picks");}
   gRerender();if(isNew&&GS.profile){gLoadStand();gAfterReady();}}
 async function gDelete(f){const {m,auth}=GS.fb,u=auth.currentUser,pv=gProv(u),pw=f.password?f.password.value:"";
