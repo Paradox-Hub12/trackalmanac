@@ -1619,6 +1619,7 @@ function gFB(){if(GS.fb)return Promise.resolve(GS.fb);if(!gameOn())return Promis
 const gIsGuest=u=>!!(u&&u.isAnonymous);
 const gProv=u=>((u&&u.providerData)||[]).map(p=>p.providerId);
 const gNeedsVerify=u=>!!(u&&!u.isAnonymous&&!u.emailVerified&&gProv(u).includes("password")&&!gProv(u).includes("google.com"));
+const GSVG=`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6H1.4a12 12 0 0 0 0 10.9z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>`;
 const GWARN="Playing as a guest: your picks are saved on this device only. Clearing your browser or switching devices will lose them. Save your account to keep them.";
 /* picks made before signing in are kept here until the player has an account, then saved */
 function gPendKeep(){try{sessionStorage.setItem("ta-pend",JSON.stringify({r:GS.round.r,p:{top5:GS.pick.top5,pole:GS.pick.pole}}));}catch(e){}}
@@ -1676,7 +1677,7 @@ function gTop(k){const nav=[["game","Play"],["game-picks","My picks"],["game-lb"
 function gFitWm(){document.querySelectorAll(".pznav").forEach(n=>{const c=n.querySelector("[aria-current]");if(c&&n.scrollWidth>n.clientWidth){const l=c.offsetLeft-n.offsetLeft,r=l+c.offsetWidth;if(r>n.scrollLeft+n.clientWidth)n.scrollLeft=r-n.clientWidth+4;else if(l<n.scrollLeft)n.scrollLeft=l-4;}});document.querySelectorAll(".pzwm").forEach(w=>{[...w.children].forEach(el=>{el.style.fontSize="";let f=parseFloat(getComputedStyle(el).fontSize),n=0;const W=w.parentElement.clientWidth;while(el.scrollWidth>W&&f>12&&n++<60){f*=.95;el.style.fontSize=f.toFixed(1)+"px";}});});}
 try{document.fonts&&document.fonts.ready.then(()=>{if($(".pz"))gFitWm();});}catch(e){}
 addEventListener("resize",()=>{if($(".pz"))gFitWm();});
-const gWrap=(k,body)=>`<div class="pz${GS.anim?" pzin":""}" data-k="${k}">${gTop(k)}<div class="pzbody">${body}</div></div>`;
+const gWrap=(k,body)=>`<div class="pz${GS.anim?" pzin":""}" data-k="${k}">${gTop(k)}${gGuestBar()}<div class="pzbody">${body}</div></div>`;
 const gTitle=(t,sub)=>`<div class="pzph" data-r style="--i:1"><h${curKey()==="game"?2:1} class="pzt">${t}</h${curKey()==="game"?2:1}>${sub?`<p>${sub}</p>`:""}</div>`;
 /* ---- the sign-in panel: sign in / create account / guest (with what a guest gives up) / choose a name / signed in ---- */
 function gAuthPanel(why){
@@ -1777,7 +1778,7 @@ function gPickRound(){const R=gRounds(),q=new URLSearchParams(location.search).g
 function gPicksView(){
   if(GS.user&&GS.profile===null)return gWrap("game-picks",gTitle("My picks")+`<div class="pzsolo" data-r style="--i:2">${gAuthPanel()}</div>`);
   const R=gRounds(),rd=GS.round;if(!rd)return gWrap("game-picks",gTitle("My picks","No rounds left this season."));
-  const ready=!!(GS.user&&GS.profile),note=ready?(gIsGuest(GS.user)?gGuestBox():gNeedsVerify(GS.user)?gVerifyBox():""):"";
+  const ready=!!(GS.user&&GS.profile),note=ready?(gIsGuest(GS.user)?"":gNeedsVerify(GS.user)?gVerifyBox():""):"";
   const locked=rd.lock.getTime()<=Date.now(),P=GS.pick||gEmptyPick(),cars=gCars();
   const where=n=>{const o=[];if(P.pole===n)o.push("Pole");const k=P.top5.indexOf(n);if(k>=0)o.push(GSLOT[k+1]);return o;};
   const slot=i=>{const n=gUi(P,i),c=n?gCar(n):null,first=c&&c.name!==c.last?c.name.slice(0,c.name.length-c.last.length).trim():"";
@@ -1942,7 +1943,32 @@ async function gWipe(u){const {m,db}=GS.fb;
   const lg=await m.getDocs(m.query(m.collection(db,"leagues"),m.where("members","array-contains",u.uid)));
   for(const d of lg.docs){if(d.data().ownerUid===u.uid)await m.deleteDoc(d.ref);else await m.updateDoc(d.ref,{members:m.arrayRemove(u.uid)});}
   const b=m.writeBatch(db);if(GS.profile&&GS.profile.displayName)b.delete(m.doc(db,"names",GS.profile.displayName.toLowerCase()));b.delete(m.doc(db,"pub",u.uid));b.delete(m.doc(db,"users",u.uid));await b.commit();}
-async function gSwitch(kind){if(!confirm("Delete this guest account and its picks, and switch to your existing account?"))return;const {m,auth}=GS.fb,u=auth.currentUser;
+/* In-page confirm / prompt / notice in the Predictor's style. Browser pop-ups (confirm, alert, prompt) are often blocked
+   inside the WhatsApp and Instagram in-app browsers, where the button then silently does nothing. Resolves true/false, or the typed text / null. */
+function gAsk(o){document.querySelectorAll(".pzdlg").forEach(d=>d._close&&d._close(null));
+  return new Promise(res=>{const prev=document.activeElement,w=document.createElement("div"),inp=o.input!=null;
+  w.className="pz pzdlg";
+  w.innerHTML=`<div class="pzdlgb" role="${o.notice?"dialog":"alertdialog"}" aria-modal="true" aria-labelledby="pzdlgt"${o.text?' aria-describedby="pzdlgx"':""}>
+    <h3 id="pzdlgt">${esc(o.title)}</h3>${o.text?`<p id="pzdlgx">${esc(o.text)}</p>`:""}
+    ${inp?`<label class="pzdlgl"><span>${esc(o.label||"")}</span><input name="dlg" value="${esc(o.input)}" maxlength="${o.max||40}" autocomplete="off" spellcheck="false"></label><p class="gmsg pzdlge" role="alert"></p>`:""}
+    <div class="pzdlga">${o.notice?"":`<button type="button" class="gbtn" data-dlg="0">${esc(o.cancel||"Cancel")}</button>`}<button type="button" class="gbtn ${o.danger?"gred gredf":"gpri"}" data-dlg="1">${esc(o.ok||"OK")}</button></div></div>`;
+  const done=v=>{if(!w.isConnected)return;w.remove();document.documentElement.classList.remove("pzdlgon");removeEventListener("popstate",pop);try{prev&&prev.focus&&prev.focus({preventScroll:true});}catch(e){}res(v);};
+  const pop=()=>done(o.notice?true:null);w._close=done;
+  const ok=()=>{if(!inp)return done(true);const i=w.querySelector("input"),v=i.value.trim(),bad=o.check?o.check(v):"";if(bad){w.querySelector(".pzdlge").textContent=bad;i.focus();return;}done(v);};
+  const no=()=>done(o.notice?true:inp?null:false);
+  w.addEventListener("click",e=>{const b=e.target.closest("[data-dlg]");if(b)return b.dataset.dlg==="1"?ok():no();if(!e.target.closest(".pzdlgb"))no();});
+  w.addEventListener("keydown",e=>{if(e.key==="Escape"){e.preventDefault();no();}
+    else if(e.key==="Enter"&&e.target.name==="dlg"){e.preventDefault();ok();}
+    else if(e.key==="Tab"){const f=[...w.querySelectorAll("input,button")],a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}}});
+  addEventListener("popstate",pop);
+  document.body.appendChild(w);document.documentElement.classList.add("pzdlgon");
+  const f=inp?w.querySelector("input"):w.querySelector(o.danger||o.notice?'[data-dlg="'+(o.notice?1:0)+'"]':'[data-dlg="1"]');f.focus({preventScroll:true});if(inp)f.select();});}
+const gNotice=(text,title)=>gAsk({title:title||"Something went wrong",text,notice:1});
+/* Guest bar on every game page while playing as a guest: collapsible, not dismissable */
+function gGuestBar(){if(!(GS.user&&GS.profile&&gIsGuest(GS.user)))return "";let c=false;try{c=localStorage.getItem("ta-gbar")==="0";}catch(e){}
+  return `<div class="pzgbar${c?" closed":""}"><button class="pzgbt" type="button" data-gbar aria-expanded="${!c}" aria-controls="pzgbarb"><span class="pzgbi" aria-hidden="true">!</span><span class="pzgbtx"><b>Playing as a guest</b><span><i class="pzgbd"> · </i>picks saved on this device only</span></span><svg class="pzgbc" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">${c?"Show":"Hide"} save options</span></button>
+    <div class="pzgbb" id="pzgbarb"${c?" hidden":""}><button class="gbtn gsm gg" type="button" data-glink="google">${GSVG}Save with Google</button><a class="gbtn gsm" href="${H("game-account")}" data-go="game-account" data-gbaremail>Save with email</a></div></div>`;}
+async function gSwitch(kind){if(!await gAsk({title:"Switch accounts?",text:"This deletes this guest account and its picks, then switches to your existing account. The existing account keeps its own picks.",ok:"Delete guest and switch",cancel:"Keep playing as guest",danger:1}))return;const {m,auth}=GS.fb,u=auth.currentUser;
   try{await gWipe(u);try{await m.deleteUser(u);}catch(e){await m.signOut(auth);}GS.linkMsg="";GS.amode="in";GS.eopen=kind!=="google";GS.msg="Guest account deleted. Sign in to your existing account.";if(kind==="google")await gSignGoogle();else gRerender();}catch(e){GS.msg=gErr(e);gRerender();}}
 async function gSaveProfile(f,isNew){const {m,db}=GS.fb,u=GS.user,name=f.name.value.trim(),country=f.country.value;const bad=gNameOk(name);if(bad){GS.msg=bad;return gRerender();}
   if(isNew&&!f.age.checked){GS.msg="Please confirm your age.";return gRerender();}
@@ -1986,7 +2012,12 @@ function gClick(e){if(!$(".pz"))return false;
   /* back out of the nickname step: a guest with no nickname yet has nothing saved, so the half-made guest account is deleted */
   if(e.target.closest("[data-gback]")&&GS.fb){const {m,auth}=GS.fb,u=auth.currentUser;GS.amode="in";GS.eopen=false;GS.msg="";
     (async()=>{try{if(u&&u.isAnonymous&&!GS.profile)await m.deleteUser(u);else await m.signOut(auth);}catch(err){try{await m.signOut(auth);}catch(e2){}}gRerender();})();return true;}
-  if(e.target.closest("[data-gout]")){gMenu(false);if(GS.fb&&(!gIsGuest(GS.user)||confirm("You're playing as a guest. If you sign out, this guest account and its picks can't be recovered. Sign out anyway?"))){GS.stand=undefined;GS._standFor=null;GS.fb.m.signOut(GS.fb.auth);}return true;}
+  if(e.target.closest("[data-gout]")){gMenu(false);if(!GS.fb)return true;
+    (async()=>{if(gIsGuest(GS.user)&&!await gAsk({title:"Sign out of this guest account?",text:"A guest account lives on this device only. If you sign out, it and its picks can't be recovered. Save your account first to keep them.",ok:"Sign out anyway",cancel:"Stay signed in",danger:1}))return;
+      GS.stand=undefined;GS._standFor=null;GS.fb.m.signOut(GS.fb.auth);})();return true;}
+  const gb=e.target.closest("[data-gbar]");if(gb){const bar=gb.closest(".pzgbar"),open=bar.classList.contains("closed");bar.classList.toggle("closed",!open);gb.setAttribute("aria-expanded",String(open));bar.querySelector(".pzgbb").hidden=!open;gb.querySelector(".sr").textContent=(open?"Hide":"Show")+" save options";try{localStorage.setItem("ta-gbar",open?"1":"0");}catch(err){}return true;}
+  if(e.target.closest("[data-gbaremail]")){const fe=()=>{const i=document.querySelector('form[data-gform="linkemail"] input[name=email]');if(i){i.scrollIntoView({block:"center",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});i.focus({preventScroll:true});}return !!i;};
+    if(curKey()==="game-account"){e.preventDefault();fe();return true;}let n=0;const t=setInterval(()=>{if(fe()||++n>20)clearInterval(t);},150);return false;}
   if(e.target.closest("[data-glink]")&&GS.fb){gLink("google");return true;}
   const sw=e.target.closest("[data-gswitch]");if(sw&&GS.fb){gSwitch(sw.dataset.gswitch);return true;}
   if(e.target.closest("[data-gverify]")&&GS.fb){gVerifyAgain();return true;}
@@ -1999,10 +2030,10 @@ function gClick(e){if(!$(".pz"))return false;
   if(e.target.closest("[data-gclear]")){GS.pick=gEmptyPick();GS.sel=0;GS.dirty=true;GS.msg="";gPaintPicks();return true;}
   const cc=e.target.closest("[data-gcopycode]");if(cc){navigator.clipboard&&navigator.clipboard.writeText(cc.dataset.gcopycode).then(()=>{cc.textContent="Copied";});return true;}
   if(!GS.fb)return false;const {m,db}=GS.fb;
-  const lr=e.target.closest("[data-glrename]");if(lr){const L=GS.leagues.find(x=>x.id===lr.dataset.glrename);const n=prompt("New league name",L.name);if(n&&!gNameOk(n.trim()))m.updateDoc(m.doc(db,"leagues",L.id),{name:n.trim()}).then(gLeagues).catch(err=>alert(gErr(err)));else if(n)alert(gNameOk(n.trim()));return true;}
-  const ld=e.target.closest("[data-gldel]");if(ld){if(confirm("Delete this league for everyone?"))m.deleteDoc(m.doc(db,"leagues",ld.dataset.gldel)).then(gLeagues).catch(err=>alert(gErr(err)));return true;}
-  const ll=e.target.closest("[data-glleave]");if(ll){if(confirm("Leave this league?"))m.updateDoc(m.doc(db,"leagues",ll.dataset.glleave),{members:m.arrayRemove(GS.user.uid)}).then(gLeagues).catch(err=>alert(gErr(err)));return true;}
-  const lk=e.target.closest("[data-glkick]");if(lk){const [id,u]=lk.dataset.glkick.split("|");if(confirm("Remove this player from the league?"))m.updateDoc(m.doc(db,"leagues",id),{members:m.arrayRemove(u)}).then(gLeagues).catch(err=>alert(gErr(err)));return true;}
+  const lr=e.target.closest("[data-glrename]");if(lr){const L=GS.leagues.find(x=>x.id===lr.dataset.glrename);gAsk({title:"Rename league",label:"League name",input:L.name,max:20,ok:"Rename",check:v=>gNameOk(v)}).then(n=>{if(n&&n!==L.name)m.updateDoc(m.doc(db,"leagues",L.id),{name:n}).then(gLeagues).catch(err=>gNotice(gErr(err)));});return true;}
+  const ld=e.target.closest("[data-gldel]");if(ld){gAsk({title:"Delete this league?",text:"It is deleted for every member. Their own picks and points are not affected.",ok:"Delete league",danger:1}).then(y=>{if(y)m.deleteDoc(m.doc(db,"leagues",ld.dataset.gldel)).then(gLeagues).catch(err=>gNotice(gErr(err)));});return true;}
+  const ll=e.target.closest("[data-glleave]");if(ll){gAsk({title:"Leave this league?",text:"You can rejoin later with its join code.",ok:"Leave league",danger:1}).then(y=>{if(y)m.updateDoc(m.doc(db,"leagues",ll.dataset.glleave),{members:m.arrayRemove(GS.user.uid)}).then(gLeagues).catch(err=>gNotice(gErr(err)));});return true;}
+  const lk=e.target.closest("[data-glkick]");if(lk){const [id,u]=lk.dataset.glkick.split("|");gAsk({title:"Remove this player?",text:"They leave the league. They can rejoin with the join code unless you change it.",ok:"Remove player",danger:1}).then(y=>{if(y)m.updateDoc(m.doc(db,"leagues",id),{members:m.arrayRemove(u)}).then(gLeagues).catch(err=>gNotice(gErr(err)));});return true;}
   return false;}
 /* ---------- HISTORY · REGULATIONS: every rules era 1946→future, with stats from the results (data/regulations.json) ---------- */
 let REGS=null,REGLOAD=null;
