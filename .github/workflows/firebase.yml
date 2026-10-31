@@ -1,5 +1,6 @@
 # Predictor: publishes firebase/firestore.rules to Cloud Firestore, keeps rounds/ (lock times) in step,
-# and fills in the public web config in src/game.json if it is still empty.
+# fills in the public web config in src/game.json if it is still empty, and copies Firebase's sign-in
+# helper pages to /__/auth/ (Google sign-in on our own domain).
 # Runs when the rules change on main, or with "Run workflow". Uses the FIREBASE_SERVICE_ACCOUNT secret.
 name: Firebase
 
@@ -30,6 +31,18 @@ jobs:
         run: python3 scripts/firebase_tasks.py deploy-rules
       - name: Sync rounds (lock times) and scores
         run: python3 scripts/score.py
+      - name: Sign-in helper pages (/__/auth/ on this site)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/firebase_tasks.py auth-helper
+          if [ -n "$(git status --porcelain __)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add __ && git commit -q -m "Predictor: Firebase sign-in helper pages"
+            git pull -q --rebase origin main && git push -q origin HEAD:main
+            echo "Sign-in helper pages committed."
+          fi
       - name: Web config for the game pages
         env:
           GH_TOKEN: ${{ github.token }}
