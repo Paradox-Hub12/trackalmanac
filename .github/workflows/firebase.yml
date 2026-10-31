@@ -43,6 +43,11 @@ jobs:
             git pull -q --rebase --autostash origin main && git push -q origin HEAD:main
             echo "Sign-in helper pages committed."
           fi
+      - name: Check the live sign-in helper page
+        run: |
+          r=$(curl -s -o /tmp/h.html -w '%{http_code} %{content_type}' https://trackalmanac.com/__/auth/handler)
+          if echo "$r" | grep -q '^200 text/html' && grep -q 'handler.js' /tmp/h.html; then echo "::notice::/__/auth/handler is served: $r"
+          else echo "::warning::/__/auth/handler is not served as a web page yet ($r). It goes live with the next Pages deploy; run this workflow again to check."; fi
       - name: Web config for the game pages
         env:
           GH_TOKEN: ${{ github.token }}
