@@ -1714,7 +1714,8 @@ function gProfileForm(p){const dn=(()=>{try{return new Intl.DisplayNames([naviga
    <label><span>${g?"Nickname":"Display name"}</span><input name="name" required minlength="3" maxlength="20" pattern="[A-Za-z0-9 _.\\-]{3,20}" value="${esc(p?p.displayName:"")}" autocomplete="nickname"></label>
    <label><span>Country (optional)</span><select name="country"><option value="">Not shown</option>${GCC.map(c=>`<option value="${c}"${p&&p.country===c?" selected":""}>${esc(dn?dn.of(c):c)}</option>`).join("")}</select></label>
    ${p?"":`<label class="gtick"><input type="checkbox" name="age" required> <span>I am 13 or older (16 or older if I live in the EEA or the UK).</span></label>`}
-   <button class="gbtn gpri ${p?"":"gwide gbig"}" type="submit">${p?"Save":GS.pend?"Start playing and save my picks":"Start playing"}</button></form>`;}
+   <button class="gbtn gpri ${p?"":"gwide gbig"}" type="submit">${p?"Save":GS.pend?"Start playing and save my picks":"Start playing"}</button>
+   ${p?"":`<button type="button" class="gbtn gghost gwide" data-gback>${g?"Back: sign in with Google or email instead":"Back: use a different account"}</button>`}</form>`;}
 const GCC="AE AR AT AU AZ BE BH BR CA CH CL CN CO CZ DE DK EG ES FI FR GB GR HK HU ID IE IL IN IT JP KR KW KZ LB LU MA MC MX MY NG NL NO NZ OM PE PH PK PL PT QA RO RS RU SA SE SG SI SK TH TR TW UA US UY VN ZA".split(" ");
 const GBLOCK=["fuck","shit","cunt","bitch","nigg","fag","rape","nazi","hitler","whore","slut","porn","dick","pussy","wank","twat","retard","kys","admin","moderator","official","trackalmanac"];
 function gNameOk(n){if(!/^[A-Za-z0-9 _.\-]{3,20}$/.test(n))return "Use 3 to 20 letters, numbers, spaces, dots, dashes or underscores.";
@@ -1982,6 +1983,9 @@ function gClick(e){if(!$(".pz"))return false;
   const ge=e.target.closest("[data-gemail]");if(ge){GS.eopen=!GS.eopen;GS.msg="";gRerender();if(GS.eopen){const i=document.querySelector("#gemail input[name=email]");if(i)i.focus({preventScroll:true});const f=$("#gemail");if(f)f.scrollIntoView({block:"nearest",behavior:"smooth"});}return true;}
   const gm=e.target.closest("[data-gmode]");if(gm){GS.amode=gm.dataset.gmode;GS.msg="";gRerender();const p=$("#gsign");if(p&&gm.dataset.gmode==="guest")p.scrollIntoView({block:"nearest",behavior:"smooth"});return true;}
   if(e.target.closest("[data-gforgot]")){gForgot();return true;}
+  /* back out of the nickname step: a guest with no nickname yet has nothing saved, so the half-made guest account is deleted */
+  if(e.target.closest("[data-gback]")&&GS.fb){const {m,auth}=GS.fb,u=auth.currentUser;GS.amode="in";GS.eopen=false;GS.msg="";
+    (async()=>{try{if(u&&u.isAnonymous&&!GS.profile)await m.deleteUser(u);else await m.signOut(auth);}catch(err){try{await m.signOut(auth);}catch(e2){}}gRerender();})();return true;}
   if(e.target.closest("[data-gout]")){gMenu(false);if(GS.fb&&(!gIsGuest(GS.user)||confirm("You're playing as a guest. If you sign out, this guest account and its picks can't be recovered. Sign out anyway?"))){GS.stand=undefined;GS._standFor=null;GS.fb.m.signOut(GS.fb.auth);}return true;}
   if(e.target.closest("[data-glink]")&&GS.fb){gLink("google");return true;}
   const sw=e.target.closest("[data-gswitch]");if(sw&&GS.fb){gSwitch(sw.dataset.gswitch);return true;}
