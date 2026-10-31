@@ -23320,5 +23320,19 @@
    "istanbul": 130
   }
  },
- "CIRCGEO": {"jeddah": [21.63194, 39.10444], "las-vegas": [36.10995, -115.16217]}
+ "CIRCGEO": {"jeddah": [21.63194, 39.10444], "las-vegas": [36.10995, -115.16217]},
+ "STANDINS": {
+  "19": {
+   "hirakawa": ["Ryo Hirakawa", "Haas F1 Team", "reserve driver"],
+   "vesti": ["Frederik Vesti", "Mercedes", "FP1 driver"],
+   "iwasa": ["Ayumu Iwasa", "Red Bull Racing", "FP1 driver"],
+   "tsolov": ["Nikola Tsolov", "Racing Bulls", "FP1 driver"],
+   "mini": ["Gabriele Mini", "Alpine", "FP1 driver"],
+   "fornaroli": ["Leonardo Fornaroli", "McLaren", "FP1 driver"],
+   "crawford": ["Jak Crawford", "Aston Martin", "FP1 driver"],
+   "browning": ["Luke Browning", "Williams", "FP1 driver"],
+   "slater": ["Freddie Slater", "Audi", "FP1 driver"],
+   "herta": ["Colton Herta", "Cadillac", "FP1 driver"]
+  }
+ }
 }

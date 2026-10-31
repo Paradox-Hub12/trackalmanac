@@ -1686,8 +1686,12 @@ const sur=n=>n.split(" ").slice(-1)[0];
 const code=n=>sur(n).normalize("NFD").replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase();
 const norm=s=>s.normalize("NFD").replace(/[^A-Za-z]/g,"").toLowerCase();
 const FULL={}; DRIVERS.forEach(d=>FULL[norm(sur(d[0]))]=d[0]);
+/* stand-ins and FP1 drivers who aren't on the 2026 list: STANDINS[round][surname] = [full name, team, role] (in data.json) */
+const SUBS=typeof STANDINS!=="undefined"?STANDINS:{};
+Object.values(SUBS).forEach(o=>Object.entries(o).forEach(([n,v])=>{if(!FULL[n])FULL[n]=v[0];}));
+const subAt=(s,r)=>(SUBS[r]||{})[norm(s)]||null;
 const fullName=s=>FULL[norm(s)]||s;
-function teamAt(s,r){const n=norm(s);
+function teamAt(s,r){const n=norm(s),sb=subAt(s,r);if(sb)return sb[1];
   if(n==="lawson"&&r>=12&&r<=14) return "Red Bull Racing";
   if(n==="tsunoda") return "Racing Bulls";
   const f=FULL[n]; return f?teamOf(f):null;}
@@ -2022,7 +2026,7 @@ function tyreBlock(n){const S=SEASON[n]||{};const nm=["Hard","Medium","Soft"],co
 function tyreSVG(c,on){const col=["","var(--tH)","var(--tM)","var(--tS)"][on]||"var(--ink-3)";
   return `<svg viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="20" fill="#111" stroke="#2a2f38" stroke-width="3"/><circle cx="23" cy="23" r="15" fill="none" stroke="${col}" stroke-width="3.5"/><circle cx="23" cy="23" r="7" fill="#1a1f27"/></svg>`;}
 function nmSpan(full){return `<span class="fn">${esc(full)}</span><span class="c3">${esc(code(full))}</span>`;}
-function drvCell(s,r){const t=teamAt(s,r);return `<td class="stk1"><span class="sw" style="background:${tcol(t)}"></span>${nmSpan(fullName(s))}</td><td style="color:var(--ink-2)">${esc(t||"Reserve driver")}</td>`;}
+function drvCell(s,r){const t=teamAt(s,r),sb=subAt(s,r);return `<td class="stk1"><span class="sw" style="background:${tcol(t)}"></span>${nmSpan(fullName(s))}</td><td style="color:var(--ink-2)">${t?esc(t)+(sb&&sb[2]?` <span style="color:var(--ink-3)">(${esc(sb[2])})</span>`:""):"Reserve driver"}</td>`;}
 function qualiTable(rows,r,labels){
   const best=rows.map(x=>{const ts=[x[3],x[4],x[5]].map(secs).filter(v=>v);return ts.length?Math.min(...ts):null;});
   const pole=Math.min(...best.filter(v=>v));const worst=Math.max(...best.filter(v=>v));
