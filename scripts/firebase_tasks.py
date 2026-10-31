@@ -76,7 +76,9 @@ HELPER = {"handler": "handler.html", "handler.js": "handler.js", "experiments.js
 def auth_helper():
     pid = json.load(open(os.path.join(ROOT, "src", "game.json"), encoding="utf-8"))["firebase"]["projectId"]
     base = "https://%s.firebaseapp.com" % pid
-    get = lambda path: urllib.request.urlopen(urllib.request.Request(base + path, headers={"User-Agent": "trackalmanac-build"}), timeout=30).read()
+    def get(path):
+        try: return urllib.request.urlopen(urllib.request.Request(base + path, headers={"User-Agent": "Mozilla/5.0 (trackalmanac build)"}), timeout=30).read()
+        except Exception as e: sys.exit("::error::Couldn't download %s%s: %s" % (base, path, e))
     files = {"__/auth/" + out: get("/__/auth/" + src) for src, out in HELPER.items()}
     files["__/firebase/init.json"] = get("/__/firebase/init.json")
     json.loads(files["__/firebase/init.json"])                     # must be valid JSON
