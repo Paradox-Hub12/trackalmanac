@@ -40,7 +40,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add __ && git commit -q -m "Predictor: Firebase sign-in helper pages"
-            git pull -q --rebase origin main && git push -q origin HEAD:main
+            git pull -q --rebase --autostash origin main && git push -q origin HEAD:main
             echo "Sign-in helper pages committed."
           fi
       - name: Web config for the game pages
