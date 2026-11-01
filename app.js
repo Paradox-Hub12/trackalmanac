@@ -1128,7 +1128,9 @@ function viewArchive(yr){
 /* ---------- DRIVERS & TEAMS ---------- */
 const BIOBY={};Object.values(BIO).forEach(b=>{BIOBY[norm(b.last)]=b;});
 const bioOf=name=>BIOBY[norm(sur(name))]||null;
-const grid26=DRIVERS.filter(d=>bioOf(d[0]));
+const grid26=DRIVERS.filter(d=>{const b=bioOf(d[0]);return b&&!b.standin;});
+/* stand-ins and reserves with a profile (BIO standin:true): their standings row once they have raced, else name + team from the profile */
+const subs26=Object.values(BIO).filter(b=>b.standin).map(b=>DRIVERS.find(d=>bioOf(d[0])===b)||[b.name,"",b.team||"",0]);
 const extras26=DRIVERS.filter(d=>!bioOf(d[0]));
 const nameParts=n=>{const p=n.split(" ");return [p.slice(0,-1).join(" "),p[p.length-1]];};
 const fullName26=d=>{const b=bioOf(d[0]);return b?b.name:d[0];};
@@ -1161,7 +1163,7 @@ const pimg=(code3,alt)=>PORTRAIT[code3]?`<img src="${PORTRAIT[code3]}" alt="${es
 let driverSort="team";try{driverSort=localStorage.getItem("ta-dsort")||"team";}catch(e){}
 function driverCard(d){const b=bioOf(d[0]),i=DRIVERS.indexOf(d),[fn,ln]=nameParts(d[0]);
   return `<a class="dcard" href="${H("driver-"+b.code)}" data-driver="${b.code}" style="--tc:${tcol(d[2])}" aria-label="${esc(d[0])}, ${esc(d[2])}">
-    <div class="ph">${pimg(b.code,d[0])}</div><span class="num">${b.num}</span><span class="pos">P${i+1}</span>
+    <div class="ph">${pimg(b.code,d[0])}${b.standin?`<span class="role">${esc(b.role)}</span>`:""}</div><span class="num">${b.num}</span>${i>=0?`<span class="pos">P${i+1}</span>`:""}
     <div class="bd"><span class="toprow"><span class="fn">${esc(fn)}</span><span class="ctry" title="${esc(b.country)}"><span class="cn">${esc(b.country)}</span>${flagOf(b.iso2,"big")}</span></span><span class="ln">${esc(ln)}</span>
     <span class="tmn"><span>${esc(d[2].replace(" F1 Team",""))}</span><b>${d[3]} pts</b></span></div></a>`;}
 function viewDrivers(){
@@ -1172,6 +1174,7 @@ function viewDrivers(){
     <p>The ${grid26.length} drivers on the 2026 grid. Select a driver for their profile, 2026 season and career record.</p></div>
     <div class="dsort" role="group" aria-label="Sort drivers"><button data-dsort="team" aria-pressed="${driverSort==="team"}">By team</button><button data-dsort="pos" aria-pressed="${driverSort==="pos"}">By standings</button><button data-dsort="num" aria-pressed="${driverSort==="num"}">By number</button></div></div>
   <div class="dcards">${list.map(driverCard).join("")}</div>
+  ${subs26.length?`<div class="dsubh"><h3>Stand-ins &amp; reserves</h3><p>Drivers who have taken a regular driver's place at a 2026 Grand Prix weekend.</p></div><div class="dcards">${subs26.map(driverCard).join("")}</div>`:""}
   ${extras26.length?`<p class="mnote" style="margin-top:14px">Also raced in 2026: ${extras26.map(d=>`${esc(d[0])} (${esc(d[2])}, ${d[3]} pt${d[3]===1?"":"s"})`).join(", ")}.</p>`:""}`;}
 function teamCard(c,i){const [team,pts]=c,tb=TEAMBIO[team]||{},ds=grid26.filter(d=>d[2]===team);
   return `<a class="tcard" href="${H("team-"+(tb.key||""))}" data-team="${esc(team)}" style="--tc:${tcol(team)}"><div class="tbar"></div>
@@ -1190,9 +1193,9 @@ function modalShell(base,inner,tc,pv,nx){
    <div class="mtop">${pv}<button class="navbtn" data-mclose="${base}" id="mclose">Close ✕</button>${nx}</div>${inner}</div>`;
   const m=$(".modal");if(m){m.scrollTop=0;$("#mclose").focus({preventScroll:true});}}
 function openDriver(code3){const b=BIO[code3];if(!b)return;
-  const d=DRIVERS.find(x=>bioOf(x[0])===b);const team=d?d[2]:"",pos=d?DRIVERS.indexOf(d)+1:null,pts=d?d[3]:0;
+  const d=DRIVERS.find(x=>bioOf(x[0])===b);const team=d?d[2]:(b.team||""),pos=d?DRIVERS.indexOf(d)+1:null,pts=d?d[3]:0;
   const s=stats26(d?d[0]:b.name);const order=Array.from(document.querySelectorAll(".dcard[data-driver]")).map(x=>x.dataset.driver);
-  const seq=order.length?order:grid26.map(x=>bioOf(x[0]).code);const i=seq.indexOf(code3);
+  const seq=order.length?order:[...grid26,...subs26].map(x=>bioOf(x[0]).code);const i=seq.indexOf(code3);
   const nb=c=>{const x=BIO[c];return x?esc(x.last):"";};
   const pv=i>0?`<button class="navbtn" data-driver="${seq[i-1]}">← ${nb(seq[i-1])}</button>`:`<span></span>`;
   const nx=i>=0&&i<seq.length-1?`<button class="navbtn" data-driver="${seq[i+1]}">${nb(seq[i+1])} →</button>`:`<span></span>`;
@@ -1202,7 +1205,7 @@ function openDriver(code3){const b=BIO[code3];if(!b)return;
   const inner=`<div class="mhero"><div class="ph">${pimg(code3,b.name)}</div>
    <div class="tx"><span class="bign">${b.num}</span><span class="lbl">${flagOf(b.iso2)} ${esc(b.nationality)} · #${b.num} · ${esc(code3)}</span>
     <h2><small>${esc(b.first)}</small>${esc(b.last)}</h2>
-    <div>${team?`<button class="tlink" data-team="${esc(team)}">${esc(tb.name||team)}</button>`:""}${pos?` · P${pos} in 2026 with ${pts} pts`:""}</div></div></div>
+    <div>${team?`<button class="tlink" data-team="${esc(team)}">${esc(tb.name||team)}</button>`:""}${b.standin?` · ${esc(b.role)}`:""}${pos?` · P${pos} in 2026 with ${pts} pts`:""}</div></div></div>
   <div class="mb">
    <div><div class="mh"><h3>Profile</h3></div><div class="facts">
     <div><span class="lbl">Age</span><b>${ageOf(b.dob)}</b></div>
@@ -1397,7 +1400,7 @@ sitemap:{t:"Site map",b:`
 <ul class="smap">
 <li><a href="${H("season")}" data-go="season">2026 Season</a> · calendar, next race, standings, race cards</li>
 <li><a href="${H("championship")}" data-go="championship">2026 Championship</a> · points progression, results grids, statistics</li>
-<li><a href="${H("drivers")}" data-go="drivers">2026 Drivers</a> · ${grid26.map(d=>`<a href="${H("driver-"+bioOf(d[0]).code)}">${esc(sur(d[0]))}</a>`).join(" · ")}</li>
+<li><a href="${H("drivers")}" data-go="drivers">2026 Drivers</a> · ${[...grid26,...subs26].map(d=>`<a href="${H("driver-"+bioOf(d[0]).code)}">${esc(sur(d[0]))}</a>`).join(" · ")}</li>
 <li><a href="${H("teams")}" data-go="teams">2026 Teams</a> · ${CONSTRUCTORS.map(c=>`<a href="${H("team-"+TEAMBIO[c[0]].key)}">${esc(TEAMBIO[c[0]].name)}</a>`).join(" · ")}</li>
 <li>Races: ${RACES.filter(r=>r.res).map(r=>`<a href="${H("detail-"+r.r)}" data-detail="${r.r}">R${r.r} ${esc(r.short.replace(" (Sepang)",""))}</a>`).join(" · ")}</li>
 <li><a href="${H("archive")}" data-go="archive">Archive</a>: ${Object.keys(ARCHIVE).sort((a,b)=>b-a).map(y=>`<a href="${H("archive-"+y)}" data-year="${y}">${y}</a>`).join(" · ")}</li>
@@ -1644,7 +1647,7 @@ function gRounds(){return RACES.map(r=>({r:r.r,gp:r.gp.replace(" (Sepang)",""),s
 function gNext(){const now=Date.now();return gRounds().find(x=>x.lock.getTime()>now)||null;}
 const gKey=n=>String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 function gCars(){const m={},full=n=>DRIVERS.find(x=>gKey(sur(x[0]))===gKey(n));
-  Object.values(BIO).forEach(b=>{if(b.num!=null){const d=full(b.last);m[b.num]={n:b.num,name:d?d[0]:b.name,last:b.last,team:d?d[2]:"",iso:b.iso2,pos:d?DRIVERS.indexOf(d):99};}});
+  Object.values(BIO).forEach(b=>{if(b.num!=null&&!b.standin){const d=full(b.last);m[b.num]={n:b.num,name:d?d[0]:b.name,last:b.last,team:d?d[2]:"",iso:b.iso2,pos:d?DRIVERS.indexOf(d):99};}});
   /* stand-ins (e.g. a driver who replaced someone for a few rounds): after the 22 regulars, full name from DRIVERS */
   Object.keys(SEASON).sort((a,b)=>a-b).forEach(r=>{const S=SEASON[r];[...(S.race||[]),...(S.quali||[])].forEach(row=>{const n=+row[1];if(!n||m[n])return;const last=String(row[2]).split(" ").pop(),d=full(last);
     m[n]={n,name:d?d[0]:String(row[2]),last,team:d?d[2]:"",pos:1000+n,standin:true};});});

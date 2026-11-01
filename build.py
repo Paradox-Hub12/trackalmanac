@@ -872,7 +872,7 @@ def build(out, data_path=DATA):
         "2026 Formula 1 drivers' and constructors' standings after round %d, results grid for every Grand Prix, points progression and season statistics." % len(S.done),
         "2026 F1 Championship standings", championship_page(S), "2026 CHAMPIONSHIP · POINTS", home + [("2026 Championship", "/championship/")])
     add("drivers", "2026 F1 Drivers: Profiles, Stats & Standings | Track Almanac",
-        "All %d drivers on the 2026 Formula 1 grid: team, nationality, age, career wins, podiums, poles and 2026 points." % len(S.BIO),
+        "All %d drivers on the 2026 Formula 1 grid: team, nationality, age, career wins, podiums, poles and 2026 points." % sum(1 for b in S.BIO.values() if not b.get("standin")),
         "2026 F1 drivers", drivers_page(S), "2026 DRIVERS", home + [("2026 Drivers", "/drivers/")])
     add("teams", "2026 F1 Teams: Line-ups, Cars & Standings | Track Almanac",
         "All %d Formula 1 teams in 2026: drivers, chassis, power unit, base, team principal, titles and points." % len(S.CONS),

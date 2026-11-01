@@ -36,13 +36,13 @@ def official(D, rnd):
 
 
 def cars(D, rnd=None):
-    """Car numbers a player may pick, with full names: the 22 regular drivers (BIO) first, by number,
+    """Car numbers a player may pick, with full names: the 22 regular drivers (BIO, not standin) first, by number,
     then anyone who has stood in this season (from the classifications), by number."""
     key = lambda n: "".join(c for c in unicodedata.normalize("NFD", str(n)) if not unicodedata.combining(c)).lower()
     full = {key(d[0].split()[-1]): d[0] for d in (D.get("DRIVERS") or [])}
     reg, extra = {}, {}
     for b in (D.get("BIO") or {}).values():
-        if b.get("num") is not None: reg[int(b["num"])] = full.get(key(b.get("last", ""))) or b.get("name") or b.get("last")
+        if b.get("num") is not None and not b.get("standin"): reg[int(b["num"])] = full.get(key(b.get("last", ""))) or b.get("name") or b.get("last")
     for r, S in sorted((D.get("SEASON") or {}).items(), key=lambda kv: int(kv[0])):
         for row in (S.get("race") or []) + (S.get("quali") or []):
             try: n = int(row[1])
@@ -53,7 +53,7 @@ def cars(D, rnd=None):
 
 def standins(D):
     """Car numbers in cars() that are not regular drivers."""
-    reg = {int(b["num"]) for b in (D.get("BIO") or {}).values() if b.get("num") is not None}
+    reg = {int(b["num"]) for b in (D.get("BIO") or {}).values() if b.get("num") is not None and not b.get("standin")}
     return [n for n in cars(D) if n not in reg]
 
 
