@@ -2045,11 +2045,11 @@ function classTable(rows,r,withGrid,flName){return `<div class="tw"><table class
   </tbody></table></div>`;}
 function gridSection(n){
   const S=SEASON[n], g=GRIDNOTES[n];
-  const qpos={};S.quali.forEach((q,i)=>{if(/^\d+$/.test(q[0]))qpos[norm(q[2])]=+q[0];});
+  const qpos={},qdq={};S.quali.forEach((q,i)=>{if(/^\d+$/.test(q[0]))qpos[norm(q[2])]=+q[0];else if(q[0]==="DQ")qdq[norm(q[2])]=1;});
   const rows=S.race?S.race.filter(y=>y[6]!==""):(S.grid||[]).map(g=>["",g[1],g[2],"","","",g[0]]);
   const slots=rows.filter(y=>y[6]!=="PL").sort((a,b)=>a[6]-b[6]), pl=rows.filter(y=>y[6]==="PL");
   const slot=(y)=>{const t=teamAt(y[2],n),q=qpos[norm(y[2])],gp=y[6]==="PL"?null:+y[6];
-    const d=q&&gp?q-gp:null;const mark=y[6]==="PL"?'<em style="color:var(--ink-3)">PIT</em>':d?`<em class="${d>0?"up":"dn"}" title="Qualified P${q}">${d>0?"▲"+d:"▼"+(-d)}</em>`:q?"":'<em style="color:var(--ink-3)">NO TIME</em>';
+    const d=q&&gp?q-gp:null;const mark=y[6]==="PL"?'<em style="color:var(--ink-3)">PIT</em>':d?`<em class="${d>0?"up":"dn"}" title="Qualified P${q}">${d>0?"▲"+d:"▼"+(-d)}</em>`:q?"":`<em style="color:var(--ink-3)">${qdq[norm(y[2])]?"DSQ":"NO TIME"}</em>`;
     return `<div class="slot${y[6]==="PL"?" pl":""}" style="border-top-color:${tcol(t)}"><b>${y[6]==="PL"?"PL":y[6]}</b><span>${esc(fullName(y[2]))}</span>${mark}</div>`;};
   const changed=rows.filter(y=>{const q=qpos[norm(y[2])];return y[6]==="PL"||q!==+y[6];});
   return `<div class="gridwrap">
@@ -2057,7 +2057,7 @@ function gridSection(n){
       ${pl.length?`<div class="pitlane"><span class="lbl">Pit lane start</span>${pl.map(slot).join("")}</div>`:""}</div>
     <div class="gnotes"><h3>${g?"Why the grid differs from qualifying":"Grid matches qualifying"}</h3>
       ${g?`<ul>${g.split(/(?<=\.)\s+/).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:'<p class="note2" style="margin:0">Every driver started where they qualified.</p>'}
-      ${changed.length?`<table><tbody>${changed.map(y=>{const q=qpos[norm(y[2])];return `<tr><td>${esc(fullName(y[2]))}</td><td class="n">${q?"Qualified P"+q:"No time"}</td><td class="n">${y[6]==="PL"?"Pit lane":(S.race?"Started P":"Starts P")+y[6]}</td></tr>`;}).join("")}</tbody></table>`:""}
+      ${changed.length?`<table><tbody>${changed.map(y=>{const q=qpos[norm(y[2])];return `<tr><td>${esc(fullName(y[2]))}</td><td class="n">${q?"Qualified P"+q:qdq[norm(y[2])]?"Disqualified from qualifying":"No time"}</td><td class="n">${y[6]==="PL"?"Pit lane":(S.race?"Started P":"Starts P")+y[6]}</td></tr>`;}).join("")}</tbody></table>`:""}
       <p class="note2">▲ / ▼ on a grid slot shows places gained or lost against qualifying, often because someone ahead took a penalty.</p>
     </div></div>`;
 }
