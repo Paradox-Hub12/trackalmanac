@@ -344,10 +344,25 @@ def race_page(S, r):
     return "".join(parts)
 
 
+def drivers_title_decided(S):
+    """Same test as titleWatch/titleDecided in app.html: nobody can catch the leader (a tie goes to the driver with more wins)."""
+    left = [r for r in S.RACES if not r.get("res")]
+    if not left: return True
+    mx = len(left) * 25 + sum(8 for r in left if r.get("sprint") is True)
+    w = {}
+    for r in S.done: w[r["res"]["pod"][0][0]] = w.get(r["res"]["pod"][0][0], 0) + 1
+    L = S.DRIVERS
+    return all(L[0][3] - d[3] > mx or (L[0][3] - d[3] == mx and w.get(d[0], 0) + len(left) < w.get(L[0][0], 0)) for d in L[1:])
+
+
 def home_page(S):
     nr = S.next; out = []
-    lead = ("%d of %d rounds run. %s leads the drivers' championship with %s points; %s lead the constructors' standings." %
-            (len(S.done), len(S.RACES), S.DRIVERS[0][0], S.DRIVERS[0][3], S.CONS[0][0]))
+    if drivers_title_decided(S):
+        lead = ("%d of %d rounds run. %s is the 2026 world champion, with %s points; %s lead the constructors' standings." %
+                (len(S.done), len(S.RACES), S.DRIVERS[0][0], S.DRIVERS[0][3], S.CONS[0][0]))
+    else:
+        lead = ("%d of %d rounds run. %s leads the drivers' championship with %s points; %s lead the constructors' standings." %
+                (len(S.done), len(S.RACES), S.DRIVERS[0][0], S.DRIVERS[0][3], S.CONS[0][0]))
     out.append(pagehead("2026 Formula 1 season", esc(lead), "Track Almanac · Races. Drivers. Teams. Numbers."))
     if nr:
         out.append(sec("Next race: " + esc(gp_name(nr)), "<p>Round %d · %s · %s, %s. %s</p>%s" % (nr["r"], esc(nr.get("days", "")), esc(nr["circuit"]), esc(nr["city"]), S.a("detail-%d" % nr["r"], "Weekend schedule and session results"), session_rows(S, nr))))
@@ -409,7 +424,8 @@ def archive_year_page(S, y):
     if a.get("live"):
         lead = S.DRIVERS[0] if S.DRIVERS else None
         intro = "The 2026 season is in progress: %d of %d rounds complete." % (len(S.done), len(S.RACES))
-        if lead: intro += " %s leads the drivers' championship on %s points; %s top the constructors' table." % (esc(lead[0]), lead[3], esc(S.CONS[0][0]))
+        if lead and drivers_title_decided(S): intro += " %s is the 2026 world champion, with %s points; %s top the constructors' table." % (esc(lead[0]), lead[3], esc(S.CONS[0][0]))
+        elif lead: intro += " %s leads the drivers' championship on %s points; %s top the constructors' table." % (esc(lead[0]), lead[3], esc(S.CONS[0][0]))
         intro += " See the %s and %s for the full picture." % (S.a("championship", "championship standings"), S.a("calendar", "calendar"))
         return pagehead("2026 Formula 1 season", intro, "Season archive") + \
             sec("Grands Prix", gp_rows(S), "%d rounds" % len(S.RACES)) + standings_tables(S)

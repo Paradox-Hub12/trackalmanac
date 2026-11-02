@@ -1869,14 +1869,21 @@ function viewSeason(){
     </div>
   </div>`;
 }
+/* is a 2026 title already decided? Drivers: 25 a race and 8 a sprint still to come; a tie goes to the driver with more
+   wins (only counted as safe when the rival can't reach the leader's win count). Teams: 43 a race (1st + 2nd), 15 a sprint. */
+function titleDecided(kind){const left=RACES.filter(r=>!r.res),sp=left.filter(r=>r.sprint===true).length;
+  if(!left.length)return true;
+  if(kind==="c"){const C=CONSTRUCTORS;return C.length>1&&C[0][1]-C[1][1]>left.length*43+sp*15;}
+  const L=DRIVERS,max=left.length*25+sp*8,w={};RACES.forEach(r=>{if(r.res){const n=r.res.pod[0][0];w[n]=(w[n]||0)+1;}});
+  return L.slice(1).every(d=>L[0][3]-d[3]>max||(L[0][3]-d[3]===max&&(w[d[0]]||0)+left.length<(w[L[0][0]]||0)));}
 function tower(kind){
   const ol=$("#tower"); if(!ol) return;
   if(kind==="d"){ const top=DRIVERS[0][3];
     ol.innerHTML=DRIVERS.map((d,i)=>{const b=bioOf(d[0]),[fn,ln]=nameParts(d[0]);return `<li${b?` data-driver="${b.code}" tabindex="0" role="button"`:""}><span class="p">${i+1}</span><span class="c" style="background:${tcol(d[2])}"></span><span class="nm" title="${esc(d[0])} · ${esc(d[2])}">${esc(fn)}<b>${esc(ln)}</b></span><span class="pt">${d[3]}<small>${i?"−"+(top-d[3]):"PTS"}</small></span></li>`;}).join("");
-    $("#gapline").textContent=`${DRIVERS[0][0]} leads by ${top-DRIVERS[1][3]}.`;
+    $("#gapline").textContent=titleDecided("d")?`${DRIVERS[0][0]} is the 2026 World Champion.`:`${DRIVERS[0][0]} leads by ${top-DRIVERS[1][3]}.`;
   }else{ const top=CONSTRUCTORS[0][1];
     ol.innerHTML=CONSTRUCTORS.map((c,i)=>`<li class="cons" data-team="${esc(c[0])}" tabindex="0" role="button"><span class="p">${i+1}</span><span class="c" style="background:${tcol(c[0])}"></span><span class="code">${esc(c[0])}</span><span class="pt">${c[1]}<small>${i?"−"+(top-c[1]):"PTS"}</small></span></li>`).join("");
-    $("#gapline").textContent=`${CONSTRUCTORS[0][0]} lead by ${top-CONSTRUCTORS[1][1]}.`;
+    $("#gapline").textContent=titleDecided("c")?`${CONSTRUCTORS[0][0]} are the 2026 Constructors' Champions.`:`${CONSTRUCTORS[0][0]} lead by ${top-CONSTRUCTORS[1][1]}.`;
   }
   $("#t-d").setAttribute("aria-pressed",kind==="d"); $("#t-c").setAttribute("aria-pressed",kind==="c");
 }
@@ -2308,11 +2315,11 @@ function viewChampionship(){
 const GPPTS=[25,18,15,12,10,8,6,4,2,1];
 const ordinal=n=>n+(n%100>=11&&n%100<=13?"th":["th","st","nd","rd"][n%10]||"th");
 function champTop(st){const L=DRIVERS,lead=L[0],wins=Object.fromEntries(st.map(z=>[z[0][0],z[1]]));
-  const rows=L.map((d,i)=>`<li${i<3?` class="p${i+1}"`:""}><span class="ps">${i+1}</span><span class="sw" style="background:${tcol(d[2])}"></span><span class="who"><b>${esc(d[0])}</b><small>${esc(d[2])}</small></span><span class="pt">${d[3]}</span><span class="gp">${i?"−"+(lead[3]-d[3]):"Leader"}</span></li>`).join("");
+  const rows=L.map((d,i)=>`<li${i<3?` class="p${i+1}"`:""}><span class="ps">${i+1}</span><span class="sw" style="background:${tcol(d[2])}"></span><span class="who"><b>${esc(d[0])}</b><small>${esc(d[2])}</small></span><span class="pt">${d[3]}</span><span class="gp">${i?"−"+(lead[3]-d[3]):(titleDecided("d")?"Champion":"Leader")}</span></li>`).join("");
   const done=RACES.filter(r=>r.res).length;
   return `<div class="ctop"><section class="cst"><div class="sec" style="margin-top:0"><h2>Drivers' standings</h2><span class="lbl">After round ${done} of ${RACES.length}</span></div>
     <div class="cstw"><ol class="cstl" id="cstl">${rows}</ol><div class="cstmore" aria-hidden="true">Scroll for the rest ↓</div></div></section>
-    <section class="cup"><div class="sec" style="margin-top:0"><h2>Title watch</h2><span class="lbl">How ${esc(lead[0].split(" ")[0])} can win it</span></div>${titleWatch(wins)}</section></div>`;}
+    <section class="cup"><div class="sec" style="margin-top:0"><h2>${titleDecided("d")?"World champion":"Title watch"}</h2><span class="lbl">${titleDecided("d")?`${esc(lead[0])} · 2026`:`How ${esc(lead[0].split(" ")[0])} can win it`}</span></div>${titleWatch(wins)}</section></div>`;}
 function titleWatch(wins){const L=DRIVERS,lead=L[0],first=lead[0].split(" ")[0];
   const left=RACES.filter(r=>!r.res),sprintLeft=left.filter(r=>r.sprint===true).length;
   const maxLeft=left.length*25+sprintLeft*8;
@@ -3030,7 +3037,7 @@ function histChamps(){
   const rows=[...HIST.champs].reverse().map(c=>{const [a,b,t]=c.top;
     const won=c.done?(c.dec?`${flagOf(c.dec[3])} ${gpS(c.dec[0])} <small>R${c.dec[1]} of ${c.rounds}${c.left?` · ${c.left} race${c.left>1?"s":""} to spare`:" · final round"}</small>`:"—"):`<span class="tag sig" style="margin:0">In progress</span> <small>${c.rounds} rounds run</small>`;
     return `<tr${c.done?"":` class="live"`}><td class="n"><b>${c.y}</b></td><td>${hdl(a[0])}<small class="tm">${esc(a[1])}</small></td><td class="n">${hn(a[2])}</td><td class="n">${a[3]}</td>
-      <td>${b?hdl(b[0]):""}<small class="tm">${b?hn(b[2])+" pts":""}</small></td><td>${t?hdl(t[0]):""}<small class="tm">${t?hn(t[2])+" pts":""}</small></td><td>${won}</td><td class="n">${c.margin!=null?hn(c.margin):"—"}</td></tr>`;}).join("");
+      <td>${b?hdl(b[0]):""}<small class="tm">${b?hn(b[2])+" pts":""}</small></td><td>${t?hdl(t[0]):""}<small class="tm">${t?hn(t[2])+" pts":""}</small></td><td>${won}</td><td class="n">${c.margin!=null?hn(c.margin)+(c.final===false?' <small class="tm">so far</small>':""):"—"}</td></tr>`;}).join("");
   return `<div class="tw"><table class="t htab"><thead><tr><th class="n">Year</th><th>${HIST.done?"Champion":"Champion · leader"}</th><th class="n">Pts</th><th class="n">Wins</th><th>Runner-up</th><th>Third</th><th>Title won at</th><th class="n">Margin</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
 function histAllChamps(){
   const ch=HIST.drivers.filter(d=>d.t).sort((a,b)=>b.t-a.t||a.ty[0]-b.ty[0]);

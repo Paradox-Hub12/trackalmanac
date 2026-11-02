@@ -184,9 +184,30 @@ def compute(base, D):
     champs = []
     by_year = {}
     for k, R in enumerate(races): by_year.setdefault(R["y"], []).append(k)
+    # current season: is the title already decided? Replay the rounds run so far and find the first one after which
+    # nobody can catch the leader (25 a race and 8 a sprint still to come; a tie goes to the driver with more wins)
+    clinched = None
+    if not season_done:
+        rnds = sorted(D["RACES"], key=lambda r: r["r"])
+        pts, wins = {}, {}
+        for k in by_year.get(year_now, []):
+            R = races[k]
+            for row in R["rows"]:
+                pts[row[0]] = pts.get(row[0], 0) + row[3]
+                if row[1] == 1: wins[row[0]] = wins.get(row[0], 0) + 1
+            for i, pos, p_, ok in R["sp"]: pts[i] = pts.get(i, 0) + p_
+            later = [r for r in rnds if r["r"] > R["r"]]
+            left = len(later) * 25 + sum(8 for r in later if r.get("sprint") is True)
+            order = sorted(pts, key=lambda i: -pts[i])
+            if len(order) < 2: continue
+            lead = order[0]
+            safe = all(pts[lead] - pts[i] > left or (pts[lead] - pts[i] == left and wins.get(i, 0) + len(later) < wins.get(lead, 0)) for i in order[1:])
+            if safe:
+                clinched = (k, len(later)); R["dec"] = 1; break
     for y in sorted(stand):
         top = stand[y]
-        done = y < year_now or season_done
+        done = y < year_now or season_done or (y == year_now and clinched is not None)
+        final = y < year_now or season_done          # standings (and so the margin) are final
         ks = by_year.get(y, [])
         def team_in(i):
             c = {}
@@ -200,11 +221,11 @@ def compute(base, D):
         ch = top[0][1]
         if done: titles.setdefault(ch, []).append(y)
         a = age(drv[ch]["dob"], races[dec]["d"]) if dec is not None else None
-        champs.append({"y": y, "done": done, "rounds": len(ks),
+        champs.append({"y": y, "done": done, "rounds": len(D["RACES"]) if (y == year_now and done and not final) else len(ks),
                        "top": [[i, team_in(i), p, wins_in(i)] for _, i, p in top],
                        "dec": [races[dec]["gp"], races[dec]["r"], races[dec]["d"], races[dec]["cc"]] if (done and dec is not None) else None,
-                       "left": (len(ks) - races[dec]["r"]) if (done and dec is not None) else None,
-                       "margin": round(top[0][2] - top[1][2], 1) if len(top) > 1 else None,
+                       "left": (clinched[1] if (y == year_now and not final) else len(ks) - races[dec]["r"]) if (done and dec is not None) else None,
+                       "margin": round(top[0][2] - top[1][2], 1) if len(top) > 1 else None, "final": final,
                        "age": a[0] if a else None})
     # ---- streaks per driver (over the races they started)
     def best_run(seq, test):
@@ -285,7 +306,7 @@ def compute(base, D):
             out.append([i, val, ("%d" % y) + ((" · " + extra((i, y), v)) if extra((i, y), v) else "")])
         return {"t": title, "u": unit, "rows": out[:n + 5]}
     nrounds = {y: len(ks) for y, ks in by_year.items()}
-    ch_rows = [c for c in champs if c["done"] and c["margin"] is not None]
+    ch_rows = [c for c in champs if c["done"] and c["final"] and c["margin"] is not None]
     cat("In one season", [
         season_top(lambda k, v: v["w"], "Most wins in a season", "wins", extra=lambda k, v: "from %d races" % nrounds[k[1]]),
         season_top(lambda k, v: round(100 * v["w"] / nrounds[k[1]], 1) if v["w"] >= 3 else 0, "Highest share of a season's races won", "%",
@@ -364,6 +385,7 @@ def compute(base, D):
         ys = sorted(s["years"]) or sorted({races[k]["y"] for k in range(len(races)) for row in races[k]["rows"] if row[0] == i})
         cs = {c[0]: c for c in d.get("cs", [])}
         bcp = min((c[1] for y, c in cs.items() if c[1] and (y < year_now or season_done)), default=None)
+        if titles.get(i): bcp = 1                     # a title decided before the season ends
         teams = sorted(s["teams"], key=lambda t: -s["teams"][t])
         facts = []
         t = titles.get(i)

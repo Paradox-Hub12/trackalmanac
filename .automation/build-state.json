@@ -127,19 +127,19 @@
  ],
  "pages": {
   "/": {
-   "hash": "c1fa8dd90bf4cc64f68cdf713d6484b8ca93aadb",
+   "hash": "93b831e2bd902210d3f6e4fc8efa9c6499b4e6eb",
    "lastmod": "2026-11-02"
   },
   "/championship/": {
-   "hash": "d1cfdc23deb832219597c5a898b5441445a1102b",
+   "hash": "a6782ac07a4c5974d044f80753541a02f5d5d165",
    "lastmod": "2026-11-02"
   },
   "/drivers/": {
-   "hash": "5f1c8e09367f2ead26f7189d093cf2469586f082",
+   "hash": "6f5e2217551fbbfe2bf19c6a7899abab3b8ef1a7",
    "lastmod": "2026-11-02"
   },
   "/teams/": {
-   "hash": "694e216a432f8f33b3efe4831f6fbe468446f5b0",
+   "hash": "3521a4e257134c905be1888c6ba3bf699c13507e",
    "lastmod": "2026-11-02"
   },
   "/calendar/": {
@@ -219,7 +219,7 @@
    "lastmod": "2026-10-28"
   },
   "/races/2026/mexico/": {
-   "hash": "dc7d923aae25f00208eeba3dda20df8b21392d79",
+   "hash": "f5c07dbc56207e5a05452d53f94b4cf261688637",
    "lastmod": "2026-11-02"
   },
   "/races/2026/brazil/": {
@@ -239,7 +239,7 @@
    "lastmod": "2026-10-22"
   },
   "/history/": {
-   "hash": "6281ef717e53e29e27cbb174e56c91834b3d40ae",
+   "hash": "202c40a171c10e70dd20007bda680404d33ca052",
    "lastmod": "2026-11-02"
   },
   "/history/circuits/": {
@@ -251,7 +251,7 @@
    "lastmod": "2026-10-21"
   },
   "/history/constructors/": {
-   "hash": "dd542b97fbf7fd9db0484d1e3b0d51155204cfcd",
+   "hash": "26af9efdc38e46ad7375b1ff5ce7f2d1f614de3f",
    "lastmod": "2026-11-02"
   },
   "/archive/": {
@@ -263,7 +263,7 @@
    "lastmod": "2026-10-19"
   },
   "/archive/2026/": {
-   "hash": "ed1b42a8f07921011e4b97f3642c72a24ad0ab83",
+   "hash": "59d4b5c2b92ac8e3bd87b8cb29644fbe1e8ba5b3",
    "lastmod": "2026-11-02"
   },
   "/archive/2025/": {
