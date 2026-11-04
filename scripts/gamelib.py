@@ -43,11 +43,20 @@ def cars(D, rnd=None):
     reg, extra = {}, {}
     for b in (D.get("BIO") or {}).values():
         if b.get("num") is not None and not b.get("standin"): reg[int(b["num"])] = full.get(key(b.get("last", ""))) or b.get("name") or b.get("last")
+    letters = lambda s: "".join(c for c in key(s) if "a" <= c <= "z")    # same as norm() in the page: STANDINS keys
     for r, S in sorted((D.get("SEASON") or {}).items(), key=lambda kv: int(kv[0])):
-        for row in (S.get("race") or []) + (S.get("quali") or []):
+        # a planned stand-in (STANDINS[round], not an FP1 outing) counts from his first practice session,
+        # so he can be picked before qualifying; the page's gCars() does the same
+        sub = {k: v for k, v in ((D.get("STANDINS") or {}).get(str(r)) or {}).items() if "fp1" not in str(v[2]).lower()}
+        rows = (S.get("race") or []) + (S.get("quali") or []) + [row for k in ("fp1", "fp2", "fp3", "sq", "sprint")
+                                                                 for row in (S.get(k) or []) if letters(str(row[2]).split()[-1]) in sub]
+        for row in rows:
             try: n = int(row[1])
             except (TypeError, ValueError): continue
-            if n not in reg: extra.setdefault(n, full.get(key(str(row[2]).split()[-1])) or row[2])
+            if n in reg: continue
+            last = str(row[2]).split()[-1]
+            # the latest round wins, in case a stand-in's number is used again by someone else
+            extra[n] = full.get(key(last)) or (sub.get(letters(last)) or [None])[0] or row[2]
     return dict(sorted(reg.items()) + sorted(extra.items()))
 
 

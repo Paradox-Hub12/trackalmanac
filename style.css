@@ -1075,7 +1075,7 @@ body.fs-lock{overflow:hidden}
 .dcard .ph{aspect-ratio:1/0.86;overflow:hidden;background:var(--tc)}
 .dcard .ph img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
 .dcard .num{position:absolute;top:6px;right:8px;font-family:var(--f-display);font-weight:900;font-size:34px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6);line-height:1}
-.dcard .pos{position:absolute;top:8px;left:8px;font-family:var(--f-data);font-size:11px;background:rgba(0,0,0,.72);color:var(--ink);padding:2px 6px;letter-spacing:.08em}
+.dcard .pos{position:absolute;top:8px;left:8px;font-family:var(--f-data);font-size:11px;background:rgba(0,0,0,.72);color:#fff;padding:2px 6px;letter-spacing:.08em}
 .dcard .ph{position:relative}.dcard .role{position:absolute;left:8px;bottom:8px;font-family:var(--f-data);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;background:var(--tc);color:#fff;padding:3px 7px;box-shadow:0 2px 8px rgba(0,0,0,.35);max-width:calc(100% - 16px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dcard .bd{padding:10px 12px 12px;border-top:3px solid var(--tc);display:flex;flex-direction:column;gap:2px}
 .dcard .fn{font-size:13px;color:var(--ink-2)}
@@ -1114,7 +1114,7 @@ body.fs-lock{overflow:hidden}
 .modal .mhero .tx{padding:18px 20px;display:flex;flex-direction:column;gap:6px;justify-content:flex-end;position:relative}
 .modal .mhero .bign{position:absolute;top:10px;right:16px;font-family:var(--f-display);font-weight:900;font-size:88px;line-height:.9;color:var(--tc);opacity:.9}
 .modal h2{font-size:clamp(38px,6vw,60px);font-weight:900;text-transform:uppercase;line-height:.88}
-.modal h2 small{display:block;font-size:.42em;font-weight:700;color:var(--ink-2);text-transform:none;letter-spacing:0;font-family:var(--f-body)}
+.modal h2 small{display:block;font-size:.42em;font-weight:700;color:var(--ink-2);text-transform:none;letter-spacing:0;font-family:var(--f-body);margin-bottom:.5em}
 .modal .tlink{background:none;border:0;padding:0;color:var(--ink);font:inherit;cursor:pointer;text-decoration:underline;text-decoration-color:var(--tc);text-underline-offset:4px;text-decoration-thickness:2px}
 .modal .mb{padding:16px 20px 22px;display:flex;flex-direction:column;gap:18px}
 .facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border-top:1px solid var(--rule);border-left:1px solid var(--rule)}

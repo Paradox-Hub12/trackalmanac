@@ -12046,7 +12046,7 @@
    "birthplace": "Kure, Hiroshima, Japan",
    "height_cm": null,
    "debut": "2026 Mexico City Grand Prix",
-   "f1_teams": [{"team": "Haas", "years": "2026 (reserve driver)"}],
+   "f1_teams": [{"team": "Haas", "years": "2026 (stand-in)"}],
    "titles": 0,
    "title_years": [],
    "starts": 0,
@@ -12057,9 +12057,38 @@
    "points": 0,
    "best_champ": "—",
    "junior": "2017 Super GT GT500 Champion; 2020 Super Formula runner-up; FIA World Endurance Champion with Toyota in 2022 and 2023",
-   "highlights": ["Won the 2022 24 Hours of Le Mans with Toyota, with Sébastien Buemi and Brendon Hartley", "Reserve driver for McLaren (2024), Alpine and Haas (2025) and Haas (2026), with Friday practice outings for all three", "Replaced Esteban Ocon at Haas from third practice at the 2026 Mexico City Grand Prix"],
+   "highlights": ["Won the 2022 24 Hours of Le Mans with Toyota, with Sébastien Buemi and Brendon Hartley", "Reserve driver for McLaren (2024), Alpine and Haas (2025) and Haas (2026), with Friday practice outings for all three", "Replaced Esteban Ocon at Haas from third practice at the 2026 Mexico City Grand Prix and scored a point on his debut"],
    "standin": true,
-   "role": "Reserve driver",
+   "role": "Stand-in",
+   "team": "Haas F1 Team"
+  },
+  "CAM": {
+   "code": "CAM",
+   "num": null,
+   "name": "Rafael Câmara",
+   "first": "Rafael",
+   "last": "Câmara",
+   "nationality": "Brazilian",
+   "country": "Brazil",
+   "iso2": "BR",
+   "dob": "2005-05-05",
+   "birthplace": "Recife, Pernambuco, Brazil",
+   "height_cm": null,
+   "debut": "2026 São Paulo Grand Prix",
+   "f1_teams": [{"team": "Haas", "years": "2026 (stand-in)"}],
+   "titles": 0,
+   "title_years": [],
+   "starts": 0,
+   "wins": 0,
+   "podiums": 0,
+   "poles": 0,
+   "fastest_laps": 0,
+   "points": 0,
+   "best_champ": "—",
+   "junior": "2024 Formula Regional European Champion; 2025 FIA Formula 3 Champion in his rookie season; 2026 FIA Formula 2 with Invicta Racing",
+   "highlights": ["Ferrari Driver Academy member", "2025 FIA Rookie of the Year", "Replaces Esteban Ocon at Haas for the rest of 2026, from the São Paulo Grand Prix"],
+   "standin": true,
+   "role": "Stand-in",
    "team": "Haas F1 Team"
   }
  },
@@ -23571,7 +23600,7 @@
  "CIRCGEO": {"jeddah": [21.63194, 39.10444], "las-vegas": [36.10995, -115.16217]},
  "STANDINS": {
   "19": {
-   "hirakawa": ["Ryo Hirakawa", "Haas F1 Team", "reserve driver"],
+   "hirakawa": ["Ryo Hirakawa", "Haas F1 Team", "stand-in"],
    "vesti": ["Frederik Vesti", "Mercedes", "FP1 driver"],
    "iwasa": ["Ayumu Iwasa", "Red Bull Racing", "FP1 driver"],
    "tsolov": ["Nikola Tsolov", "Racing Bulls", "FP1 driver"],
@@ -23581,6 +23610,18 @@
    "browning": ["Luke Browning", "Williams", "FP1 driver"],
    "slater": ["Freddie Slater", "Audi", "FP1 driver"],
    "herta": ["Colton Herta", "Cadillac", "FP1 driver"]
+  },
+  "20": {
+   "camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]
+  },
+  "21": {
+   "camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]
+  },
+  "22": {
+   "camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]
+  },
+  "23": {
+   "camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]
   }
  }
 }

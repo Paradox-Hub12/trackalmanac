@@ -1165,12 +1165,15 @@ function teamStats26(team){const o={wins:0,pod:0,poles:0,onetwo:0,best:null};
     if(ps.includes(1)&&ps.includes(2))o.onetwo++;
     const q=(S.quali||[])[0];if(q&&teamAt(q[2],r.r)===team)o.poles++;});
   return o;}
+/* car number: the profile's, or (for a stand-in whose number isn't announced) the latest one in the timing data */
+const numOf=b=>{if(b.num!=null)return b.num;const k=norm(b.last);let n=null;
+  Object.keys(SEASON).sort((a,c)=>a-c).forEach(r=>Object.values(SEASON[r]).forEach(rows=>Array.isArray(rows)&&rows.forEach(x=>{if(Array.isArray(x)&&norm(String(x[2]||""))===k&&+x[1])n=+x[1];})));return n;};
 const carSrc=team=>{const k=(TEAMBIO[team]||{}).key;return k&&typeof CARS!=="undefined"&&CARS[k]||"";};
 const pimg=(code3,alt)=>PORTRAIT[code3]?`<img src="${PORTRAIT[code3]}" alt="${esc(alt)}" loading="lazy">`:"";
 let driverSort="team";try{driverSort=localStorage.getItem("ta-dsort")||"team";}catch(e){}
 function driverCard(d){const b=bioOf(d[0]),i=DRIVERS.indexOf(d),[fn,ln]=nameParts(d[0]);
   return `<a class="dcard" href="${H("driver-"+b.code)}" data-driver="${b.code}" style="--tc:${tcol(d[2])}" aria-label="${esc(d[0])}, ${esc(d[2])}">
-    <div class="ph">${pimg(b.code,d[0])}${b.standin?`<span class="role">${esc(b.role)}</span>`:""}</div><span class="num">${b.num}</span>${i>=0?`<span class="pos">P${i+1}</span>`:""}
+    <div class="ph">${pimg(b.code,d[0])}${b.standin?`<span class="role">${esc(b.role)}</span>`:""}</div>${numOf(b)!=null?`<span class="num">${numOf(b)}</span>`:""}${i>=0?`<span class="pos">P${i+1}</span>`:""}
     <div class="bd"><span class="toprow"><span class="fn">${esc(fn)}</span><span class="ctry" title="${esc(b.country)}"><span class="cn">${esc(b.country)}</span>${flagOf(b.iso2,"big")}</span></span><span class="ln">${esc(ln)}</span>
     <span class="tmn"><span>${esc(d[2].replace(" F1 Team",""))}</span><b>${d[3]} pts</b></span></div></a>`;}
 function viewDrivers(){
@@ -1210,7 +1213,7 @@ function openDriver(code3){const b=BIO[code3];if(!b)return;
   const car=k=>(b[k]||0)+(k==="starts"?s.starts:k==="wins"?s.wins:k==="podiums"?s.pod:k==="poles"?s.poles:k==="fastest_laps"?s.fl:k==="points"?pts:0);
   const tb=TEAMBIO[team]||{};
   const inner=`<div class="mhero"><div class="ph">${pimg(code3,b.name)}</div>
-   <div class="tx"><span class="bign">${b.num}</span><span class="lbl">${flagOf(b.iso2)} ${esc(b.nationality)} · #${b.num} · ${esc(code3)}</span>
+   <div class="tx"><span class="bign">${numOf(b)??""}</span><span class="lbl">${flagOf(b.iso2)} ${esc(b.nationality)}${numOf(b)!=null?` · #${numOf(b)}`:""} · ${esc(code3)}</span>
     <h2><small>${esc(b.first)}</small>${esc(b.last)}</h2>
     <div>${team?`<button class="tlink" data-team="${esc(team)}">${esc(tb.name||team)}</button>`:""}${b.standin?` · ${esc(b.role)}`:""}${pos?` · P${pos} in 2026 with ${pts} pts`:""}</div></div></div>
   <div class="mb">
@@ -1656,8 +1659,12 @@ const gKey=n=>String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerC
 function gCars(){const m={},full=n=>DRIVERS.find(x=>gKey(sur(x[0]))===gKey(n));
   Object.values(BIO).forEach(b=>{if(b.num!=null&&!b.standin){const d=full(b.last);m[b.num]={n:b.num,name:d?d[0]:b.name,last:b.last,team:d?d[2]:"",iso:b.iso2,pos:d?DRIVERS.indexOf(d):99};}});
   /* stand-ins (e.g. a driver who replaced someone for a few rounds): after the 22 regulars, full name from DRIVERS */
-  Object.keys(SEASON).sort((a,b)=>a-b).forEach(r=>{const S=SEASON[r];[...(S.race||[]),...(S.quali||[])].forEach(row=>{const n=+row[1];if(!n||m[n])return;const last=String(row[2]).split(" ").pop(),d=full(last);
-    m[n]={n,name:d?d[0]:String(row[2]),last,team:d?d[2]:"",pos:1000+n,standin:true};});});
+  /* a planned stand-in (STANDINS, not an FP1 outing) counts from his first practice session, so he can be picked before qualifying;
+     scripts/gamelib.py cars() does the same, and the latest round wins if a stand-in number is used again */
+  Object.keys(SEASON).sort((a,b)=>a-b).forEach(r=>{const S=SEASON[r],sub=SUBS[r]||{},planned=k=>sub[k]&&!/fp1/i.test(sub[k][2]);
+    const rows=[...(S.race||[]),...(S.quali||[]),...["fp1","fp2","fp3","sq","sprint"].flatMap(k=>(S[k]||[]).filter(row=>planned(norm(String(row[2]).split(" ").pop()))))];
+    rows.forEach(row=>{const n=+row[1];if(!n||(m[n]&&!m[n].standin))return;const last=String(row[2]).split(" ").pop(),d=full(last),sb=sub[norm(last)];
+    m[n]={n,name:d?d[0]:sb?sb[0]:String(row[2]),last,team:d?d[2]:sb?sb[1]:"",pos:1000+n,standin:true};});});
   return Object.values(m).sort((a,b)=>a.pos-b.pos||a.n-b.n);}
 /* constructors' standings order, teammates together (better placed driver first), stand-ins at the end */
 const gTeamKey=c=>c.standin?"~":c.team;

@@ -381,7 +381,7 @@ def drivers_page(S):
     rows = []
     for i, d in enumerate(S.DRIVERS):
         b = next((x for x in S.BIO.values() if norm(x["last"]) == norm(d[0].split()[-1])), None)
-        rows.append([i + 1, esc(d[0]), b["num"] if b else "", esc(b["nationality"]) if b else "", esc(d[2]), d[3],
+        rows.append([i + 1, esc(d[0]), (b.get("num") or "") if b else "", esc(b["nationality"]) if b else "", esc(d[2]), d[3],
                      ("Born %s, %s. F1 debut: %s." % (fmt_date(b["dob"]), esc(b["birthplace"]), esc(b["debut"]))) if b else ""])
     return pagehead("2026 F1 drivers", "Every driver on the 2026 Formula 1 grid with team, nationality, points and career profile.") + \
         table(["Pos", "Driver", "No", "Nationality", "Team", "Pts", "Profile"], rows)
