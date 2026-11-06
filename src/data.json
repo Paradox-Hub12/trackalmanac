@@ -10018,7 +10018,33 @@
    "wxm": [[21.4, 25.1, 31.3, 45.9, 0, 3.5], [22.7, 26.6, 37.4, 49.0, 0, 6.1], [22.1, 25.2, 33.6, 51.0, 0, 5.8]],
    "wxnote": "Dry and warm all weekend, with no rain: air 22–27°C and track temperatures up to 51°C on race day."
   },
-  "20": {"tyres": "345"}
+  "20": {
+   "tyres": "345",
+   "fp1": [
+    ["1", 1, "Norris", "1:11.717", "33"],
+    ["2", 12, "Antonelli", "+0.082s", "32"],
+    ["3", 3, "Verstappen", "+0.236s", "29"],
+    ["4", 44, "Hamilton", "+0.324s", "31"],
+    ["5", 63, "Russell", "+0.386s", "30"],
+    ["6", 6, "Hadjar", "+0.439s", "25"],
+    ["7", 62, "Mini", "+0.852s", "28"],
+    ["8", 5, "Bortoleto", "+0.897s", "30"],
+    ["9", 43, "Colapinto", "+0.937s", "34"],
+    ["10", 30, "Lawson", "+0.998s", "32"],
+    ["11", 67, "Fornaroli", "+1.116s", "28"],
+    ["12", 87, "Bearman", "+1.120s", "27"],
+    ["13", 14, "Alonso", "+1.300s", "26"],
+    ["14", 41, "Lindblad", "+1.321s", "32"],
+    ["15", 77, "Bottas", "+1.654s", "16"],
+    ["16", 23, "Albon", "+1.794s", "18"],
+    ["17", 46, "Browning", "+1.874s", "12"],
+    ["18", 51, "Camara", "+1.979s", "30"],
+    ["19", 18, "Stroll", "+2.043s", "28"],
+    ["20", 25, "Herta", "+2.558s", "31"],
+    ["21", 38, "Beganovic", "+2.640s", "11"],
+    ["22", 98, "Slater", "+3.249s", "7"]
+   ]
+  }
  },
  "LAPS": {
   "1": {
@@ -23611,17 +23637,9 @@
    "slater": ["Freddie Slater", "Audi", "FP1 driver"],
    "herta": ["Colton Herta", "Cadillac", "FP1 driver"]
   },
-  "20": {
-   "camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]
-  },
-  "21": {
-   "camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]
-  },
-  "22": {
-   "camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]
-  },
-  "23": {
-   "camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]
-  }
+  "20": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
+  "21": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
+  "22": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
+  "23": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]}
  }
 }
