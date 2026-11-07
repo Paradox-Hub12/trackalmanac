@@ -23660,7 +23660,15 @@
    "slater": ["Freddie Slater", "Audi", "FP1 driver"],
    "herta": ["Colton Herta", "Cadillac", "FP1 driver"]
   },
-  "20": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
+  "20": {
+   "camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"],
+   "beganovic": ["Dino Beganovic", "Ferrari", "FP1 driver"],
+   "fornaroli": ["Leonardo Fornaroli", "McLaren", "FP1 driver"],
+   "browning": ["Luke Browning", "Williams", "FP1 driver"],
+   "mini": ["Gabriele Mini", "Alpine", "FP1 driver"],
+   "slater": ["Freddie Slater", "Audi", "FP1 driver"],
+   "herta": ["Colton Herta", "Cadillac", "FP1 driver"]
+  },
   "21": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
   "22": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
   "23": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]}
