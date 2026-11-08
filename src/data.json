@@ -23746,5 +23746,10 @@
   "22": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
   "23": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]}
  },
- "NEWS": {"20": [["2026-11-08T18:06:00Z", "Norris leads in São Paulo after Kimi and Russell spin"]]}
+ "NEWS": {
+  "20": [
+   ["2026-11-08T18:06:00Z", "Norris leads in São Paulo after Kimi and Russell spin"],
+   ["2026-11-08T18:41:57Z", "Lando Norris wins in a chaotic São Paulo. Full results coming soon"]
+  ]
+ }
 }
