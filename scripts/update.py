@@ -293,6 +293,9 @@ def quali_rows(src, people, rnd, start):
     except NotReady:
         pass
     q = sorted(q, key=lambda x: int(x["position"]))
+    # Jolpica sometimes publishes the qualifying order before the lap times (Brazil 2026): wait for the times,
+    # because a table saved without them is never fetched again
+    if not any(x.get("Q1") for x in q): raise NotReady("Jolpica-F1 has the qualifying order but no lap times yet")
     rows = []
     for x in q:
         n, p = int(x["number"]), int(x["position"])
