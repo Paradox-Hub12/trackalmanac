@@ -342,6 +342,22 @@ body.hmob-open{overflow:hidden}
 .cdrow.rlive .lgo{color:var(--signal)}
 @media (prefers-reduced-motion:reduce){.lgt:not(.off) i{animation:none;background:#ff1a1a;box-shadow:0 0 8px 1px rgba(255,30,30,.6)}}
 @media (max-width:400px){.lgo{font-size:21px}.lgt i{width:13px;height:13px}.lgt{gap:4px;padding:4px 6px}}
+/* Completed weekend: result summary and full-width news above the session breakdown. */
+.weekend-result{display:flex;flex-direction:column;gap:12px;min-width:0}
+.weekend-podium{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.weekend-podium li{display:grid;grid-template-columns:24px 4px minmax(0,1fr);gap:8px;align-items:center}
+.weekend-podium b{font:12px var(--f-data);color:var(--ink-2)}
+.weekend-podium i{height:18px}.weekend-podium strong{font-size:18px;overflow-wrap:anywhere}
+.weekend-facts{margin:0;display:grid;gap:6px}.weekend-facts div{display:flex;flex-wrap:wrap;gap:2px 10px;justify-content:space-between}
+.weekend-facts dt{color:var(--ink-2)}.weekend-facts dd{margin:0;text-align:right;overflow-wrap:anywhere}
+.weekend-next{display:flex;flex-direction:column;gap:4px;white-space:normal;overflow-wrap:anywhere}
+.weekend-next small{font:12px var(--f-body);color:var(--ink-2)}
+.weekend-news{grid-column:1/-1;padding:14px 20px;border-top:1px solid var(--rule);min-width:0;overflow-wrap:anywhere}
+.weekend-news .pnews{margin-top:10px}.weekend-news .pnews li.top span{font-size:24px}
+.weekend-complete{margin:0;color:var(--ink-2)}
+.wk .nxs a.nr{text-decoration:none}.wk .nxs a.nr:focus-visible{outline:2px solid var(--done);outline-offset:2px}
+.weekend-done .sres .t3{white-space:normal;flex-wrap:wrap}.weekend-done .sres .t3 strong{font-size:14px}
+@media(max-width:760px){.weekend-news{padding:12px 14px}.weekend-news .pnews li{gap:6px}.weekend-news .pnews li.top span{font-size:20px}}
 /* next-race card: tyres and the Predictor card in the right column (after the countdowns on phones) */
 .rtyre{margin-top:14px}
 .pcm{display:none}
