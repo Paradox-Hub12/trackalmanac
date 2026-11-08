@@ -375,7 +375,7 @@ def home_page(S):
 
 def championship_page(S):
     return (pagehead("2026 F1 Championship standings", "Drivers' and constructors' points after round %d of %d, with every Grand Prix winner, pole position and fastest lap." % (len(S.done), len(S.RACES))) +
-            '<a class="wi-link" href="/what-if/without-antonelli/">What if…? A season without Antonelli →</a>' +
+            '<a class="wi-link" href="/what-if/without-antonelli/"><span class="lbl">What if…?</span><b>The 2026 standings without Antonelli</b><i aria-hidden="true">→</i></a>' +
             sec("Grands Prix", gp_rows(S), "%d rounds" % len(S.RACES)) + standings_tables(S) + wa_card(S, "championship"))
 
 

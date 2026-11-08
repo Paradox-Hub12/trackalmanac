@@ -791,7 +791,7 @@ function champTop(st){const L=DRIVERS,lead=L[0],wins=Object.fromEntries(st.map(z
   const done=RACES.filter(r=>r.res).length;
   return `<div class="ctop"><section class="cst"><div class="sec" style="margin-top:0"><h2>Drivers' standings</h2><span class="lbl">After round ${done} of ${RACES.length}</span></div>
     <div class="cstw"><ol class="cstl" id="cstl">${rows}</ol><div class="cstmore" aria-hidden="true">Scroll for the rest ↓</div></div></section>
-    <section class="cup"><div class="sec" style="margin-top:0"><h2>${titleDecided("d")?"World champion":"Title watch"}</h2><span class="lbl">${titleDecided("d")?`${esc(lead[0])} · 2026`:`How ${esc(lead[0].split(" ")[0])} can win it`}</span></div>${titleWatch(wins)}<a class="wi-link" href="/what-if/without-antonelli/" data-go="without-antonelli">What if…? A season without Antonelli →</a></section></div>`;}
+    <section class="cup"><div class="sec" style="margin-top:0"><h2>${titleDecided("d")?"World champion":"Title watch"}</h2><span class="lbl">${titleDecided("d")?`${esc(lead[0])} · 2026`:`How ${esc(lead[0].split(" ")[0])} can win it`}</span></div>${titleWatch(wins)}<a class="wi-link" href="/what-if/without-antonelli/" data-go="without-antonelli"><span class="lbl">What if…?</span><b>The 2026 standings without Antonelli</b><i aria-hidden="true">→</i></a></section></div>`;}
 function titleWatch(wins){const L=DRIVERS,lead=L[0],first=lead[0].split(" ")[0];
   const left=RACES.filter(r=>!r.res),sprintLeft=left.filter(r=>r.sprint===true).length;
   const maxLeft=left.length*25+sprintLeft*8;
@@ -2491,7 +2491,7 @@ document.addEventListener("click",e=>{const n=e.target.closest("[data-setnote]")
 /* ---------- ROUTER ---------- */
 let t=null;
 /* ---------- HEADER: slim pinned bar, dropdowns, phone menu, Predictor badge ---------- */
-const NAVGRP=k=>{if(!k)return "";if(k.startsWith("game"))return "game";if(k==="archive-2027")return "y27";
+const NAVGRP=k=>{if(!k)return "";if(k.startsWith("game"))return "game";if(k==="without-antonelli")return "whatif";if(k==="archive-2027")return "y27";
   if(/^(archive|history|hcons|hcirc|heng|hregs|dictionary)/.test(k))return "hist";
   if(/^(season|race-|detail-|championship|drivers|driver-|teams|team-|calendar)/.test(k))return "y26";return "";};
 function setNav(){const k=curKey(),g=NAVGRP(k),here=location.pathname;
@@ -2650,7 +2650,7 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
     Promise.all([loadHist(),loadRegs(),loadDict()]).then(()=>{if(curKey()!=="hregs"||$(".regs .rgera"))return;histIndexTeams();$("#app").innerHTML=viewRegs();pinSizes();regsInit();}).catch(()=>{const n=$(".dload");if(n)n.textContent="This page could not be loaded. Check your connection and reload.";});}
   else if(h==="dictionary"){if(!$(".dict")){const q0=new URLSearchParams(location.search).get("q");if(q0)DS.q=q0;}if(!$(".dict"))$("#app").innerHTML=DICT?viewDict():`<div class="dict"><div class="pagehead"><div><span class="lbl">Formula 1 A to Z</span><h2 class="h1">F1 dictionary</h2><p class="dload">Loading…</p></div></div></div>`;$("#sheetname").textContent="F1 DICTIONARY";setNav("");document.title=pageTitle("dictionary");
     loadDict().then(()=>{if(curKey()==="dictionary"&&!$(".dict .dsearch")){$("#app").innerHTML=viewDict();pinSizes();}}).catch(()=>{});}
-  else if(h==="without-antonelli"){$("#app").innerHTML=viewWithoutAntonelli();initWithoutAntonelli();$("#sheetname").textContent="2026 · WHAT IF?";setNav("");document.title=pageTitle(h);}
+  else if(h==="without-antonelli"){$("#app").innerHTML=viewWithoutAntonelli();initWithoutAntonelli();$("#sheetname").textContent="2026 · WHAT IF?";setNav();document.title=pageTitle(h);}
   else if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
   else if(h==="notfound"){$("#app").innerHTML=viewNotFound();$("#sheetname").textContent="NOT FOUND";setNav("");}
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}

@@ -23,5 +23,7 @@ table.t.wi-table .wi-driver .sw{margin:0}
 .wi-wins li{border:1px solid var(--rule);padding:12px}
 .wi-wins small{display:block;color:var(--ink-2)}
 .wi-next{padding-left:20px}.wi-next li{margin:8px 0}
-.wi-link{display:block;margin-top:16px;font-size:13px}
+.wi-link{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;margin-top:18px;padding:12px 14px;border:1px solid var(--rule);border-left:3px solid var(--signal);text-decoration:none;color:inherit;background:var(--panel)}
+.wi-link .lbl{grid-column:1}.wi-link b{grid-column:1;font-size:15px}.wi-link i{grid-column:2;grid-row:1/3;font-style:normal;font-size:20px;color:var(--signal)}
+.wi-link:hover{border-color:var(--signal)}
 @media(max-width:650px){.wi-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.wi-wins{grid-template-columns:1fr}table.t.wi-table{font-size:11px}table.t.wi-table th{font-size:9px;letter-spacing:.02em}table.t.wi-table th,table.t.wi-table td{padding:9px 3px}table.t.wi-table th:first-child{width:24px}.wi-card{padding:12px}.wi-card b{font-size:26px}}
