@@ -13,21 +13,21 @@
   "Cadillac": "#c9a227"
  },
  "DRIVERS": [
-  ["Kimi Antonelli", "ITA", "Mercedes", 380],
-  ["Max Verstappen", "NED", "Red Bull Racing", 261],
-  ["Lewis Hamilton", "GBR", "Ferrari", 259],
-  ["George Russell", "GBR", "Mercedes", 250],
-  ["Charles Leclerc", "MON", "Ferrari", 245],
-  ["Lando Norris", "GBR", "McLaren", 221],
-  ["Oscar Piastri", "AUS", "McLaren", 144],
-  ["Isack Hadjar", "FRA", "Red Bull Racing", 107],
-  ["Liam Lawson", "NZL", "Racing Bulls", 83],
+  ["Kimi Antonelli", "ITA", "Mercedes", 390],
+  ["Max Verstappen", "NED", "Red Bull Racing", 279],
+  ["George Russell", "GBR", "Mercedes", 262],
+  ["Lewis Hamilton", "GBR", "Ferrari", 261],
+  ["Charles Leclerc", "MON", "Ferrari", 251],
+  ["Lando Norris", "GBR", "McLaren", 246],
+  ["Oscar Piastri", "AUS", "McLaren", 152],
+  ["Isack Hadjar", "FRA", "Red Bull Racing", 122],
+  ["Liam Lawson", "NZL", "Racing Bulls", 87],
   ["Pierre Gasly", "FRA", "Alpine", 42],
   ["Arvid Lindblad", "GBR", "Racing Bulls", 38],
   ["Franco Colapinto", "ARG", "Alpine", 27],
   ["Oliver Bearman", "GBR", "Haas F1 Team", 23],
   ["Gabriel Bortoleto", "BRA", "Audi", 14],
-  ["Nico Hulkenberg", "GER", "Audi", 13],
+  ["Nico Hulkenberg", "GER", "Audi", 14],
   ["Esteban Ocon", "FRA", "Haas F1 Team", 7],
   ["Fernando Alonso", "ESP", "Aston Martin", 7],
   ["Carlos Sainz", "ESP", "Williams", 7],
@@ -36,17 +36,18 @@
   ["Ryo Hirakawa", "JPN", "Haas F1 Team", 1],
   ["Lance Stroll", "CAN", "Aston Martin", 0],
   ["Valtteri Bottas", "FIN", "Cadillac", 0],
-  ["Sergio Perez", "MEX", "Cadillac", 0]
+  ["Sergio Perez", "MEX", "Cadillac", 0],
+  ["Rafael Camara", "BRA", "Haas F1 Team", 0]
  ],
  "CONSTRUCTORS": [
-  ["Mercedes", 630],
-  ["Ferrari", 504],
-  ["Red Bull Racing", 382],
-  ["McLaren", 365],
-  ["Racing Bulls", 108],
+  ["Mercedes", 652],
+  ["Ferrari", 512],
+  ["Red Bull Racing", 415],
+  ["McLaren", 398],
+  ["Racing Bulls", 112],
   ["Alpine", 69],
   ["Haas F1 Team", 31],
-  ["Audi", 27],
+  ["Audi", 28],
   ["Williams", 12],
   ["Aston Martin", 7],
   ["Cadillac", 0]
@@ -6974,7 +6975,13 @@
    "date": "2026-11-08",
    "len": 4.309,
    "laps": 71,
-   "days": "6–8 Nov"
+   "days": "6–8 Nov",
+   "res": {
+    "time": "1:35:23.504",
+    "pod": [["Lando Norris", "Winner"], ["Max Verstappen", "+14.602s"], ["Isack Hadjar", "+24.485s"]],
+    "pole": "Lando Norris",
+    "fl": ["Kimi Antonelli", "1:12.689", 55, 213.407]
+   }
   },
   {
    "r": 21,
@@ -10138,6 +10145,30 @@
     [20, 44, "Hamilton"],
     [21, 3, "Verstappen"],
     [22, 11, "Perez"]
+   ],
+   "race": [
+    ["1", 1, "Norris", 71, "1:35:23.504", 25, 1],
+    ["2", 3, "Verstappen", 71, "+14.602s", 18, 21],
+    ["3", 6, "Hadjar", 71, "+24.485s", 15, 5],
+    ["4", 63, "Russell", 71, "+33.991s", 12, 7],
+    ["5", 12, "Antonelli", 71, "+36.017s", 10, 2],
+    ["6", 81, "Piastri", 71, "+56.475s", 8, 10],
+    ["7", 16, "Leclerc", 71, "+1:13.586", 6, 14],
+    ["8", 30, "Lawson", 71, "+1:15.402", 4, 3],
+    ["9", 44, "Hamilton", 70, "+1 lap", 2, 20],
+    ["10", 27, "Hulkenberg", 70, "+1 lap", 1, 4],
+    ["11", 41, "Lindblad", 70, "+1 lap", 0, 12],
+    ["12", 14, "Alonso", 70, "+1 lap", 0, 8],
+    ["13", 43, "Colapinto", 70, "+1 lap", 0, 15],
+    ["14", 10, "Gasly", 70, "+1 lap", 0, 16],
+    ["15", 23, "Albon", 70, "+1 lap", 0, 9],
+    ["16", 5, "Bortoleto", 70, "+1 lap", 0, 19],
+    ["17", 87, "Bearman", 70, "+1 lap", 0, 6],
+    ["18", 11, "Perez", 69, "+2 laps", 0, 22],
+    ["19", 55, "Sainz", 69, "+2 laps", 0, 13],
+    ["20", 51, "Camara", 69, "+2 laps", 0, 11],
+    ["NC", 18, "Stroll", 30, "DNF", 0, 17],
+    ["NC", 77, "Bottas", 0, "DNS", 0, 18]
    ]
   }
  },

@@ -602,6 +602,7 @@ function tyreChart(n){const S=SEASON[n],ST=S.stints;
 function drawLapChart(){
   const el=$("#lapchart"); if(!el) return; cancelAnimationFrame(el._raf);el._playing=false;
   const n=+el.dataset.round, L=LAPS[n], S=SEASON[n];
+  if(!L?.c?.length||!L?.l?.length){el.textContent="Lap chart data is not available yet.";return;}
   const codes=L.c, laps=L.l, nL=laps.length, maxP=Math.max(...laps.map(x=>x.length),codes.length);
   const W=980,ml=46,mr=50,mt=14,rowH=17,H=mt+maxP*rowH+30;
   const X=i=>ml+(W-ml-mr)*i/nL, Y=p=>mt+(p-0.5)*rowH;

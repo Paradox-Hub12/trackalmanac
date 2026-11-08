@@ -128,11 +128,11 @@
  ],
  "pages": {
   "/": {
-   "hash": "93b831e2bd902210d3f6e4fc8efa9c6499b4e6eb",
-   "lastmod": "2026-11-02"
+   "hash": "6868f2e9c1ab2f69ae53fa42b8f2b90c053109ad",
+   "lastmod": "2026-11-08"
   },
   "/championship/": {
-   "hash": "103d345e06d9bd7fd333d6b25883a6e009ec89e1",
+   "hash": "62ea02b53668a6563192f2d22496fe1dcade1b04",
    "lastmod": "2026-11-08"
   },
   "/what-if/without-antonelli/": {
@@ -140,16 +140,16 @@
    "lastmod": "2026-11-08"
   },
   "/drivers/": {
-   "hash": "6f5e2217551fbbfe2bf19c6a7899abab3b8ef1a7",
-   "lastmod": "2026-11-02"
+   "hash": "2f2efdb4dfc642e62cc64b2c0a8c41595aee77a8",
+   "lastmod": "2026-11-08"
   },
   "/teams/": {
-   "hash": "3521a4e257134c905be1888c6ba3bf699c13507e",
-   "lastmod": "2026-11-02"
+   "hash": "b6dda0f2441d56c45442d176f271bf5c62f80d60",
+   "lastmod": "2026-11-08"
   },
   "/calendar/": {
-   "hash": "937f9ede8a322895f6196bbdd130f867aae2c2a0",
-   "lastmod": "2026-11-02"
+   "hash": "9da45306e2da3ecf3d6d9e9384d4d35b7bc384e6",
+   "lastmod": "2026-11-08"
   },
   "/races/2026/australia/": {
    "hash": "232406087e5ca18f8cb3ccae28ba4a1595a828d3",
@@ -228,7 +228,7 @@
    "lastmod": "2026-11-02"
   },
   "/races/2026/brazil/": {
-   "hash": "9a9d228f3aa70e827a93742c975033dd993977b4",
+   "hash": "de0337ce9100a27cf411042c6fbf7b65fca24352",
    "lastmod": "2026-11-08"
   },
   "/races/2026/las-vegas/": {
@@ -244,20 +244,20 @@
    "lastmod": "2026-10-22"
   },
   "/history/": {
-   "hash": "202c40a171c10e70dd20007bda680404d33ca052",
-   "lastmod": "2026-11-02"
+   "hash": "b0804bfa793310b0f60f32b059bc98e054df2516",
+   "lastmod": "2026-11-08"
   },
   "/history/circuits/": {
-   "hash": "0e7847646d029736886cb047c74603b85d242afb",
-   "lastmod": "2026-11-02"
+   "hash": "b39a6a9f6f0c7f208808e770977a0adb6987a04b",
+   "lastmod": "2026-11-08"
   },
   "/history/regulations/": {
    "hash": "120f719baa438a3f7417bfc96a2e5e230ad70e27",
    "lastmod": "2026-10-21"
   },
   "/history/constructors/": {
-   "hash": "26af9efdc38e46ad7375b1ff5ce7f2d1f614de3f",
-   "lastmod": "2026-11-02"
+   "hash": "49ddda1aeddff6a07c9b3b88ea0db531d51c8d9d",
+   "lastmod": "2026-11-08"
   },
   "/archive/": {
    "hash": "0fba4e458b3c36f0b0c34261d1239919724a390e",
@@ -268,7 +268,7 @@
    "lastmod": "2026-10-19"
   },
   "/archive/2026/": {
-   "hash": "b142ee713ab92e00cccda71c9efc7c58a1d91c68",
+   "hash": "c4fd2f1f4d5906be870e2ce42bd67f0bf9707a79",
    "lastmod": "2026-11-08"
   },
   "/archive/2025/": {
