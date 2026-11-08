@@ -50,7 +50,7 @@ The owner's other assistant reviews the site from time to time, so keep commits 
 5. Look at it: take a screenshot of what you changed at phone and desktop width, in dark and light theme.
 6. Data changes: re-read the changed rows, check totals add up (points, standings sorted, 20–22 cars per session).
 
-## Data you will touch## Data you will touch (all in `src/data.json`; round numbers are strings in SEASON, e.g. "20")
+## Data you will touch (all in `src/data.json`; round numbers are strings in SEASON, e.g. "20")
 - `SEASON[round]["quali"]`: rows `[pos, car_no, surname, Q1, Q2, Q3, laps]`, e.g.
   `["1", 1, "Norris", "1:30.939", "1:29.207", "1:27.470", "24"]`.
   - A driver who reached a part but set no time gets `"No time"` there; parts not reached stay `""`.
