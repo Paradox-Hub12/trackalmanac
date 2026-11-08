@@ -300,7 +300,7 @@ function viewSeason(){
         <span class="lbl">Next · Round ${nr.r} / ${n}</span>
         <h2 class="h1" id="nr">${esc(nr.short)}</h2>
         <div style="color:var(--ink-2)">${esc(nr.circuit)}, ${esc(nr.city)}</div>
-        <div><span class="tag sig">${esc(nr.days)}</span>${nr.sprint?'<span class="tag">Sprint</span>':""}<span class="tag">Night</span></div>
+        <div><span class="tag sig">${esc(nr.days)}</span>${nr.sprint?'<span class="tag">Sprint</span>':""}${["marina","vegas","lusail","yas"].includes(nr.track)?'<span class="tag">Night</span>':""}</div>
         <div class="cdx" id="cdx" aria-live="off"></div>
         <div class="pcm">${pcard()}</div>
         <div class="spec"><div><span class="lbl">Lap</span><b>${dist(nr.len,3)}</b></div><div><span class="lbl">Laps</span><b>${nr.laps}</b></div><div><span class="lbl">Distance</span><b>${dist(nr.len*nr.laps,1)}</b></div></div>
@@ -313,6 +313,7 @@ function viewSeason(){
         <div class="rtyre">${tyreBlock(nr.r)}</div>
         <div class="pcd">${pcard()}</div>
       </div>
+    <div class="pcw">${pcard()}</div>
     <div class="wk">
         <div class="wkh"><span class="lbl">Weekend schedule</span><span class="lbl">Select a session for full results</span></div>
         <div class="nxs" aria-label="Weekend schedule">
@@ -2520,7 +2521,7 @@ document.addEventListener("keydown",e=>{
 });
 /* phones: the bar hides while scrolling down and comes back on a small scroll up (always shown near the top) */
 const HB_AUTOHIDE=true;   /* set to false to keep the bar always visible on phones too */
-const hbPhone=matchMedia("(max-width:999px)");let hbY=scrollY,hbQ=0;
+const hbPhone=matchMedia("(max-width:1099px)");let hbY=scrollY,hbQ=0;
 function hbShow(){document.documentElement.classList.remove("hb-hidden");}
 function hbScroll(){hbQ=0;const y=scrollY,menu=document.querySelector(".hmenu:not([hidden])")||($("#hmob")&&!$("#hmob").hidden);
   if(!HB_AUTOHIDE||!hbPhone.matches||menu||y<120){hbShow();}
@@ -2723,6 +2724,7 @@ function pcardBody(now){const st=predState(now),signed=gameOn()&&GS.user&&GS.pro
     <a class="pcbtn" href="${H("game-picks")}" data-go="game-picks">${PC.pick===true&&signed?"Change your picks →":"Make your picks →"}</a>`];}
 function pcdParts(ms){let m=Math.max(0,Math.floor(ms/60000));const v=[Math.floor(m/1440),Math.floor(m%1440/60),m%60];return v.map((n,i)=>(i===0&&!n)?"":`<b>${i?String(n).padStart(2,"0"):n}</b><i>${["d","h","m"][i]}</i>`).join("");}
 function pcardTick(now){const els=document.querySelectorAll("[data-pcard]");if(!els.length)return;const [k,h]=pcardBody(now);
+  {const sh=document.querySelector(".home .sheet");if(sh)sh.toggleAttribute("data-news",k.startsWith("live")&&!!h);}   /* news lines: full-width strip under both columns */
   if(k!==PC.sig){PC.sig=k;els.forEach(el=>el.innerHTML=h);}
   else els.forEach(el=>{const c=el.querySelector("[data-pcd]");if(c){const v=pcdParts(+c.dataset.pcd-now);if(c.innerHTML!==v)c.innerHTML=v;}});}
 /* signed-in status: Firebase loads on the home page only, after the page has fully loaded */
