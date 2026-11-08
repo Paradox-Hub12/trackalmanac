@@ -10090,6 +10090,30 @@
     ["20", 11, "Perez", "+1.951s", "32"],
     ["21", 77, "Bottas", "+2.100s", "19"],
     ["22", 18, "Stroll", "+3.144s", "7"]
+   ],
+   "quali": [
+    ["1", 1, "Norris", "No time", "No time", "No time", "24"],
+    ["2", 63, "Russell", "No time", "No time", "No time", "23"],
+    ["3", 12, "Antonelli", "No time", "No time", "No time", "23"],
+    ["4", 16, "Leclerc", "No time", "No time", "No time", "22"],
+    ["5", 30, "Lawson", "No time", "No time", "No time", "24"],
+    ["6", 27, "Hulkenberg", "No time", "No time", "No time", "23"],
+    ["7", 6, "Hadjar", "No time", "No time", "No time", "24"],
+    ["8", 87, "Bearman", "No time", "No time", "No time", "22"],
+    ["9", 14, "Alonso", "No time", "No time", "No time", "23"],
+    ["10", 23, "Albon", "No time", "No time", "No time", "24"],
+    ["11", 44, "Hamilton", "No time", "No time", "", "13"],
+    ["12", 81, "Piastri", "No time", "No time", "", "20"],
+    ["13", 51, "Camara", "No time", "No time", "", "18"],
+    ["14", 41, "Lindblad", "No time", "No time", "", "16"],
+    ["15", 55, "Sainz", "No time", "No time", "", "19"],
+    ["16", 3, "Verstappen", "No time", "No time", "", "9"],
+    ["17", 43, "Colapinto", "No time", "", "", "12"],
+    ["18", 10, "Gasly", "No time", "", "", "12"],
+    ["19", 18, "Stroll", "No time", "", "", "11"],
+    ["20", 77, "Bottas", "No time", "", "", "12"],
+    ["21", 11, "Perez", "No time", "", "", "12"],
+    ["22", 5, "Bortoleto", "No time", "", "", "5"]
    ]
   }
  },
