@@ -62,6 +62,23 @@ from this repository. Every push to `main` is live within about a minute.
    - Cross-check against an FIA or major-outlet grid list.
 4. Write `GRIDNOTES[round]`: one sentence per penalty, with places and reason.
 
+### "A session time changed" (timetable change, rain delay, postponement)
+Session times live in `SCHED[round]`: `[track time zone, [[session name, start in UTC, length in minutes], ...]]`, e.g.
+`["America/Los_Angeles", [["Qualifying", "2026-11-21T04:00:00Z", 60], ...]]`. They drive the countdowns, the
+"Session in progress" labels, the automation, and the Predictor's pick deadline (the start of "Qualifying").
+- **Timetable changed in advance** (announced days before): the automation usually updates `SCHED` by itself when its
+  two sources agree. If it hasn't, set the new UTC start by hand. Hand-entered times are never undone.
+- **Delayed on the day** (rain, red flag, track repairs): **do nothing.** The results arrive when the session ends,
+  and the Predictor deadline stays at the scheduled start, which is fair because nobody has seen the session yet.
+- **Postponed to another day** (e.g. qualifying moved to Sunday morning): set the new UTC start in `SCHED` and
+  rebuild. The Predictor's deadline follows it at the next run of the "Update results" workflow (every 30 minutes,
+  Friday to Monday) or of "Firebase" (Actions → Run workflow).
+  - Only move the Qualifying time **before the original deadline has passed** if possible. Moving it later after it
+    passed reopens picks.
+  - Never move it to a time after the session has actually started.
+- **Session cancelled**: leave `SCHED` as it is and tell the owner. A cancelled qualifying (grid set from practice)
+  needs a decision about the Predictor's pole points.
+
 ### "Fix the result" (post-race penalties)
 1. Apply time penalties to the race time / gap, re-sort the classified finishers, and reassign points (25-18-15-12-10-8-6-4-2-1).
 2. Update `DRIVERS` and `CONSTRUCTORS` by the points difference only. A stand-in's points go to his team.
