@@ -347,6 +347,8 @@ body.hmob-open{overflow:hidden}
 .pcm{display:none}
 .pcd{margin-top:14px}
 @media (max-width:760px){.pcm{display:block}.pcd{display:none}}
+.pcard:empty{display:none}
+.pnews{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}.pnews li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline}.pnews time{font-family:var(--f-data);font-size:12px;color:var(--ink-3);white-space:nowrap}.pnews li.top span{font-family:var(--f-display);font-size:20px;font-weight:800;line-height:1.15;text-transform:uppercase}
 .pcard{position:relative;display:flex;flex-direction:column;gap:6px;padding:14px 16px;border:1.5px solid var(--signal);background:linear-gradient(135deg,color-mix(in srgb,var(--signal) 12%,var(--panel)),var(--panel) 70%)}
 .pcard:empty{display:none}
 .pcard h3{margin:0;font-family:var(--f-display);font-weight:900;font-size:24px;line-height:1.05;text-transform:uppercase}

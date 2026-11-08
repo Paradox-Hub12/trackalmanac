@@ -2712,7 +2712,10 @@ const PC={sig:"",pick:undefined,pts:undefined,uid:null};
 const pcard=()=>`<aside class="pcard" data-pcard aria-live="polite"></aside>`;
 function pcardBody(now){const st=predState(now),signed=gameOn()&&GS.user&&GS.profile;
   if(st.s==="off"||!st.s)return ["off",`<span class="lbl">Track Almanac Predictor</span><h3>Predictor returns in 2027</h3><p>Thanks for playing this season. <a href="${H("game-lb")}" data-go="game-lb">Final leaderboard →</a></p>`];
-  if(st.s==="live")return ["live",`<span class="lbl">Track Almanac Predictor · ${esc(pName(st.r.r))}</span><h3>Picks locked</h3><p>Results after the race.${signed?(PC.pick===true?" Your picks are in ✓":PC.pick===false?" You didn't pick this time.":""):""}</p><a class="pcbtn ghost" href="${H("game-lb")}" data-go="game-lb">Leaderboard →</a>`];
+  /* picks locked: the space shows the owner's news lines for this round (NEWS in data.json), newest first; none = empty */
+  if(st.s==="live"){const N=((typeof NEWS!=="undefined"&&NEWS[st.r.r])||[]).slice().sort((a,b)=>Date.parse(b[0])-Date.parse(a[0])).slice(0,4);
+    if(!N.length)return ["live0",""];
+    return ["live"+N.length+N[0][0],`<span class="lbl">Latest from ${esc(pName(st.r.r))}</span><ul class="pnews">${N.map((x,i)=>`<li${i?"":' class="top"'}><time datetime="${esc(x[0])}">${tfmt(x[0],null,{hour:"2-digit",minute:"2-digit"})}</time><span>${esc(x[1])}</span></li>`).join("")}</ul>`];}
   if(st.s==="results")return ["results"+(PC.pts==null?"":PC.pts),`<span class="lbl">Track Almanac Predictor · ${esc(pName(st.r.r))}</span><h3>${esc(pName(st.r.r))}: the scores are in</h3>${signed&&PC.pts!=null?`<p class="pcpts"><b>${PC.pts}</b> point${PC.pts===1?"":"s"} for you</p>`:""}<a class="pcbtn" href="${H("game-lb")}" data-go="game-lb">See how everyone scored →</a>${st.next?`<p class="pcnext">Next: <a href="${H("game-picks")}" data-go="game-picks">make your picks for ${esc(pName(st.next.r))} →</a></p>`:""}`];
   const mine=signed?(PC.pick===true?`<p class="pcst ok">Your picks are in ✓</p>`:PC.pick===false?`<p class="pcst">You haven't picked yet</p>`:""):"";
   return ["open"+(signed?PC.pick:""),`<span class="lbl">Track Almanac Predictor</span><h3>Who wins in ${esc(pName(st.r.r))}? <em>Make your picks</em></h3>

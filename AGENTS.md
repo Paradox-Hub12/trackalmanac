@@ -43,6 +43,7 @@ from this repository. Every push to `main` is live within about a minute.
   - Use `"stand-in"` for someone replacing a race driver.
   - The team must be spelled exactly as in `DRIVERS`.
 - `RACES[i]["res"]["cls"]`: the short race write-up (4–5 sentences, facts only); `SEASON[round]["wxnote"]`: one-sentence weather note.
+- `NEWS[round]`: short news lines from the owner, shown after the Predictor picks lock (see "Add a news line").
 - `DRIVERS` `[name, nat, team, points]` and `CONSTRUCTORS` `[team, points]`: the standings, kept sorted by points.
 
 ## Race-weekend jobs (what the owner will ask for)
@@ -80,6 +81,13 @@ Session times live in `SCHED[round]`: `[track time zone, [[session name, start i
   - Never move it to a time after the session has actually started.
 - **Session cancelled**: leave `SCHED` as it is and tell the owner. A cancelled qualifying (grid set from practice)
   needs a decision about the Predictor's pole points.
+
+### "Add a news line" (race weekend, after the Predictor picks lock)
+- `NEWS[round]` is a list of `[time in UTC, text]`, e.g.
+  `"20": [["2026-11-08T18:06:00Z", "Norris leads in São Paulo after Kimi and Russell spin"]]`.
+- Use the owner's text exactly as given (fix only obvious typos), with the current UTC time.
+- Lines appear on the home page's next-race card from the start of qualifying until the race result is in.
+  Newest first, at most 4. With no lines, the space stays empty. Never write news lines yourself unless asked.
 
 ### "Fix the result" (post-race penalties)
 1. Apply time penalties to the race time / gap, re-sort the classified finishers, and reassign points (25-18-15-12-10-8-6-4-2-1).
