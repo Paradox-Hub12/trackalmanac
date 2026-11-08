@@ -1,0 +1,43 @@
+# Rebuilds the site whenever the master files in src/ change on main, so a manual edit (an AI assistant, or the
+# GitHub web editor) shows up on the site even if nobody ran build.py. If src/data.json is broken (invalid JSON,
+# a build error), the run fails and GitHub emails the owner; the live site stays as it was.
+name: Rebuild site
+
+on:
+  push:
+    branches: [main]
+    paths: ["src/**", "build.py", "historylib.py"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-site
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check the data file and rebuild
+        run: |
+          python3 -c "import json; json.load(open('src/data.json', encoding='utf-8'))" || { echo "::error::src/data.json is not valid JSON"; exit 1; }
+          python3 build.py > /dev/null
+          node --check app.js && node --check data.js
+      - name: Commit the rebuilt pages (only if anything changed)
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A && git commit -q -m "Rebuild site after a change in src/"
+            git pull -q --rebase --autostash origin main && git push -q origin HEAD:main
+            echo "::notice::Site rebuilt and pushed."
+          else
+            echo "::notice::Site was already up to date."
+          fi
