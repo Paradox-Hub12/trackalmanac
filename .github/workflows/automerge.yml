@@ -1,0 +1,66 @@
+# Merges pull requests automatically once the site builds and passes the browser check, so changes made by an AI
+# assistant (Codex opens pull requests) go live without anyone clicking "Merge". A pull request that fails a check
+# stays open, the run fails and GitHub emails the owner; the live site is not touched.
+# Only pull requests from branches of this repository (not forks), not drafts.
+name: Auto-merge
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-and-merge:
+    if: github.event.pull_request.head.repo.full_name == github.repository && !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build and code checks
+        run: |
+          python3 -c "import json; json.load(open('src/data.json', encoding='utf-8'))" || { echo "::error::src/data.json is not valid JSON"; exit 1; }
+          python3 build.py > /dev/null
+          node --check app.js && node --check data.js
+      - name: Browser check of every page (390px and 1366px)
+        run: |
+          npm i --no-save playwright@1.47.2 > /dev/null
+          npx playwright install --with-deps chromium > /dev/null
+          node scripts/site_check.mjs --quick
+      - name: Merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/merge" -f merge_method=squash -f sha="$SHA" \
+            -f commit_title="$(gh api repos/${{ github.repository }}/pulls/$PR --jq .title) (#$PR)" \
+            || { echo "::error::Could not merge #$PR (conflict with main, or main changed meanwhile). Ask the assistant to update the branch."; exit 1; }
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$BRANCH" || true
+          echo "::notice::Merged #$PR and deleted branch $BRANCH."
+      - name: Rebuild main and publish
+        run: |
+          git fetch -q origin main && git checkout -q -B main FETCH_HEAD
+          python3 build.py > /dev/null
+          if [ -n "$(git status --porcelain -- . ':!node_modules' ':!package-lock.json')" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A -- . ':!node_modules' ':!package-lock.json' && git commit -q -m "Rebuild site after merging #${{ github.event.pull_request.number }}"
+            git pull -q --rebase --autostash origin main && git push -q origin HEAD:main
+          fi

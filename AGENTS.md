@@ -6,8 +6,11 @@ from this repository. Every push to `main` is live within about a minute.
 
 ## How you work here
 You are a full maintainer of this site, with the same freedom as the owner's other assistant (Claude): you can change
-anything (data, design, features, scripts, workflows) and **commit straight to `main`**, unless the owner asks for a
-pull request. Freedom comes with responsibility: everything you push is live within about two minutes, so
+anything (data, design, features, scripts, workflows). The owner doesn't review or merge anything by hand:
+**push straight to `main`**, or, if you can only open a pull request, open it (not as a draft). The "Auto-merge"
+workflow builds it, checks every page in a browser and **merges it automatically** when everything passes, then
+deletes the branch. If a check fails, the pull request stays open and the owner is emailed: fix it on the same branch.
+Never ask the owner to merge, pull or push. Freedom comes with responsibility: everything you push is live within about two minutes, so
 **test before you push** (see "Quality checks") and tell the owner briefly what you changed and why.
 The owner's other assistant reviews the site from time to time, so keep commits small, well described and easy to check.
 
