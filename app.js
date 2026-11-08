@@ -438,13 +438,15 @@ function tyreSVG(c,on){const col=["","var(--tH)","var(--tM)","var(--tS)"][on]||"
 function nmSpan(full){return `<span class="fn">${esc(full)}</span><span class="c3">${esc(code(full))}</span>`;}
 function drvCell(s,r){const t=teamAt(s,r),sb=subAt(s,r);return `<td class="stk1"><span class="sw" style="background:${tcol(t)}"></span>${nmSpan(fullName(s))}</td><td style="color:var(--ink-2)">${t?esc(t)+(sb&&sb[2]?` <span style="color:var(--ink-3)">(${esc(sb[2])})</span>`:""):"Reserve driver"}</td>`;}
 function qualiTable(rows,r,labels){
-  const best=rows.map(x=>{const ts=[x[3],x[4],x[5]].map(secs).filter(v=>v);return ts.length?Math.min(...ts):null;});
-  const pole=Math.min(...best.filter(v=>v));const worst=Math.max(...best.filter(v=>v));
+  /* gap = time in the driver's last part of qualifying (Q3, Q2 or Q1) minus the fastest time in that same part.
+     Comparing best laps across Q1-Q3 breaks when the track changes (Brazil 2026: wet Q3 slower than Q2). */
   const colBest=[3,4,5].map(c=>Math.min(...rows.map(x=>secs(x[c])).filter(v=>v)));
-  return `<div class="tw"><table class="t"><thead><tr><th class="n stk0">Pos</th><th class="n">No</th><th class="stk1">Driver</th><th>Team</th>${labels.map(l=>`<th class="n">${l}</th>`).join("")}<th class="n">Gap</th><th>To pole</th><th class="n">Laps</th></tr></thead><tbody>
-  ${rows.map((x,i)=>{const g=best[i]&&best[i]!==pole?"+"+(best[i]-pole).toFixed(3):(best[i]?"—":"");const w=best[i]?Math.max(2,(best[i]-pole)/(worst-pole||1)*100):0;
+  const gap=rows.map(x=>{for(const c of [5,4,3]){const v=secs(x[c]);if(v)return v-colBest[c-3];}return null;});
+  const worst=Math.max(0.001,...gap.filter(v=>v!=null));
+  return `<div class="tw"><table class="t"><thead><tr><th class="n stk0">Pos</th><th class="n">No</th><th class="stk1">Driver</th><th>Team</th>${labels.map(l=>`<th class="n">${l}</th>`).join("")}<th class="n" title="To the fastest lap in the driver's last part of qualifying">Gap</th><th>To pole</th><th class="n">Laps</th></tr></thead><tbody>
+  ${rows.map((x,i)=>{const d=gap[i],g=d==null?"":i===0?"—":"+"+d.toFixed(3);const w=d!=null?Math.max(2,d/worst*100):0;
     const cut=(i===9||i===15)&&rows.length>16?' class="cut"':"";
-    return `<tr${cut}><td class="n stk0">${esc(x[0])}</td><td class="n">${x[1]}</td>${drvCell(x[2],r)}${[3,4,5].map(c=>`<td class="n${secs(x[c])===colBest[c-3]?" best":""}">${esc(x[c])}</td>`).join("")}<td class="n">${g}</td><td>${best[i]?`<span class="gapbar"><i style="width:${w}%"></i></span>`:""}</td><td class="n">${esc(x[6])}</td></tr>`;}).join("")}
+    return `<tr${cut}><td class="n stk0">${esc(x[0])}</td><td class="n">${x[1]}</td>${drvCell(x[2],r)}${[3,4,5].map(c=>`<td class="n${secs(x[c])===colBest[c-3]?" best":""}">${esc(x[c])}</td>`).join("")}<td class="n">${g}</td><td>${d!=null?`<span class="gapbar"><i style="width:${w}%"></i></span>`:""}</td><td class="n">${esc(x[6])}</td></tr>`;}).join("")}
   </tbody></table></div>`;}
 function practiceTable(rows,r){return `<div class="tw"><table class="t"><thead><tr><th class="n stk0">Pos</th><th class="n">No</th><th class="stk1">Driver</th><th>Team</th><th class="n">Time / gap</th><th class="n">Laps</th></tr></thead><tbody>
   ${rows.map((x,i)=>`<tr><td class="n stk0">${esc(x[0])}</td><td class="n">${x[1]}</td>${drvCell(x[2],r)}<td class="n${i===0?" best":""}">${esc(x[3])||"No time"}</td><td class="n">${esc(x[4])}</td></tr>`).join("")}</tbody></table></div>`;}
