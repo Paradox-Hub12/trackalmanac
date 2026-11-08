@@ -1,3 +1,72 @@
+const WHATIF_HTML="<article class=\"whatif\">\n  <div class=\"pagehead\"><div><span class=\"lbl\">2026 \u00b7 A results-based what-if</span><h2 class=\"h1\">What if Antonelli had never raced in 2026?</h2>\n  <p>A hypothetical, just for fun. Remove Kimi Antonelli from the recorded Grand Prix and Sprint classifications and see how the points change. This imagines his absence; it implies no wrongdoing.</p></div></div>\n  <div id=\"wi-live\"><p class=\"note2\">Enable JavaScript to calculate this scenario from the site's latest results.</p></div>\n  <section class=\"dsec\"><div class=\"sec\"><h2>How this works</h2></div>\n  <p>For every Grand Prix and Sprint with a published result on Track Almanac, remove Antonelli and move each classified finisher behind him up one place. Award Grand Prix points of 25\u201318\u201315\u201312\u201310\u20138\u20136\u20134\u20132\u20131 and Sprint points of 8\u20137\u20136\u20135\u20134\u20133\u20132\u20131. Unclassified finishers receive no points. Wins count Grands Prix only.</p>\n  <p>This is arithmetic, not a prediction: strategy, incidents, retirements, qualifying and the behaviour of other drivers are not resimulated. Points gained by other drivers need not equal Antonelli's original total. Ties use Grand Prix finishing-position countback; unresolved ties share a position.</p>\n  <p>Remaining points are the maximum one driver can score from Grands Prix and Sprints still awaiting results, using the site's calendar and session schedule. A driver within that total of the leader can still catch or tie them on points; this does not resolve future countback ties.</p>\n  <p class=\"note2\">Calculated in your browser from Track Almanac's own session tables. New results and corrections are included on your next page load. <a href=\"/championship/\" data-go=\"championship\">Compare the actual championship \u2192</a></p></section>\n</article>\n";
+/* Pure recalculation: never mutates the live classifications or standings. */
+function withoutAntonelli(season=SEASON,races=RACES,drivers=DRIVERS,schedule=SCHED){
+  const key=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const people=new Map(drivers.map(d=>[key(d[0].split(' ').pop()),{name:d[0],team:d[2],actual:0,points:0,wins:0,finishes:[],actualFinishes:[]}]));
+  const person=s=>{const k=key(s);if(!people.has(k))people.set(k,{name:s,team:'',actual:0,points:0,wins:0,finishes:[],actualFinishes:[]});return people.get(k);};
+  const classified=row=>/^\d+$/.test(String(row[0]))&&Number(row[0])>0;
+  const gpPoints=[25,18,15,12,10,8,6,4,2,1],sprintPoints=[8,7,6,5,4,3,2,1];
+  const winners=[];let gp=0,sprints=0,remaining=0,latest=null;
+  for(const r of [...races].sort((a,b)=>a.r-b.r)){
+    const s=season[String(r.r)]||{},hasGP=!!s.race?.length,hasSprint=!!s.sprint?.length;
+    const sprintScheduled=!!r.sprint||(schedule[String(r.r)]?.[1]||[]).some(x=>x[0]==='Sprint');
+    if(!hasGP)remaining+=25;if(sprintScheduled&&!hasSprint)remaining+=8;
+    for(const [type,points] of [['race',gpPoints],['sprint',sprintPoints]]){
+      if(!s[type]?.length)continue;
+      if(type==='race'){gp++;latest=r;}else sprints++;
+      const rows=s[type].filter(classified).slice().sort((a,b)=>Number(a[0])-Number(b[0]));
+      const antonelli=rows.find(row=>key(row[2])==='antonelli');
+      for(const row of rows){
+        const p=person(row[2]),pos=Number(row[0]);p.actual+=Number(row[5])||0;
+        if(type==='race')p.actualFinishes[pos]=(p.actualFinishes[pos]||0)+1;
+        if(key(row[2])==='antonelli')continue;
+        const promoted=pos-(antonelli&&pos>Number(antonelli[0])?1:0);
+        p.points+=points[promoted-1]||0;
+        if(type==='race'){p.finishes[promoted]=(p.finishes[promoted]||0)+1;if(promoted===1)p.wins++;}
+      }
+      if(type==='race'){
+        const original=rows.find(row=>Number(row[0])===1),winner=rows.find(row=>key(row[2])!=='antonelli'&&Number(row[0])-(antonelli&&Number(row[0])>Number(antonelli[0])?1:0)===1);
+        if(winner)winners.push({round:r.r,race:r.short,name:person(winner[2]).name,changed:original!==winner});
+      }
+    }
+  }
+  const compare=(a,b,actual=false)=>{
+    const diff=actual?b.actual-a.actual:b.points-a.points;if(diff)return diff;
+    const af=actual?a.actualFinishes:a.finishes,bf=actual?b.actualFinishes:b.finishes;
+    for(let i=1;i<Math.max(af.length,bf.length);i++){const n=(bf[i]||0)-(af[i]||0);if(n)return n;}return 0;
+  };
+  const rank=(rows,actual=false)=>{const sorted=rows.sort((a,b)=>compare(a,b,actual)||a.name.localeCompare(b.name));let rank=1;return sorted.map((p,i)=>{if(i&&compare(sorted[i-1],p,actual))rank=i+1;return {...p,rank};});};
+  const all=[...people.entries()],revised=rank(all.filter(([k])=>k!=='antonelli').map(([,p])=>p)),actual=rank([...people.values()],true);
+  return {revised,actual,winners,gp,sprints,remaining,latest,compare};
+}
+function viewWithoutAntonelli(){return WHATIF_HTML;}
+function initWithoutAntonelli(){
+  const host=document.getElementById('wi-live');if(!host)return;
+  const result=withoutAntonelli(),{revised,latest,remaining,winners}=result,lead=revised[0];
+  const contenders=lead?revised.filter(p=>lead.points-p.points<=remaining):[];
+  const transferred=winners.filter(w=>w.changed),gain=revised.reduce((best,p)=>p.points-p.actual>best.points-best.actual?p:best,revised[0]);
+  const teams=CONSTRUCTORS.map(c=>({name:c[0],points:revised.filter(d=>d.team===c[0]).reduce((n,d)=>n+d.points,0)})).sort((a,b)=>b.points-a.points);
+  host.innerHTML=`<p class="lbl">${latest?`After round ${latest.r} · ${esc(latest.gp)}`:'No finished Grand Prix yet'} · ${result.gp} Grands Prix + ${result.sprints} Sprints</p>
+    <div class="wi-cards">${[['Scenario leader',lead?.name||'—',`${lead?.points||0} points`],['Largest gain',gain?`+${gain.points-gain.actual}`:'0',gain?.name||'—'],['Wins reassigned',transferred.length,'Grand Prix victories'],['Points remaining',remaining,`${contenders.length} drivers can catch or tie the lead`]].map(([label,value,note])=>`<div class="wi-card"><span class="lbl">${label}</span><b class="${typeof value==='string'&&!/^[+0-9]+$/.test(value)?'wi-name':''}">${esc(value)}</b><small>${esc(note)}</small></div>`).join('')}</div>
+    <section class="dsec"><div class="sec"><h2>The championship rewritten</h2></div>
+    <div class="wi-controls"><label>Table <select id="wi-mode"><option value="revised">Without Antonelli</option><option value="actual">Actual standings</option></select></label><label>Find a driver <input id="wi-search" type="search" placeholder="Driver name"></label><label><input id="wi-all" type="checkbox"> Full field</label></div>
+    <p class="note2">Select a driver to compare points. Actual points are summed from the same completed session tables.</p>
+    <div id="wi-table"></div><div id="wi-spotlight" class="wi-spotlight" aria-live="polite"></div></section>
+    <section class="dsec"><div class="sec"><h2>The winners change</h2><span class="lbl">${transferred.length} inherited victories</span></div><p>Grand Prix winners in this scenario. Marked victories pass to the next classified finisher.</p><ol class="wi-wins">${winners.map(w=>`<li><small>Round ${w.round} · ${esc(w.race)}</small><b>${esc(w.name)}</b>${w.changed?'<small>Inherited victory</small>':''}</li>`).join('')}</ol></section>
+    <section class="dsec"><div class="sec"><h2>The title picture</h2></div><p>${lead?`${esc(lead.name)} leads with ${lead.points} points. ${revised[1]?`${esc(revised[1].name)} is ${lead.points-revised[1].points} points behind.`:''}`:'Awaiting results.'} There are ${remaining} points still available per driver.</p><p>Within reach on points: ${contenders.map(p=>`${esc(p.name)} (${p.points}, ${p.wins} GP wins)`).join('; ')||'—'}.</p>
+    <ul class="wi-next">${RACES.filter(r=>!(SEASON[r.r]?.race?.length)).map(r=>`<li>Round ${r.r} · ${esc(r.gp)} · ${esc(r.date)}</li>`).join('')||'<li>All Grands Prix completed.</li>'}</ul></section>
+    <section class="dsec"><div class="sec"><h2>Constructors in this scenario</h2></div><p>Points attributed using each driver's team in the site's current driver list.</p><ol>${teams.map(t=>`<li>${esc(t.name)} · ${t.points} points</li>`).join('')}</ol></section>`;
+  const spotlight=p=>{document.getElementById('wi-spotlight').innerHTML=`<span class="lbl">Driver spotlight</span><p><b>${esc(p.name)}</b> · Actual: ${p.actual} · Without Antonelli: ${p.points} · GP wins: ${p.wins}</p>`;};
+  function refresh(){
+    const actual=document.getElementById('wi-mode').value==='actual',query=document.getElementById('wi-search').value.toLowerCase();
+    const list=actual?result.actual:revised,filtered=list.filter(p=>p.name.toLowerCase().includes(query)),shown=document.getElementById('wi-all').checked||query?filtered:filtered.slice(0,10);
+    document.getElementById('wi-table').innerHTML=`<table class="t wi-table"><caption>${actual?'Actual standings':'Hypothetical standings without Antonelli'}</caption><thead><tr><th scope="col" class="n">Pos</th><th scope="col">Driver / team</th><th scope="col" class="n">Actual</th><th scope="col" class="n">Gain</th><th scope="col" class="n">Revised</th><th scope="col" class="n">Wins</th></tr></thead><tbody>${shown.map(p=>`<tr><td class="n">${p.rank}</td><td><div class="wi-driver"><span class="sw" style="background:${tcol(p.team)}" aria-hidden="true"></span><div><button type="button" data-wi-driver="${esc(p.name)}">${esc(p.name)}</button><small>${esc(p.team)}</small></div></div></td><td class="n">${p.actual}</td><td class="n">${p.name==='Kimi Antonelli'?'—':`+${p.points-p.actual}`}</td><td class="n">${p.name==='Kimi Antonelli'?'—':p.points}</td><td class="n">${p.name==='Kimi Antonelli'?'—':p.wins}</td></tr>`).join('')||'<tr><td colspan="6">No matching drivers found.</td></tr>'}</tbody></table>`;
+  }
+  host.querySelectorAll('select,input').forEach(el=>el.addEventListener('input',refresh));
+  host.addEventListener('click',e=>{const b=e.target.closest('[data-wi-driver]');if(b){const p=result.actual.find(p=>p.name===b.dataset.wiDriver);if(p)spotlight(p);}});
+  refresh();if(lead)spotlight(lead);
+}
+
 
 const teamOf=n=>(DRIVERS.find(d=>d[0]===n)||[])[2];
 Object.keys(ARCHTXT).forEach(y=>{ARCHIVE[y]=ARCHTXT[y];});ARCHIVE[2027]={next:true};
@@ -8,7 +77,7 @@ let NAVD=false;
 if(PATHMODE){try{const dsc=Object.getOwnPropertyDescriptor(Document.prototype,"title");Object.defineProperty(document,"title",{configurable:true,get(){return dsc.get.call(document);},set(v){if(NAVD)dsc.set.call(document,v);}});}catch(e){}}
 const SLUG=r=>r.short.replace(" (Sepang)","").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 const STATIC_KEYS=["season","championship","drivers","teams","calendar","archive","history","dictionary","game","about","contact","privacy","terms","disclaimer","sitemap"];
-function keyToPath(k){let m;if(!k||k==="season")return "/";
+function keyToPath(k){if(k==="without-antonelli")return "/what-if/without-antonelli/";let m;if(!k||k==="season")return "/";
   if(m=k.match(/^detail-(\d+)(?:-(\w+))?$/)){const r=RACES.find(x=>x.r===+m[1]);return r?`/races/2026/${SLUG(r)}/${m[2]?"#"+m[2]:""}`:"/";}
   if(m=k.match(/^race-(\d+)$/))return "/?race="+m[1];
   if(m=k.match(/^driver-(\w+)$/))return "/drivers/?driver="+m[1];
@@ -27,7 +96,7 @@ function keyToPath(k){let m;if(!k||k==="season")return "/";
   return "/"+k+"/";}
 const H=k=>PATHMODE?keyToPath(k):"#"+k;
 const isLegacy=h=>!!h&&(STATIC_KEYS.includes(h)||/^(race|detail|driver|team|archive)-/.test(h));
-function pathToKey(){const p=location.pathname.replace(/index\.html$/,""),q=new URLSearchParams(location.search),h=decodeURIComponent(location.hash.slice(1));let m;
+function pathToKey(){if(/^\/what-if\/without-antonelli\/?$/.test(location.pathname))return "without-antonelli";const p=location.pathname.replace(/index\.html$/,""),q=new URLSearchParams(location.search),h=decodeURIComponent(location.hash.slice(1));let m;
   if(p==="/"){if(isLegacy(h))return {legacy:h};return q.get("race")?"race-"+q.get("race"):"season";}
   if(m=p.match(/^\/races\/2026\/([a-z0-9-]+)\/?$/)){const r=RACES.find(x=>SLUG(x)===m[1]);return r?"detail-"+r.r+(h&&/^\w+$/.test(h)?"-"+h:""):"notfound";}
   if(m=p.match(/^\/archive\/(\d{4})\/?$/))return ARCHIVE[+m[1]]?"archive-"+m[1]:"notfound";
@@ -45,7 +114,7 @@ function curKey(){if(!PATHMODE)return (location.hash||"#season").slice(1)||"seas
   const k=pathToKey();if(k&&k.legacy){const L=k.legacy.replace(/^race-(\d+)$/,"detail-$1");history.replaceState(null,"",keyToPath(L));NAVD=true;return L;}return k;}
 function go(k,replace){NAVD=true;if(PATHMODE){history[replace?"replaceState":"pushState"](null,"",keyToPath(k));route();}
   else if(replace){history.replaceState(null,"","#"+k);route();} else if(location.hash==="#"+k)route(); else location.hash=k;}
-function pageTitle(k){const T=" | Track Almanac";let m;
+function pageTitle(k){if(k==="without-antonelli")return "What if Antonelli had never raced in 2026? | Track Almanac";const T=" | Track Almanac";let m;
   if(!k||k==="season"||k.startsWith("race-"))return "Track Almanac · Races. Drivers. Teams. Numbers.";
   if(m=k.match(/^detail-(\d+)/)){const r=RACES.find(x=>x.r===+m[1]);if(!r)return "Track Almanac";const n=r.gp.replace(" (Sepang)","");return r.res?`${n} 2026: Results, Grid & Lap Chart${T}`:`${n} 2026: Schedule, Session Times & Results${T}`;}
   if(k==="archive-1946-1949")return `Grand Prix Racing 1946–1949: Before the F1 World Championship${T}`;
@@ -722,7 +791,7 @@ function champTop(st){const L=DRIVERS,lead=L[0],wins=Object.fromEntries(st.map(z
   const done=RACES.filter(r=>r.res).length;
   return `<div class="ctop"><section class="cst"><div class="sec" style="margin-top:0"><h2>Drivers' standings</h2><span class="lbl">After round ${done} of ${RACES.length}</span></div>
     <div class="cstw"><ol class="cstl" id="cstl">${rows}</ol><div class="cstmore" aria-hidden="true">Scroll for the rest ↓</div></div></section>
-    <section class="cup"><div class="sec" style="margin-top:0"><h2>${titleDecided("d")?"World champion":"Title watch"}</h2><span class="lbl">${titleDecided("d")?`${esc(lead[0])} · 2026`:`How ${esc(lead[0].split(" ")[0])} can win it`}</span></div>${titleWatch(wins)}</section></div>`;}
+    <section class="cup"><div class="sec" style="margin-top:0"><h2>${titleDecided("d")?"World champion":"Title watch"}</h2><span class="lbl">${titleDecided("d")?`${esc(lead[0])} · 2026`:`How ${esc(lead[0].split(" ")[0])} can win it`}</span></div>${titleWatch(wins)}<a class="wi-link" href="/what-if/without-antonelli/" data-go="without-antonelli">What if…? A season without Antonelli →</a></section></div>`;}
 function titleWatch(wins){const L=DRIVERS,lead=L[0],first=lead[0].split(" ")[0];
   const left=RACES.filter(r=>!r.res),sprintLeft=left.filter(r=>r.sprint===true).length;
   const maxLeft=left.length*25+sprintLeft*8;
@@ -2581,6 +2650,7 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
     Promise.all([loadHist(),loadRegs(),loadDict()]).then(()=>{if(curKey()!=="hregs"||$(".regs .rgera"))return;histIndexTeams();$("#app").innerHTML=viewRegs();pinSizes();regsInit();}).catch(()=>{const n=$(".dload");if(n)n.textContent="This page could not be loaded. Check your connection and reload.";});}
   else if(h==="dictionary"){if(!$(".dict")){const q0=new URLSearchParams(location.search).get("q");if(q0)DS.q=q0;}if(!$(".dict"))$("#app").innerHTML=DICT?viewDict():`<div class="dict"><div class="pagehead"><div><span class="lbl">Formula 1 A to Z</span><h2 class="h1">F1 dictionary</h2><p class="dload">Loading…</p></div></div></div>`;$("#sheetname").textContent="F1 DICTIONARY";setNav("");document.title=pageTitle("dictionary");
     loadDict().then(()=>{if(curKey()==="dictionary"&&!$(".dict .dsearch")){$("#app").innerHTML=viewDict();pinSizes();}}).catch(()=>{});}
+  else if(h==="without-antonelli"){$("#app").innerHTML=viewWithoutAntonelli();initWithoutAntonelli();$("#sheetname").textContent="2026 · WHAT IF?";setNav("");document.title=pageTitle(h);}
   else if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
   else if(h==="notfound"){$("#app").innerHTML=viewNotFound();$("#sheetname").textContent="NOT FOUND";setNav("");}
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}

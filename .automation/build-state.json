@@ -2,6 +2,7 @@
  "generated": [
   "/",
   "/championship/",
+  "/what-if/without-antonelli/",
   "/drivers/",
   "/teams/",
   "/calendar/",
@@ -131,7 +132,11 @@
    "lastmod": "2026-11-02"
   },
   "/championship/": {
-   "hash": "6627909190ef4a4caaecc61ef59e3ffb53843e99",
+   "hash": "52bd926f21cf9e92820afb97aaad3490f5ad0ad4",
+   "lastmod": "2026-11-08"
+  },
+  "/what-if/without-antonelli/": {
+   "hash": "2a376cff012497ba4562f596edc37df81ae3870d",
    "lastmod": "2026-11-08"
   },
   "/drivers/": {

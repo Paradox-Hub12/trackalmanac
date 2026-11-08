@@ -1,0 +1,27 @@
+/* Results-based what-if, sharing the site's fonts and theme tokens. */
+.whatif{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.whatif p{color:var(--ink-2);max-width:85ch}
+.wi-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0}
+.wi-card{border:1px solid var(--rule);padding:16px;min-width:0;background:var(--panel)}
+.wi-card b{display:block;font:600 32px var(--f-data);color:var(--ink);margin:8px 0}
+.wi-card b.wi-name{font:600 22px var(--f-body);overflow-wrap:normal}
+.wi-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0}
+.wi-controls label{display:flex;align-items:center;flex-wrap:wrap;gap:6px;max-width:100%}
+.wi-controls input,.wi-controls select{font:inherit;min-width:0;max-width:100%;background:var(--sheet);color:var(--ink);border:1px solid var(--rule);padding:8px}
+table.t.wi-table{min-width:0;table-layout:fixed}
+table.t.wi-table th:first-child{width:28px;white-space:nowrap;overflow-wrap:normal}
+table.t.wi-table th:nth-child(2){width:34%}
+table.t.wi-table td:nth-child(2){white-space:normal}
+.wi-driver{display:grid;grid-template-columns:4px minmax(0,1fr);gap:8px;align-items:baseline}
+table.t.wi-table .wi-driver .sw{margin:0}
+.wi-table small{display:block;color:var(--ink-2);font:12px var(--f-body)}
+.wi-table button{font:inherit;color:var(--ink);text-align:left;background:none;border:0;padding:0;cursor:pointer;text-decoration:none}
+.wi-table button:hover{color:var(--done)}
+.wi-table button:focus-visible{outline:2px solid var(--done);outline-offset:2px}
+.wi-spotlight{margin-top:16px;padding:14px;border-left:3px solid var(--ink-3);background:var(--panel)}
+.wi-wins{list-style:none;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.wi-wins li{border:1px solid var(--rule);padding:12px}
+.wi-wins small{display:block;color:var(--ink-2)}
+.wi-next{padding-left:20px}.wi-next li{margin:8px 0}
+.wi-link{display:block;margin-top:16px;font-size:13px}
+@media(max-width:650px){.wi-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.wi-wins{grid-template-columns:1fr}table.t.wi-table{font-size:11px}table.t.wi-table th{font-size:9px;letter-spacing:.02em}table.t.wi-table th,table.t.wi-table td{padding:9px 3px}table.t.wi-table th:first-child{width:24px}.wi-card{padding:12px}.wi-card b{font-size:26px}}
