@@ -223,6 +223,7 @@ class Site:
         if key == "hcons": return "/history/constructors/"
         if key == "hcirc": return "/history/circuits/"
         if key == "hregs": return "/history/regulations/"
+        if key == "without-antonelli": return "/what-if/without-antonelli/"
         if key.startswith("game-"): return {"game-picks": "/game/picks/", "game-lb": "/game/leaderboard/", "game-leagues": "/game/leagues/", "game-account": "/game/account/"}[key]
         return "/%s/" % key
     def a(self, key, text): return '<a href="%s">%s</a>' % (self.path(key), text)
@@ -374,6 +375,7 @@ def home_page(S):
 
 def championship_page(S):
     return (pagehead("2026 F1 Championship standings", "Drivers' and constructors' points after round %d of %d, with every Grand Prix winner, pole position and fastest lap." % (len(S.done), len(S.RACES))) +
+            '<a class="wi-link" href="/what-if/without-antonelli/">What if…? A season without Antonelli →</a>' +
             sec("Grands Prix", gp_rows(S), "%d rounds" % len(S.RACES)) + standings_tables(S) + wa_card(S, "championship"))
 
 
@@ -794,6 +796,11 @@ def page_html(p, body_tpl, assets, fonts):
 # ---------------------------------------------------------------- build
 def build(out, data_path=DATA):
     css, fonts, body, data, app, D = read_master(data_path)
+    # A source-only what-if page, rendered live from the shared season data.
+    wbase = os.path.join(ROOT, "src", "without-antonelli")
+    whatif = open(wbase + ".html", encoding="utf-8").read()
+    app = "const WHATIF_HTML=" + json.dumps(whatif) + ";\n" + open(wbase + ".js", encoding="utf-8").read() + "\n" + app
+    css += "\n" + open(wbase + ".css", encoding="utf-8").read()
     written = set(); imgdir = os.path.join(out, "img")
     if os.path.isdir(imgdir): shutil.rmtree(imgdir)
     body = extract_images(body, imgdir, written)
@@ -887,6 +894,9 @@ def build(out, data_path=DATA):
     add("championship", "2026 F1 Championship Standings & Points Breakdown | Track Almanac",
         "2026 Formula 1 drivers' and constructors' standings after round %d, results grid for every Grand Prix, points progression and season statistics." % len(S.done),
         "2026 F1 Championship standings", championship_page(S), "2026 CHAMPIONSHIP · POINTS", home + [("2026 Championship", "/championship/")])
+    add("without-antonelli", "What if Antonelli had never raced in 2026? | Track Almanac",
+        "A hypothetical, just for fun: recalculate the 2026 standings and Grand Prix wins without Antonelli, using Track Almanac's latest results.",
+        "What if Antonelli had never raced in 2026?", whatif, "2026 · WHAT IF?", home + [("Without Antonelli", "/what-if/without-antonelli/")])
     add("drivers", "2026 F1 Drivers: Profiles, Stats & Standings | Track Almanac",
         "All %d drivers on the 2026 Formula 1 grid: team, nationality, age, career wins, podiums, poles and 2026 points." % sum(1 for b in S.BIO.values() if not b.get("standin")),
         "2026 F1 drivers", drivers_page(S), "2026 DRIVERS", home + [("2026 Drivers", "/drivers/")])

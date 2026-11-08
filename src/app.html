@@ -1568,7 +1568,7 @@ a.gco{display:inline-block;margin-top:4px;font-family:var(--f-data);font-size:12
       <a class="hbtn" href="/" data-go="season">Home</a>
       <div class="hdd" data-nav="y26"><button class="hbtn" type="button" data-dd="dd26" aria-expanded="false" aria-controls="dd26">2026<i aria-hidden="true">▾</i></button><div class="hmenu" id="dd26" hidden><a href="/" data-go="season">Season overview</a><a href="__LATEST_HREF__" data-detail="__LATEST_R__" data-latest>Latest race</a><a href="/calendar/" data-go="calendar">Calendar &amp; session times</a><a href="/championship/" data-go="championship">Championship</a><a href="/drivers/" data-go="drivers">Drivers</a><a href="/teams/" data-go="teams">Teams</a></div></div>
       <a class="hbtn" href="/archive/2027/" data-year="2027" data-nav="y27">2027</a>
-      <div class="hdd" data-nav="hist"><button class="hbtn" type="button" data-dd="ddh" aria-expanded="false" aria-controls="ddh">All about F1<i aria-hidden="true">▾</i></button><div class="hmenu" id="ddh" hidden><a href="/archive/" data-go="archive">Season archive (1950–2025)</a><a href="/archive/1946-1949/" data-go="archive-1946-1949">1946–1949</a><a href="/history/" data-go="history">All-time drivers</a><a href="/history/constructors/" data-go="hcons">Constructors</a><a href="/history/circuits/" data-go="hcirc">Circuits</a><a href="/history/regulations/" data-go="hregs">Regulations</a><a href="/dictionary/" data-go="dictionary">F1 Dictionary</a></div></div>
+      <div class="hdd" data-nav="hist"><button class="hbtn" type="button" data-dd="ddh" aria-expanded="false" aria-controls="ddh">All about F1<i aria-hidden="true">▾</i></button><div class="hmenu" id="ddh" hidden><a href="/archive/" data-go="archive">Season archive (1950–2025)</a><a href="/archive/1946-1949/" data-go="archive-1946-1949">1946–1949</a><a href="/history/" data-go="history">All-time drivers</a><a href="/history/constructors/" data-go="hcons">Constructors</a><a href="/history/circuits/" data-go="hcirc">Circuits</a><a href="/history/regulations/" data-go="hregs">Regulations</a><a href="/dictionary/" data-go="dictionary">F1 Dictionary</a><a href="/what-if/without-antonelli/" data-go="without-antonelli">What if…? Without Antonelli</a></div></div>
     </nav>
     <button class="hbtn htop" type="button" data-totop aria-hidden="true" tabindex="-1">Top <span aria-hidden="true">↑</span></button>
     <a class="hpred" href="/game/" data-go="game" data-nav="game"><span class="hpt">Predictor</span><b class="hbadge" id="hbadge" aria-live="off"></b></a>
@@ -1582,7 +1582,7 @@ a.gco{display:inline-block;margin-top:4px;font-family:var(--f-data);font-size:12
     <a class="hmobhome" href="/" data-go="season">Home</a>
     <section data-nav="y26"><h2>2026</h2><a href="/" data-go="season">Season overview</a><a href="__LATEST_HREF__" data-detail="__LATEST_R__" data-latest>Latest race</a><a href="/calendar/" data-go="calendar">Calendar &amp; session times</a><a href="/championship/" data-go="championship">Championship</a><a href="/drivers/" data-go="drivers">Drivers</a><a href="/teams/" data-go="teams">Teams</a></section>
     <section data-nav="y27"><h2>2027</h2><a href="/archive/2027/" data-year="2027">2027 season calendar</a></section>
-    <section data-nav="hist"><h2>All about F1</h2><a href="/archive/" data-go="archive">Season archive (1950–2025)</a><a href="/archive/1946-1949/" data-go="archive-1946-1949">1946–1949</a><a href="/history/" data-go="history">All-time drivers</a><a href="/history/constructors/" data-go="hcons">Constructors</a><a href="/history/circuits/" data-go="hcirc">Circuits</a><a href="/history/regulations/" data-go="hregs">Regulations</a><a href="/dictionary/" data-go="dictionary">F1 Dictionary</a></section>
+    <section data-nav="hist"><h2>All about F1</h2><a href="/archive/" data-go="archive">Season archive (1950–2025)</a><a href="/archive/1946-1949/" data-go="archive-1946-1949">1946–1949</a><a href="/history/" data-go="history">All-time drivers</a><a href="/history/constructors/" data-go="hcons">Constructors</a><a href="/history/circuits/" data-go="hcirc">Circuits</a><a href="/history/regulations/" data-go="hregs">Regulations</a><a href="/dictionary/" data-go="dictionary">F1 Dictionary</a><a href="/what-if/without-antonelli/" data-go="without-antonelli">What if…? Without Antonelli</a></section>
     <section data-nav="game"><h2>Predictor</h2><a href="/game/" data-go="game">Play the Predictor</a><a href="/game/picks/" data-go="game-picks">My picks</a><a href="/game/leaderboard/" data-go="game-lb">Leaderboard</a></section>
     <section class="hmobset"><h2>Settings</h2><div class="clock" role="group" aria-label="Time format"><span class="lbl">Clock</span><button data-clock="12">12h</button><button data-clock="24">24h</button></div><div class="clock" role="group" aria-label="Distance units"><span class="lbl">Units</span><button data-unit="km">KM</button><button data-unit="mi">MI</button></div><div class="clock" role="group" aria-label="Colour theme"><span class="lbl">Theme</span><button data-theme-set="dark">Dark</button><button data-theme-set="light">Light</button></div></section>
   </div></div>
@@ -1607,7 +1607,7 @@ let NAVD=false;
 if(PATHMODE){try{const dsc=Object.getOwnPropertyDescriptor(Document.prototype,"title");Object.defineProperty(document,"title",{configurable:true,get(){return dsc.get.call(document);},set(v){if(NAVD)dsc.set.call(document,v);}});}catch(e){}}
 const SLUG=r=>r.short.replace(" (Sepang)","").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 const STATIC_KEYS=["season","championship","drivers","teams","calendar","archive","history","dictionary","game","about","contact","privacy","terms","disclaimer","sitemap"];
-function keyToPath(k){let m;if(!k||k==="season")return "/";
+function keyToPath(k){if(k==="without-antonelli")return "/what-if/without-antonelli/";let m;if(!k||k==="season")return "/";
   if(m=k.match(/^detail-(\d+)(?:-(\w+))?$/)){const r=RACES.find(x=>x.r===+m[1]);return r?`/races/2026/${SLUG(r)}/${m[2]?"#"+m[2]:""}`:"/";}
   if(m=k.match(/^race-(\d+)$/))return "/?race="+m[1];
   if(m=k.match(/^driver-(\w+)$/))return "/drivers/?driver="+m[1];
@@ -1626,7 +1626,7 @@ function keyToPath(k){let m;if(!k||k==="season")return "/";
   return "/"+k+"/";}
 const H=k=>PATHMODE?keyToPath(k):"#"+k;
 const isLegacy=h=>!!h&&(STATIC_KEYS.includes(h)||/^(race|detail|driver|team|archive)-/.test(h));
-function pathToKey(){const p=location.pathname.replace(/index\.html$/,""),q=new URLSearchParams(location.search),h=decodeURIComponent(location.hash.slice(1));let m;
+function pathToKey(){if(/^\/what-if\/without-antonelli\/?$/.test(location.pathname))return "without-antonelli";const p=location.pathname.replace(/index\.html$/,""),q=new URLSearchParams(location.search),h=decodeURIComponent(location.hash.slice(1));let m;
   if(p==="/"){if(isLegacy(h))return {legacy:h};return q.get("race")?"race-"+q.get("race"):"season";}
   if(m=p.match(/^\/races\/2026\/([a-z0-9-]+)\/?$/)){const r=RACES.find(x=>SLUG(x)===m[1]);return r?"detail-"+r.r+(h&&/^\w+$/.test(h)?"-"+h:""):"notfound";}
   if(m=p.match(/^\/archive\/(\d{4})\/?$/))return ARCHIVE[+m[1]]?"archive-"+m[1]:"notfound";
@@ -1644,7 +1644,7 @@ function curKey(){if(!PATHMODE)return (location.hash||"#season").slice(1)||"seas
   const k=pathToKey();if(k&&k.legacy){const L=k.legacy.replace(/^race-(\d+)$/,"detail-$1");history.replaceState(null,"",keyToPath(L));NAVD=true;return L;}return k;}
 function go(k,replace){NAVD=true;if(PATHMODE){history[replace?"replaceState":"pushState"](null,"",keyToPath(k));route();}
   else if(replace){history.replaceState(null,"","#"+k);route();} else if(location.hash==="#"+k)route(); else location.hash=k;}
-function pageTitle(k){const T=" | Track Almanac";let m;
+function pageTitle(k){if(k==="without-antonelli")return "What if Antonelli had never raced in 2026? | Track Almanac";const T=" | Track Almanac";let m;
   if(!k||k==="season"||k.startsWith("race-"))return "Track Almanac · Races. Drivers. Teams. Numbers.";
   if(m=k.match(/^detail-(\d+)/)){const r=RACES.find(x=>x.r===+m[1]);if(!r)return "Track Almanac";const n=r.gp.replace(" (Sepang)","");return r.res?`${n} 2026: Results, Grid & Lap Chart${T}`:`${n} 2026: Schedule, Session Times & Results${T}`;}
   if(k==="archive-1946-1949")return `Grand Prix Racing 1946–1949: Before the F1 World Championship${T}`;
@@ -2321,7 +2321,7 @@ function champTop(st){const L=DRIVERS,lead=L[0],wins=Object.fromEntries(st.map(z
   const done=RACES.filter(r=>r.res).length;
   return `<div class="ctop"><section class="cst"><div class="sec" style="margin-top:0"><h2>Drivers' standings</h2><span class="lbl">After round ${done} of ${RACES.length}</span></div>
     <div class="cstw"><ol class="cstl" id="cstl">${rows}</ol><div class="cstmore" aria-hidden="true">Scroll for the rest ↓</div></div></section>
-    <section class="cup"><div class="sec" style="margin-top:0"><h2>${titleDecided("d")?"World champion":"Title watch"}</h2><span class="lbl">${titleDecided("d")?`${esc(lead[0])} · 2026`:`How ${esc(lead[0].split(" ")[0])} can win it`}</span></div>${titleWatch(wins)}</section></div>`;}
+    <section class="cup"><div class="sec" style="margin-top:0"><h2>${titleDecided("d")?"World champion":"Title watch"}</h2><span class="lbl">${titleDecided("d")?`${esc(lead[0])} · 2026`:`How ${esc(lead[0].split(" ")[0])} can win it`}</span></div>${titleWatch(wins)}<a class="wi-link" href="/what-if/without-antonelli/" data-go="without-antonelli">What if…? A season without Antonelli →</a></section></div>`;}
 function titleWatch(wins){const L=DRIVERS,lead=L[0],first=lead[0].split(" ")[0];
   const left=RACES.filter(r=>!r.res),sprintLeft=left.filter(r=>r.sprint===true).length;
   const maxLeft=left.length*25+sprintLeft*8;
@@ -4180,6 +4180,7 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
     Promise.all([loadHist(),loadRegs(),loadDict()]).then(()=>{if(curKey()!=="hregs"||$(".regs .rgera"))return;histIndexTeams();$("#app").innerHTML=viewRegs();pinSizes();regsInit();}).catch(()=>{const n=$(".dload");if(n)n.textContent="This page could not be loaded. Check your connection and reload.";});}
   else if(h==="dictionary"){if(!$(".dict")){const q0=new URLSearchParams(location.search).get("q");if(q0)DS.q=q0;}if(!$(".dict"))$("#app").innerHTML=DICT?viewDict():`<div class="dict"><div class="pagehead"><div><span class="lbl">Formula 1 A to Z</span><h2 class="h1">F1 dictionary</h2><p class="dload">Loading…</p></div></div></div>`;$("#sheetname").textContent="F1 DICTIONARY";setNav("");document.title=pageTitle("dictionary");
     loadDict().then(()=>{if(curKey()==="dictionary"&&!$(".dict .dsearch")){$("#app").innerHTML=viewDict();pinSizes();}}).catch(()=>{});}
+  else if(h==="without-antonelli"){$("#app").innerHTML=viewWithoutAntonelli();initWithoutAntonelli();$("#sheetname").textContent="2026 · WHAT IF?";setNav("");document.title=pageTitle(h);}
   else if(h==="calendar"){$("#app").innerHTML=viewCalendar();$("#sheetname").textContent="2026 CALENDAR";setNav("");document.title="2026 F1 Calendar · Track Almanac";}
   else if(h==="notfound"){$("#app").innerHTML=viewNotFound();$("#sheetname").textContent="NOT FOUND";setNav("");}
   else if(PAGES[h]){$("#app").innerHTML=viewPage(h);$("#sheetname").textContent=PAGES[h].t.toUpperCase();setNav("");document.title=PAGES[h].t+" · Track Almanac";}
