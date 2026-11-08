@@ -55,6 +55,13 @@ python3 build.py
 
 Rounds newer than the F1DB release are added from the site's results using each driver's latest team. If a driver changes team after the newest F1DB round, refresh the F1DB file once it includes that race so the team totals stay exact.
 
+## Changes from AI assistants
+
+`AGENTS.md` tells AI assistants (Codex, Claude) how to work on the site. Pull requests to `main` are merged
+automatically by the **Auto-merge** workflow once the site builds and every page passes the browser check
+(`scripts/site_check.mjs`); a pull request that fails stays open and the owner is emailed. Any change to `src/`
+on `main` is rebuilt and published by the **Rebuild site** workflow.
+
 ## Automatic result updates
 
 `.github/workflows/update.yml` runs every 30 minutes from Friday to Monday (UTC). Each run:
