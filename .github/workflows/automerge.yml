@@ -54,6 +54,11 @@ jobs:
             || { echo "::error::Could not merge #$PR (conflict with main, or main changed meanwhile). Ask the assistant to update the branch."; exit 1; }
           gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$BRANCH" || true
           echo "::notice::Merged #$PR and deleted branch $BRANCH."
+          # tidy up: delete any other branch whose pull request was merged earlier
+          for b in $(gh api "repos/${{ github.repository }}/pulls?state=closed&per_page=50" --jq '.[] | select(.merged_at != null and .head.repo.full_name == "${{ github.repository }}") | .head.ref' | sort -u); do
+            [ "$b" = "main" ] && continue
+            gh api "repos/${{ github.repository }}/branches/$b" > /dev/null 2>&1 && gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$b" > /dev/null 2>&1 && echo "Deleted merged branch $b" || true
+          done
       - name: Rebuild main and publish
         run: |
           git fetch -q origin main && git checkout -q -B main FETCH_HEAD
