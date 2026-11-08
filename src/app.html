@@ -347,6 +347,22 @@ body.hmob-open{overflow:hidden}
 .cdrow.rlive .lgo{color:var(--signal)}
 @media (prefers-reduced-motion:reduce){.lgt:not(.off) i{animation:none;background:#ff1a1a;box-shadow:0 0 8px 1px rgba(255,30,30,.6)}}
 @media (max-width:400px){.lgo{font-size:21px}.lgt i{width:13px;height:13px}.lgt{gap:4px;padding:4px 6px}}
+/* Completed weekend: result summary and full-width news above the session breakdown. */
+.weekend-result{display:flex;flex-direction:column;gap:12px;min-width:0}
+.weekend-podium{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.weekend-podium li{display:grid;grid-template-columns:24px 4px minmax(0,1fr);gap:8px;align-items:center}
+.weekend-podium b{font:12px var(--f-data);color:var(--ink-2)}
+.weekend-podium i{height:18px}.weekend-podium strong{font-size:18px;overflow-wrap:anywhere}
+.weekend-facts{margin:0;display:grid;gap:6px}.weekend-facts div{display:flex;flex-wrap:wrap;gap:2px 10px;justify-content:space-between}
+.weekend-facts dt{color:var(--ink-2)}.weekend-facts dd{margin:0;text-align:right;overflow-wrap:anywhere}
+.weekend-next{display:flex;flex-direction:column;gap:4px;white-space:normal;overflow-wrap:anywhere}
+.weekend-next small{font:12px var(--f-body);color:var(--ink-2)}
+.weekend-news{grid-column:1/-1;padding:14px 20px;border-top:1px solid var(--rule);min-width:0;overflow-wrap:anywhere}
+.weekend-news .pnews{margin-top:10px}.weekend-news .pnews li.top span{font-size:24px}
+.weekend-complete{margin:0;color:var(--ink-2)}
+.wk .nxs a.nr{text-decoration:none}.wk .nxs a.nr:focus-visible{outline:2px solid var(--done);outline-offset:2px}
+.weekend-done .sres .t3{white-space:normal;flex-wrap:wrap}.weekend-done .sres .t3 strong{font-size:14px}
+@media(max-width:760px){.weekend-news{padding:12px 14px}.weekend-news .pnews li{gap:6px}.weekend-news .pnews li.top span{font-size:20px}}
 /* next-race card: tyres and the Predictor card in the right column (after the countdowns on phones) */
 .rtyre{margin-top:14px}
 .pcm{display:none}
@@ -1795,7 +1811,7 @@ function ribbon(){
   const today=X(TODAY.toISOString().slice(0,10));
   const nr=nextRace;
   return `<section class="ribbon" aria-label="2026 calendar">
-    <div class="rib-head"><b>2026 Season · <span>${done.length}</span> of ${RACES.length} rounds run</b><span class="lbl">Next: Round ${nr.r} ${esc(nr.short)} · ${esc(nr.days)}</span></div>
+    <div class="rib-head"><b>2026 Season · <span>${done.length}</span> of ${RACES.length} rounds run</b><span class="lbl">${nr?`Next: Round ${nr.r} ${esc(nr.short)} · ${esc(nr.days)}`:"Season complete"}</span></div>
     <div class="rib-scroll"><div class="rib">
       ${months}<div class="rail"></div><div class="fill" style="width:${Math.min(100,today)}%"></div>
       <div class="today" style="left:${today}%"><i>TODAY<br>${TODAY.toLocaleDateString("en-GB",{day:"numeric",month:"short"}).toUpperCase()}</i></div>
@@ -1825,20 +1841,41 @@ function plateHTML(r){
       <div class="acts"><button data-quick="${r.r}">Weekend times</button><a href="${H("detail-"+r.r)}" data-detail="${r.r}">Detailed view</a></div>
     </article>`;
 }
+/* Keep the latest result through the first Tuesday 03:00 UTC after its race start.
+   UTC arithmetic also covers Saturday-local races such as Las Vegas. */
+function weekendCutoff(r){const d=new Date(raceStart(r)||r.date+"T12:00:00Z");
+  const days=(2-d.getUTCDay()+7)%7||7;d.setUTCDate(d.getUTCDate()+days);d.setUTCHours(3,0,0,0);return d.getTime();}
+function homeWeekend(now=Date.now()){
+  const latest=[...RACES].reverse().find(r=>r.res),next=RACES.find(r=>!r.res);
+  if(latest&&now<weekendCutoff(latest))return {race:latest,next,mode:"result"};
+  if(!next&&latest)return {race:latest,next:null,mode:"complete"};
+  return {race:next||RACES[0],next,mode:"next"};}
+const homeWeekendKey=w=>w.mode+":"+w.race.r;
+function weekendResult(r,next){const x=r.res;
+  return `<div class="weekend-result"><span class="lbl">Race weekend done${next?"":" · Season complete"}</span>
+    <ol class="weekend-podium">${x.pod.slice(0,3).map((p,i)=>`<li><b>P${i+1}</b><i style="background:${tcol(teamAt(p[0],r.r)||teamOf(p[0]))}"></i><strong>${esc(p[0])}</strong></li>`).join("")}</ol>
+    <dl class="weekend-facts"><div><dt>Winner’s time</dt><dd>${esc(x.time||SEASON[r.r]?.race?.[0]?.[4]||"—")}</dd></div><div><dt>Pole</dt><dd>${esc(x.pole||"—")}</dd></div><div><dt>Fastest lap</dt><dd>${x.fl?`${esc(x.fl[0])} · ${esc(x.fl[1])}`:"—"}</dd></div></dl>
+    <a class="navbtn" href="${H("detail-"+r.r)}" data-detail="${r.r}">Full results →</a>
+    ${next?`<a class="navbtn weekend-next" href="${H("detail-"+next.r)}" data-detail="${next.r}">Next race: ${esc(next.gp.replace(" (Sepang)",""))} →<small>First session: ${tfmt(SCHED[next.r]?.[1]?.[0]?.[1]||next.date+"T12:00:00Z",null)}</small></a>`:`<p class="weekend-complete"><b>Season complete</b><br><a href="${H("championship")}" data-go="championship">Final championship standings →</a> · <a href="${H("game-lb")}" data-go="game-lb">Final Predictor leaderboard →</a></p>`}</div>`;}
+function weekendSession(n,k){if(k!=="race"&&k!=="sprint")return top3(n,k);
+  const rows=sesRows(n,k);if(!rows)return top3(n,k);
+  return rows.filter(x=>/^\d+$/.test(String(x[0]))&&+x[0]>=1&&+x[0]<=10).map(x=>`<span class="t3"><b>P${esc(x[0])}</b><i style="background:${tcol(teamAt(x[2],n))}"></i><strong>${esc(fullName(x[2]))}</strong><em>${esc(x[5])} pts</em></span>`).join("");}
+function weekendNews(r){const N=((typeof NEWS!=="undefined"&&NEWS[r.r])||[]).slice().sort((a,b)=>Date.parse(b[0])-Date.parse(a[0])).slice(0,4);
+  return N.length?`<aside class="weekend-news"><span class="lbl">Latest from ${esc(pName(r.r))}</span><ul class="pnews">${N.map((x,i)=>`<li${i?"":' class="top"'}><time datetime="${esc(x[0])}">${tfmt(x[0],null,{hour:"2-digit",minute:"2-digit"})}</time><span>${esc(x[1])}</span></li>`).join("")}</ul></aside>`:"";}
 function viewSeason(){
-  const nr=nextRace, n=RACES.length, st=raceStart(nr), tz=SCHED[nr.r][0];
+  const weekend=homeWeekend(),nr=weekend.race,finished=weekend.mode!=="next", n=RACES.length, st=raceStart(nr), tz=SCHED[nr.r]?.[0];
   const list=plateOrder==="asc"?done:[...done].reverse();
   const upcoming=RACES.filter(r=>!r.res);
   return `
   ${ribbon()}
   <div class="home">
-    <section class="sheet" aria-labelledby="nr">
+    <section class="sheet${finished?" weekend-done":""}" data-home-weekend="${homeWeekendKey(weekend)}" aria-labelledby="nr">
       <div class="l">
-        <span class="lbl">Next · Round ${nr.r} / ${n}</span>
+        <span class="lbl">${finished?`Round ${nr.r} / ${n} · ${esc(nr.gp.replace(" (Sepang)",""))} · Result`:`Next · Round ${nr.r} / ${n}`}</span>
         <h2 class="h1" id="nr">${esc(nr.short)}</h2>
         <div style="color:var(--ink-2)">${esc(nr.circuit)}, ${esc(nr.city)}</div>
         <div><span class="tag sig">${esc(nr.days)}</span>${nr.sprint?'<span class="tag">Sprint</span>':""}${["marina","vegas","lusail","yas"].includes(nr.track)?'<span class="tag">Night</span>':""}</div>
-        <div class="cdx" id="cdx" aria-live="off"></div>
+        ${finished?weekendResult(nr,weekend.next):'<div class="cdx" id="cdx" aria-live="off"></div>'}
         <div class="pcm">${pcard()}</div>
         <div class="spec"><div><span class="lbl">Lap</span><b>${dist(nr.len,3)}</b></div><div><span class="lbl">Laps</span><b>${nr.laps}</b></div><div><span class="lbl">Distance</span><b>${dist(nr.len*nr.laps,1)}</b></div></div>
         <button class="navbtn" data-quick="${nr.r}" style="align-self:flex-start">Weekend schedule →</button>
@@ -1851,11 +1888,12 @@ function viewSeason(){
         <div class="pcd">${pcard()}</div>
       </div>
     <div class="pcw">${pcard()}</div>
+    ${weekend.mode==="result"?weekendNews(nr):""}
     <div class="wk">
         <div class="wkh"><span class="lbl">Weekend schedule</span><span class="lbl">Select a session for full results</span></div>
         <div class="nxs" aria-label="Weekend schedule">
-          <div class="nr h"><span>Session</span><span>Your time (${esc(tzName(st,null))})</span><span>Track time (${esc(tzName(st,tz))})</span><span>Top three</span></div>
-          ${SCHED[nr.r][1].map(([nm,t,du])=>`<div class="nr go${nm==="Grand Prix"?" gp":""}" data-t="${Date.parse(t)}" data-d="${du||120}" ${sesAttr(nr.r,nm)}><span>${esc(nm==="Grand Prix"?"Race":nm)}</span><span>${tfmt(t,null)}</span><span>${tfmt(t,tz)}</span><div class="sres">${top3(nr.r,SESKEY[nm])}</div></div>`).join("")}
+          <div class="nr h"><span>Session</span><span>Your time (${esc(tzName(st,null))})</span><span>Track time (${esc(tzName(st,tz))})</span><span>${finished?"Session results":"Top three"}</span></div>
+          ${(SCHED[nr.r]?.[1]||[]).map(([nm,t,du])=>`<a href="${H("detail-"+nr.r+"-"+(SESKEY[nm]||"race"))}" class="nr go${nm==="Grand Prix"?" gp":""}" data-t="${Date.parse(t)}" data-d="${du||120}" data-sess="${nr.r}:${SESKEY[nm]||"race"}"><span>${esc(nm==="Grand Prix"?"Race":nm)}</span><span>${tfmt(t,null)}</span><span>${tfmt(t,tz)}</span><div class="sres">${finished?weekendSession(nr.r,SESKEY[nm]):top3(nr.r,SESKEY[nm])}</div></a>`).join("")}
         </div>
     </div>
     </section>
@@ -4224,10 +4262,13 @@ function route(){const _yr=$(".yrail"),yrX=_yr?_yr.scrollLeft:null;document.body
 }
 function cdParts(ms,sm){let s=Math.max(0,Math.floor(ms/1000));const v=[Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60];
   return v.map((n,i)=>(sm&&i===0&&!n)?"":`<b>${String(n).padStart(2,"0")}</b><i>${["d","h","m","s"][i]}</i>`).join("");}
-function countdown(){const box=$("#cdx");if(!box)return;const S=SCHED[nextRace.r]?SCHED[nextRace.r][1]:[["Grand Prix",nextRace.start,0]];
+function countdown(){const feature=homeWeekend(),featureKey=homeWeekendKey(feature);
+  const changed=now=>{if(homeWeekendKey(homeWeekend(now))===featureKey)return false;route();return true;};
+  if(feature.mode!=="next"){pcardTick(Date.now());t=setInterval(()=>{const now=Date.now();if(!changed(now))pcardTick(now);},1000);return;}
+  const box=$("#cdx");if(!box)return;const S=SCHED[feature.race.r]?.[1]||[["Grand Prix",feature.race.start,0]];
   const lab=n=>n==="Grand Prix"?"Race":n;let sig="";
   const lights=on=>`<span class="lgt${on?"":" off"}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>`;
-  const tick=()=>{const now=Date.now(),end=x=>Date.parse(x[1])+(x[2]||120)*60000;
+  const tick=()=>{const now=Date.now();if(changed(now))return;const end=x=>Date.parse(x[1])+(x[2]||120)*60000;
     const live=S.find(x=>now>=Date.parse(x[1])&&now<end(x)),nxt=S.find(x=>Date.parse(x[1])>now),gp=S.find(x=>x[0]==="Grand Prix")||S[S.length-1];
     const gs=Date.parse(gp[1]),raceLive=now>=gs&&now<gs+3*3600e3&&!nextRace.res;     /* RACE LIVE until the result is in, 3 h at most */
     const rows=[];
@@ -4248,7 +4289,13 @@ const PNAME={lusail:"Qatar",miami:"Miami",catalunya:"Barcelona",rbring:"Austria"
 const pName=r=>{const R=RACES.find(x=>x.r===r);return R?(PNAME[R.track]||R.city):"";};
 const PC={sig:"",pick:undefined,pts:undefined,uid:null};
 const pcard=()=>`<aside class="pcard" data-pcard aria-live="polite"></aside>`;
-function pcardBody(now){const st=predState(now),signed=gameOn()&&GS.user&&GS.profile;
+function homePredictorState(now=Date.now()){const w=homeWeekend(now),rounds=typeof gRounds==="function"?gRounds():[];
+  const next=rounds.find(x=>x.r===w.next?.r);
+  if(w.mode!=="next")return {s:"results",r:rounds.find(x=>x.r===w.race.r)||{r:w.race.r},next};
+  const st=predState(now);
+  if(st.s==="results"&&next&&next.lock.getTime()>now)return {s:"open",r:next,lock:next.lock,next};
+  return st;}
+function pcardBody(now){const st=homePredictorState(now),signed=gameOn()&&GS.user&&GS.profile;
   if(st.s==="off"||!st.s)return ["off",`<span class="lbl">Track Almanac Predictor</span><h3>Predictor returns in 2027</h3><p>Thanks for playing this season. <a href="${H("game-lb")}" data-go="game-lb">Final leaderboard →</a></p>`];
   /* picks locked: the space shows the owner's news lines for this round (NEWS in data.json), newest first; none = empty */
   if(st.s==="live"){const N=((typeof NEWS!=="undefined"&&NEWS[st.r.r])||[]).slice().sort((a,b)=>Date.parse(b[0])-Date.parse(a[0])).slice(0,4);
@@ -4268,7 +4315,7 @@ function pcardTick(now){const els=document.querySelectorAll("[data-pcard]");if(!
 function pcardFirebase(){if(!gameOn()||curKey()!=="season")return;
   const go=()=>setTimeout(()=>{if(curKey()!=="season")return;gFB().then(async({m,db})=>{for(let i=0;i<40&&GS.user===undefined;i++)await new Promise(r=>setTimeout(r,150));
     for(let i=0;i<20&&GS.user&&GS.profile===undefined;i++)await new Promise(r=>setTimeout(r,150));
-    if(!GS.user||!GS.profile)return;const st=predState();try{
+    if(!GS.user||!GS.profile)return;const st=homePredictorState();try{
       if(st.s==="open"||st.s==="live"){const s=await m.getDoc(m.doc(db,"picks",`${st.r.r}_${GS.user.uid}`));PC.pick=s.exists();}
       if(st.s==="results"){const s=await m.getDoc(m.doc(db,"scores",`${st.r.r}_${GS.user.uid}`));PC.pts=s.exists()?s.data().points:null;}}catch(e){}
     PC.sig="";pcardTick(Date.now());}).catch(()=>{});},300);
@@ -4279,7 +4326,7 @@ document.addEventListener("click",e=>{
   const mm=$(".moremenu");if(mm&&!mm.hidden&&!e.target.closest(".more")){mm.hidden=true;$(".morebtn").setAttribute("aria-expanded","false");}
   if(e.target.closest("[data-more]")){const open=mm.hidden;mm.hidden=!open;$(".morebtn").setAttribute("aria-expanded",String(open));return;}
   if(e.target.closest(".moremenu")){mm.hidden=true;$(".morebtn").setAttribute("aria-expanded","false");}
-  const sv=e.target.closest("[data-sess]");if(sv&&!e.target.closest("[data-detail],[data-quick]")){const [sn,sk]=sv.dataset.sess.split(":");const tgt="detail-"+sn+"-"+sk;if(curKey()===tgt)route();else go(tgt);return;}
+  const sv=e.target.closest("[data-sess]");if(sv&&!e.target.closest("[data-detail],[data-quick]")){e.preventDefault();const [sn,sk]=sv.dataset.sess.split(":");const tgt="detail-"+sn+"-"+sk;if(curKey()===tgt)route();else go(tgt);return;}
   if(RT){const rp=e.target.closest("[data-rplay]");if(rp){RT.playing?RT.pause():RT.play();return;}
     if(e.target.closest("[data-rreset]")){RT.reset();return;}
     const rz=e.target.closest("[data-rzoom]");if(rz){if(RT.phase!=="idle")RT.reset();RT.zoom(rz.dataset.rzoom);return;}
