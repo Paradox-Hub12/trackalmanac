@@ -6616,7 +6616,8 @@
     "pod": [["George Russell", "Winner"], ["Kimi Antonelli", "+2.974s"], ["Charles Leclerc", "+15.519s"]],
     "pole": "George Russell",
     "fl": ["Max Verstappen", "1:22.091", 43, 231.46],
-    "cls": "Piastri and Hülkenberg did not start; Alonso, Bottas and Hadjar retired."
+    "cls": "Piastri and Hülkenberg did not start; Alonso, Bottas and Hadjar retired.",
+    "pit": ["Mercedes", "George Russell", "2.17s"]
    }
   },
   {
@@ -6635,7 +6636,8 @@
     "pod": [["Kimi Antonelli", "Winner"], ["George Russell", "+5.515s"], ["Lewis Hamilton", "+25.267s"]],
     "pole": "Kimi Antonelli",
     "fl": ["Kimi Antonelli", "1:35.275", 52, 205.967],
-    "cls": "15 classified, 3 retirements, 4 did not start."
+    "cls": "15 classified, 3 retirements, 4 did not start.",
+    "pit": ["Ferrari", "Lewis Hamilton", "2.29s"]
    }
   },
   {
@@ -6654,7 +6656,8 @@
     "pod": [["Kimi Antonelli", "Winner"], ["Oscar Piastri", "+13.722s"], ["Charles Leclerc", "+15.270s"]],
     "pole": "Kimi Antonelli",
     "fl": ["Kimi Antonelli", "1:32.432", 49, 226.168],
-    "cls": "20 classified; Stroll and Bearman retired."
+    "cls": "20 classified; Stroll and Bearman retired.",
+    "pit": ["Ferrari", "Lewis Hamilton", "2.00s"]
    }
   },
   {
@@ -6673,7 +6676,8 @@
     "pod": [["Kimi Antonelli", "Winner"], ["Lando Norris", "+3.264s"], ["Oscar Piastri", "+27.092s"]],
     "pole": "Kimi Antonelli",
     "fl": ["Lando Norris", "1:31.869", 35, 212.075],
-    "cls": "18 classified; Hülkenberg, Lawson, Gasly and Hadjar retired."
+    "cls": "18 classified; Hülkenberg, Lawson, Gasly and Hadjar retired.",
+    "pit": ["Racing Bulls", "Arvid Lindblad", "2.08s"]
    }
   },
   {
@@ -6692,7 +6696,8 @@
     "pod": [["Kimi Antonelli", "Winner"], ["Lewis Hamilton", "+10.768s"], ["Max Verstappen", "+11.276s"]],
     "pole": "George Russell",
     "fl": ["Kimi Antonelli", "1:14.210", 68, 211.556],
-    "cls": "16 classified, 5 retirements; Lindblad did not start."
+    "cls": "16 classified, 5 retirements; Lindblad did not start.",
+    "pit": ["Racing Bulls", "Liam Lawson", "2.20s"]
    }
   },
   {
@@ -6711,7 +6716,8 @@
     "pod": [["Kimi Antonelli", "Winner"], ["Lewis Hamilton", "+6.271s"], ["Isack Hadjar", "+23.394s"]],
     "pole": "Kimi Antonelli",
     "fl": ["Kimi Antonelli", "1:13.481", 76, 163.487],
-    "cls": "15 classified, 7 not classified."
+    "cls": "15 classified, 7 not classified.",
+    "pit": ["Mercedes", "Kimi Antonelli", "2.17s"]
    }
   },
   {
@@ -6730,7 +6736,8 @@
     "pod": [["Lewis Hamilton", "Winner"], ["George Russell", "+19.561s"], ["Lando Norris", "+23.719s"]],
     "pole": "George Russell",
     "fl": ["Lewis Hamilton", "1:20.122", 44, 209.245],
-    "cls": "14 classified, 8 not classified. Hamilton's first win for Ferrari."
+    "cls": "14 classified, 8 not classified. Hamilton's first win for Ferrari.",
+    "pit": ["McLaren", "Oscar Piastri", "2.13s"]
    }
   },
   {
@@ -6749,7 +6756,8 @@
     "pod": [["George Russell", "Winner"], ["Max Verstappen", "+1.611s"], ["Kimi Antonelli", "+1.986s"]],
     "pole": "George Russell",
     "fl": ["Kimi Antonelli", "1:10.374", 59, 221.297],
-    "cls": "18 classified; Stroll, Sainz, Pérez and Bottas retired."
+    "cls": "18 classified; Stroll, Sainz, Pérez and Bottas retired.",
+    "pit": ["Racing Bulls", "Arvid Lindblad", "2.03s"]
    }
   },
   {
@@ -6768,7 +6776,8 @@
     "pod": [["Charles Leclerc", "Winner"], ["George Russell", "+0.427s"], ["Lewis Hamilton", "+0.772s"]],
     "pole": "Kimi Antonelli",
     "fl": ["Kimi Antonelli", "1:31.777", 37, 231.077],
-    "cls": "Top three covered by 0.772s. Verstappen, Albon and Hülkenberg retired."
+    "cls": "Top three covered by 0.772s. Verstappen, Albon and Hülkenberg retired.",
+    "pit": ["Mercedes", "George Russell", "2.18s"]
    }
   },
   {
@@ -6787,7 +6796,8 @@
     "pod": [["Kimi Antonelli", "Winner"], ["Charles Leclerc", "+1.952s"], ["Max Verstappen", "+11.586s"]],
     "pole": "Kimi Antonelli",
     "fl": ["Lando Norris", "1:48.890", 44, 231.558],
-    "cls": "19 classified; Stroll, Pérez and Russell retired."
+    "cls": "19 classified; Stroll, Pérez and Russell retired.",
+    "pit": ["Ferrari", "Charles Leclerc", "2.30s"]
    }
   },
   {
@@ -6806,7 +6816,8 @@
     "pod": [["Lando Norris", "Winner"], ["Max Verstappen", "+15.080s"], ["Kimi Antonelli", "+18.728s"]],
     "pole": "Lando Norris",
     "fl": ["Charles Leclerc", "1:22.000", 58, 192.336],
-    "cls": "19 classified; Piastri, Pérez and Bottas retired."
+    "cls": "19 classified; Piastri, Pérez and Bottas retired.",
+    "pit": ["Racing Bulls", "Arvid Lindblad", "1.99s"]
    }
   },
   {
@@ -6825,7 +6836,8 @@
     "pod": [["Lando Norris", "Winner"], ["Kimi Antonelli", "+11.536s"], ["George Russell", "+15.906s"]],
     "pole": "Lando Norris",
     "fl": ["Charles Leclerc", "1:14.230", 60, 206.552],
-    "cls": "16 classified, 6 retirements."
+    "cls": "16 classified, 6 retirements.",
+    "pit": ["Audi", "Nico Hulkenberg", "2.30s"]
    }
   },
   {
@@ -6844,7 +6856,8 @@
     "pod": [["Kimi Antonelli", "Winner"], ["George Russell", "+3.857s"], ["Max Verstappen", "+14.718s"]],
     "pole": "Pierre Gasly",
     "fl": ["Kimi Antonelli", "1:23.504", 53, 249.746],
-    "cls": "Antonelli won from 19th on the grid after a power unit penalty, the first Italian to win at Monza since 1966. Leclerc crashed on lap 2, bringing a red flag."
+    "cls": "Antonelli won from 19th on the grid after a power unit penalty, the first Italian to win at Monza since 1966. Leclerc crashed on lap 2, bringing a red flag.",
+    "pit": ["Audi", "Nico Hulkenberg", "2.44s"]
    }
   },
   {
@@ -6863,7 +6876,8 @@
     "pod": [["Kimi Antonelli", "Winner"], ["Max Verstappen", "+4.351s"], ["Lando Norris", "+5.089s"]],
     "pole": "Lando Norris",
     "fl": ["George Russell", "1:35.587", 49, 203.902],
-    "cls": "First race at the new Madrid street circuit. Sainz, Pérez, Stroll and Hamilton retired."
+    "cls": "First race at the new Madrid street circuit. Sainz, Pérez, Stroll and Hamilton retired.",
+    "pit": ["Mercedes", "George Russell", "2.14s"]
    }
   },
   {
@@ -6882,7 +6896,8 @@
     "pod": [["George Russell", "Winner"], ["Max Verstappen", "+0.196s"], ["Isack Hadjar", "+10.704s"]],
     "pole": "George Russell",
     "fl": ["George Russell", "1:44.916", 49, 205.981],
-    "cls": "Held on a Saturday. Russell held Verstappen off by 0.196s; 7 retirements."
+    "cls": "Held on a Saturday. Russell held Verstappen off by 0.196s; 7 retirements.",
+    "pit": ["Mercedes", "George Russell", "2.33s"]
    }
   },
   {
@@ -6943,7 +6958,8 @@
     "pod": [["Kimi Antonelli", "Winner"], ["Charles Leclerc", "+13.078s"], ["Max Verstappen", "+17.485s"]],
     "pole": "Kimi Antonelli",
     "fl": ["Charles Leclerc", "1:37.976", 42, 202.568],
-    "cls": "Antonelli converted pole into his ninth win of the season, leading from the start on a one-stop, medium-to-hard strategy. Leclerc took second on a two-stop, passing Verstappen late on, while Verstappen recovered from a slow getaway to third. Russell, given a five-second penalty for a clash with Piastri, finished eighth, and Bortoleto climbed from the back of the grid to 13th. Antonelli now leads by 123 points: he is champion in Mexico unless Russell wins there with Antonelli 10th or lower, or Hamilton wins with Antonelli out of the points."
+    "cls": "Antonelli converted pole into his ninth win of the season, leading from the start on a one-stop, medium-to-hard strategy. Leclerc took second on a two-stop, passing Verstappen late on, while Verstappen recovered from a slow getaway to third. Russell, given a five-second penalty for a clash with Piastri, finished eighth, and Bortoleto climbed from the back of the grid to 13th. Antonelli now leads by 123 points: he is champion in Mexico unless Russell wins there with Antonelli 10th or lower, or Hamilton wins with Antonelli out of the points.",
+    "pit": ["McLaren", "Oscar Piastri", "2.11s"]
    }
   },
   {
@@ -6962,7 +6978,8 @@
     "pod": [["Max Verstappen", "Winner"], ["Lewis Hamilton", "+0.799s"], ["Kimi Antonelli", "+4.006s"]],
     "pole": "Lewis Hamilton",
     "fl": ["Lewis Hamilton", "1:19.268", 50, 195.469],
-    "cls": "Kimi Antonelli is the 2026 world champion. Third place clinched the title with four races to go and made him, at 20 years and 68 days, the youngest champion in F1 history. Verstappen won from fifth on the grid, starting on mediums against the leaders' softs and holding off Hamilton by 0.8 seconds after a late safety-car restart. Hamilton started from pole, but Leclerc took the lead across the grass on the opening lap and was given a five-second penalty for it. The race was red-flagged after Bottas crashed at Turn 1 with a suspension failure, and a late safety car followed Piastri's collision with Lindblad. Post-race penalties for Piastri, Colapinto and Gasly promoted Lawson to seventh and gave Hirakawa a point on his debut for Haas."
+    "cls": "Kimi Antonelli is the 2026 world champion. Third place clinched the title with four races to go and made him, at 20 years and 68 days, the youngest champion in F1 history. Verstappen won from fifth on the grid, starting on mediums against the leaders' softs and holding off Hamilton by 0.8 seconds after a late safety-car restart. Hamilton started from pole, but Leclerc took the lead across the grass on the opening lap and was given a five-second penalty for it. The race was red-flagged after Bottas crashed at Turn 1 with a suspension failure, and a late safety car followed Piastri's collision with Lindblad. Post-race penalties for Piastri, Colapinto and Gasly promoted Lawson to seventh and gave Hirakawa a point on his debut for Haas.",
+    "pit": ["Williams", "Alexander Albon", "2.11s"]
    }
   },
   {
@@ -6981,7 +6998,8 @@
     "pod": [["Lando Norris", "Winner"], ["Max Verstappen", "+14.602s"], ["Isack Hadjar", "+24.485s"]],
     "pole": "Lando Norris",
     "fl": ["Kimi Antonelli", "1:12.689", 55, 213.407],
-    "cls": "Lando Norris won from pole for McLaren, finishing 14.602 seconds ahead of Max Verstappen, with Isack Hadjar third. George Russell finished fourth and Kimi Antonelli fifth as Mercedes secured their ninth Constructors' Championship. Antonelli and Oliver Bearman each received a five-second penalty for an unsafe release. Charles Leclerc received a five-second penalty for causing a collision, dropping him to eighth and promoting Liam Lawson to seventh. The revised classification transfers two points from Leclerc and Ferrari to Lawson and Racing Bulls."
+    "cls": "Lando Norris won from pole for McLaren, finishing 14.602 seconds ahead of Max Verstappen, with Isack Hadjar third. George Russell finished fourth and Kimi Antonelli fifth as Mercedes secured their ninth Constructors' Championship. Antonelli and Oliver Bearman each received a five-second penalty for an unsafe release. Charles Leclerc received a five-second penalty for causing a collision, dropping him to eighth and promoting Liam Lawson to seventh. The revised classification transfers two points from Leclerc and Ferrari to Lawson and Racing Bulls.",
+    "pit": ["Audi", "Gabriel Bortoleto", "2.13s"]
    }
   },
   {
