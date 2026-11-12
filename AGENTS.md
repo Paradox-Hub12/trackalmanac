@@ -124,6 +124,9 @@ Session times live in `SCHED[round]`: `[track time zone, [[session name, start i
 ### "Weekly update" (Monday/Tuesday)
 - Race write-up (`cls`) and weather note (`wxnote`). The measured weather is in `SEASON[round]["wxm"]`:
   one entry per day, `[air min, air max, track min, track max, % rain, max wind]`.
+- Fastest pit stop (`RACES[i]["res"]["pit"]` = `[team, driver full name as in DRIVERS, "2.11s"]`) if missing: the
+  automation rarely gets it (OpenF1 stopped publishing stop times). Team and time from formula1.com's
+  "2026 DHL Fastest Pit Stop Award" results page, driver from the Sky Sports award table or the F1 video title.
 - Tyre compounds for upcoming races once Pirelli announces them.
 - 2027 line-ups (`ENTRIES2027`): change only on an official team announcement, not reports.
 - Next round's session times in `SCHED` against the official timetable.
