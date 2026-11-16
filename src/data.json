@@ -10215,7 +10215,10 @@
    },
    "wxm": [[19.6, 24.6, 29.6, 53.7, 0, 4.5], [20.0, 32.6, 25.6, 58.1, 44, 6.2], [15.6, 16.7, 20.0, 43.6, 4, 5.5]],
    "wxnote": "Sunday was cooler than Saturday, with recorded air temperatures of 15.6–16.7°C and a maximum track temperature of 43.6°C."
-  }
+  },
+  "21": {"tyres": "345"},
+  "22": {"tyres": "123"},
+  "23": {"tyres": "345"}
  },
  "LAPS": {
   "1": {
@@ -23296,7 +23299,7 @@
   ["Cadillac", ["Sergio Pérez", "Valtteri Bottas"]],
   ["Aston Martin", ["Fernando Alonso", "Lance Stroll"]],
   ["Haas F1 Team", ["Rafael Câmara", null]],
-  ["Racing Bulls", [null, null]]
+  ["Racing Bulls", ["Liam Lawson", "Arvid Lindblad"]]
  ],
  "ARCHTXT": {
   "2019": {
@@ -23894,7 +23897,7 @@
    "slater": ["Freddie Slater", "Audi", "FP1 driver"],
    "herta": ["Colton Herta", "Cadillac", "FP1 driver"]
   },
-  "21": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
+  "21": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"], "hirakawa": ["Ryo Hirakawa", "Haas F1 Team", "FP1 driver"]},
   "22": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
   "23": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]}
  },
