@@ -10241,6 +10241,30 @@
     ["20", 5, "Bortoleto", "+5.053s", "15"],
     ["21", 77, "Bottas", "+5.522s", "14"],
     ["22", 51, "Camara", "+6.317s", "20"]
+   ],
+   "fp1": [
+    ["1", 11, "Perez", "", "1"],
+    ["2", 50, "Hirakawa", "", "1"],
+    ["3", 51, "Camara", "", "2"],
+    ["4", 77, "Bottas", "", "1"],
+    ["5", 38, "Beganovic", "", "1"],
+    ["6", 34, "Crawford", "", "1"],
+    ["7", 23, "Albon", "", "1"],
+    ["8", 12, "Antonelli", "", "1"],
+    ["9", 55, "Sainz", "", "1"],
+    ["10", 6, "Hadjar", "", "1"],
+    ["11", 5, "Bortoleto", "", "1"],
+    ["12", 3, "Verstappen", "", "1"],
+    ["13", 16, "Leclerc", "", "1"],
+    ["14", 27, "Hulkenberg", "", "1"],
+    ["15", 63, "Russell", "", "1"],
+    ["16", 10, "Gasly", "", "2"],
+    ["17", 43, "Colapinto", "", "2"],
+    ["18", 1, "Norris", "", "0"],
+    ["19", 18, "Stroll", "", "0"],
+    ["20", 30, "Lawson", "", "0"],
+    ["21", 41, "Lindblad", "", "0"],
+    ["22", 81, "Piastri", "", "0"]
    ]
   },
   "22": {"tyres": "123"},
@@ -23923,7 +23947,12 @@
    "slater": ["Freddie Slater", "Audi", "FP1 driver"],
    "herta": ["Colton Herta", "Cadillac", "FP1 driver"]
   },
-  "21": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"], "hirakawa": ["Ryo Hirakawa", "Haas F1 Team", "FP1 driver"]},
+  "21": {
+   "camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"],
+   "hirakawa": ["Ryo Hirakawa", "Haas F1 Team", "FP1 driver"],
+   "beganovic": ["Dino Beganovic", "Ferrari", "FP1 driver"],
+   "crawford": ["Jak Crawford", "Aston Martin", "FP1 driver"]
+  },
   "22": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
   "23": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]}
  },
