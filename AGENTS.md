@@ -62,6 +62,8 @@ The owner's other assistant reviews the site from time to time, so keep commits 
   - A driver who reached a part but set no time gets `"No time"` there; parts not reached stay `""`.
   - Disqualified from qualifying: pos `"DQ"`, row moved to the end, the drivers behind move up one.
 - `SEASON[round]["grid"]`: starting grid `[slot, car_no, surname]`, e.g. `[1, 1, "Norris"]`. Pit lane start: slot `"PL"`, at the end.
+  Decided before qualifying: the cars behind move up. Decided after the grid was set (e.g. a car repaired on the
+  grid): keep everyone's slot number and leave the gap; the page shows it as "Empty".
 - `GRIDNOTES[round]`: plain-English explanation of every penalty and pit lane start (shown under "Why the grid differs").
 - `SEASON[round]["race"]`: `[pos, car_no, surname, laps, time_or_gap, points, grid]`, where pos is `"NC"` if not classified.
 - `SEASON[round]["tyres"]`: Pirelli compounds as a 3-digit string hard→soft, e.g. `"345"` = C3/C4/C5.
