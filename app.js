@@ -557,7 +557,10 @@ function gridSection(n){
     return `<div class="slot${y[6]==="PL"?" pl":""}" style="border-top-color:${tcol(t)}"><b>${y[6]==="PL"?"PL":y[6]}</b><span>${esc(fullName(y[2]))}</span>${mark}</div>`;};
   const changed=rows.filter(y=>{const q=qpos[norm(y[2])];return y[6]==="PL"||q!==+y[6];});
   return `<div class="gridwrap">
-    <div><div class="gridviz"><div class="gcol l">${slots.filter((y,i)=>i%2===0).map(slot).join("")}</div><div class="gcol r">${slots.filter((y,i)=>i%2===1).map(slot).join("")}</div></div>
+    <div><div class="gridviz">${(()=>{const by={};slots.forEach(y=>by[+y[6]]=y);const mx=slots.length?Math.max(...slots.map(y=>+y[6])):0;
+        const cell=k=>by[k]?slot(by[k]):`<div class="slot" style="opacity:.45;border-top-style:dashed"><b>${k}</b><span style="color:var(--ink-3)">Empty</span></div>`;
+        const col=p=>Array.from({length:mx},(_,i)=>i+1).filter(k=>k%2===p).map(cell).join("");
+        return `<div class="gcol l">${col(1)}</div><div class="gcol r">${col(0)}</div>`;})()}</div>
       ${pl.length?`<div class="pitlane"><span class="lbl">Pit lane start</span>${pl.map(slot).join("")}</div>`:""}</div>
     <div class="gnotes"><h3>${g?"Why the grid differs from qualifying":"Grid matches qualifying"}</h3>
       ${g?`<ul>${g.split(/(?<=\.)\s+/).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:'<p class="note2" style="margin:0">Every driver started where they qualified.</p>'}
