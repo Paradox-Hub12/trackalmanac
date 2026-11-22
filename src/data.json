@@ -13,24 +13,24 @@
   "Cadillac": "#c9a227"
  },
  "DRIVERS": [
-  ["Kimi Antonelli", "ITA", "Mercedes", 390],
-  ["Max Verstappen", "NED", "Red Bull Racing", 279],
-  ["George Russell", "GBR", "Mercedes", 262],
-  ["Lewis Hamilton", "GBR", "Ferrari", 261],
-  ["Charles Leclerc", "MON", "Ferrari", 249],
-  ["Lando Norris", "GBR", "McLaren", 246],
-  ["Oscar Piastri", "AUS", "McLaren", 152],
+  ["Kimi Antonelli", "ITA", "Mercedes", 402],
+  ["Max Verstappen", "NED", "Red Bull Racing", 304],
+  ["Lewis Hamilton", "GBR", "Ferrari", 267],
+  ["George Russell", "GBR", "Mercedes", 264],
+  ["Lando Norris", "GBR", "McLaren", 264],
+  ["Charles Leclerc", "MON", "Ferrari", 250],
+  ["Oscar Piastri", "AUS", "McLaren", 167],
   ["Isack Hadjar", "FRA", "Red Bull Racing", 122],
   ["Liam Lawson", "NZL", "Racing Bulls", 89],
-  ["Pierre Gasly", "FRA", "Alpine", 42],
+  ["Pierre Gasly", "FRA", "Alpine", 52],
   ["Arvid Lindblad", "GBR", "Racing Bulls", 38],
-  ["Franco Colapinto", "ARG", "Alpine", 27],
+  ["Franco Colapinto", "ARG", "Alpine", 35],
   ["Oliver Bearman", "GBR", "Haas F1 Team", 23],
   ["Gabriel Bortoleto", "BRA", "Audi", 14],
   ["Nico Hulkenberg", "GER", "Audi", 14],
+  ["Carlos Sainz", "ESP", "Williams", 11],
   ["Esteban Ocon", "FRA", "Haas F1 Team", 7],
   ["Fernando Alonso", "ESP", "Aston Martin", 7],
-  ["Carlos Sainz", "ESP", "Williams", 7],
   ["Alexander Albon", "THA", "Williams", 5],
   ["Yuki Tsunoda", "JPN", "Racing Bulls", 1],
   ["Ryo Hirakawa", "JPN", "Haas F1 Team", 1],
@@ -40,15 +40,15 @@
   ["Rafael Camara", "BRA", "Haas F1 Team", 0]
  ],
  "CONSTRUCTORS": [
-  ["Mercedes", 652],
-  ["Ferrari", 510],
-  ["Red Bull Racing", 415],
-  ["McLaren", 398],
+  ["Mercedes", 666],
+  ["Ferrari", 517],
+  ["Red Bull Racing", 440],
+  ["McLaren", 431],
   ["Racing Bulls", 114],
-  ["Alpine", 69],
+  ["Alpine", 87],
   ["Haas F1 Team", 31],
   ["Audi", 28],
-  ["Williams", 12],
+  ["Williams", 16],
   ["Aston Martin", 7],
   ["Cadillac", 0]
  ],
@@ -7012,7 +7012,14 @@
    "date": "2026-11-21",
    "len": 6.201,
    "laps": 50,
-   "days": "19–21 Nov"
+   "days": "19–21 Nov",
+   "res": {
+    "time": "1:27:39.624",
+    "pod": [["Max Verstappen", "Winner"], ["Lando Norris", "+0.639s"], ["Oscar Piastri", "+1.529s"]],
+    "pole": "Kimi Antonelli",
+    "fl": ["Liam Lawson", "1:35.591", 50, 233.532],
+    "cls": "Max Verstappen won the Las Vegas Grand Prix from the front of the grid, 0.639 seconds ahead of Lando Norris, with Oscar Piastri third for a McLaren double podium. Kimi Antonelli, fastest in qualifying but sixth on the grid after an engine penalty, ran second until a late problem dropped him to fourth. George Russell hit the barrier at Turn 5 on lap 48 and fell to ninth. Lewis Hamilton and Charles Leclerc each received a 10-second penalty, Hamilton for gaining an advantage off track and Leclerc for colliding with his team-mate, and finished seventh and tenth. Alexander Albon did not start after his brakes overheated on the way to the grid."
+   }
   },
   {
    "r": 22,
@@ -10321,7 +10328,6 @@
     [4, 6, "Hadjar"],
     [5, 41, "Lindblad"],
     [6, 12, "Antonelli"],
-    [7, 30, "Lawson"],
     [8, 10, "Gasly"],
     [9, 43, "Colapinto"],
     [10, 16, "Leclerc"],
@@ -10336,7 +10342,32 @@
     [19, 77, "Bottas"],
     [20, 55, "Sainz"],
     [21, 18, "Stroll"],
-    [22, 87, "Bearman"]
+    [22, 87, "Bearman"],
+    ["PL", 30, "Lawson"]
+   ],
+   "race": [
+    ["1", 3, "Verstappen", 50, "1:27:39.624", 25, 1],
+    ["2", 1, "Norris", 50, "+0.639s", 18, 3],
+    ["3", 81, "Piastri", 50, "+1.529s", 15, 17],
+    ["4", 12, "Antonelli", 50, "+2.574s", 12, 6],
+    ["5", 10, "Gasly", 50, "+2.927s", 10, 8],
+    ["6", 43, "Colapinto", 50, "+7.955s", 8, 9],
+    ["7", 44, "Hamilton", 50, "+12.795s", 6, 11],
+    ["8", 55, "Sainz", 50, "+12.938s", 4, 20],
+    ["9", 63, "Russell", 50, "+13.192s", 2, 2],
+    ["10", 16, "Leclerc", 50, "+17.554s", 1, 10],
+    ["11", 27, "Hulkenberg", 50, "+22.720s", 0, 12],
+    ["12", 5, "Bortoleto", 50, "+28.602s", 0, 13],
+    ["13", 87, "Bearman", 50, "+28.843s", 0, 22],
+    ["14", 6, "Hadjar", 50, "+36.488s", 0, 4],
+    ["15", 30, "Lawson", 50, "+36.588s", 0, "PL"],
+    ["16", 51, "Camara", 50, "+47.814s", 0, 15],
+    ["17", 18, "Stroll", 50, "+1:08.353", 0, 21],
+    ["18", 77, "Bottas", 50, "+1:11.673", 0, 19],
+    ["19", 14, "Alonso", 49, "+1 lap", 0, 18],
+    ["NC", 41, "Lindblad", 19, "DNF", 0, 5],
+    ["NC", 11, "Perez", 17, "DNF", 0, 16],
+    ["NC", 23, "Albon", 0, "DNS", 0, 14]
    ]
   },
   "22": {"tyres": "123"},
@@ -11683,7 +11714,7 @@
   "18": "Lindblad drops five places from ninth to 14th for using a sixth internal combustion engine. Colapinto takes a 10-place grid penalty for a fourth control electronics unit and starts 20th. Bortoleto starts from the back of the grid after Audi fitted a completely new power unit, including his fourth energy store and control electronics. Stroll starts from the pit lane after Aston Martin changed his power unit and set-up and repaired damage under parc fermé.",
   "19": "Lawson was disqualified from qualifying, where he had been eighth, for breaching the minimum MGU-K power requirement just after the line on his fastest Q2 lap, and starts from the back. Verstappen drops one place, from fourth to fifth, for his clash with Lawson in second practice; Lawson's one-place penalty for the same incident no longer matters. Bottas has a 50-place grid penalty after Cadillac changed his engine, turbocharger, energy store, control electronics and MGU-K; he had qualified last. Hirakawa makes his F1 debut for Haas in place of Ocon.",
   "20": "Hamilton, Verstappen and Pérez start from the back, in their qualifying order, after taking more than 15 places of engine penalties. Hamilton qualified 11th; Ferrari first fitted a fifth engine (10 places), then replaced his whole power unit after final practice. Verstappen (a fifth engine, turbocharger and exhaust) and Pérez (a fifth engine and turbocharger and a fourth MGU-K) each have 30 places. Leclerc drops 10 places from fourth to 14th for a fifth engine, and Russell five from second to seventh for a sixth.",
-  "21": "Antonelli was fastest in qualifying but takes a five-place grid penalty for an extra internal combustion engine, so he starts 6th and Verstappen inherits pole. Piastri drops ten places from 7th to 17th for a fifth internal combustion engine. Sainz takes a ten-place penalty for a fifth turbocharger and starts 20th. Stroll takes a ten-place penalty for a new energy store and control electronics and starts 21st. Bearman starts last after Haas fitted several new power unit elements (35 places)."
+  "21": "Antonelli was fastest in qualifying but takes a five-place grid penalty for an extra internal combustion engine, so he starts 6th and Verstappen inherits pole. Piastri drops ten places from 7th to 17th for a fifth internal combustion engine. Sainz takes a ten-place penalty for a fifth turbocharger and starts 20th. Stroll takes a ten-place penalty for a new energy store and control electronics and starts 21st. Bearman starts last after Haas fitted several new power unit elements (35 places). Lawson started from the pit lane after Racing Bulls repaired a fuel leak, leaving 7th place empty. Albon did not start after his brakes overheated on the way to the grid."
  },
  "SCHED": {
   "17": [

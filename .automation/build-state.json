@@ -128,28 +128,28 @@
  ],
  "pages": {
   "/": {
-   "hash": "fa3fa957836ae57d687317d81db0c14ff0fd177c",
-   "lastmod": "2026-11-09"
+   "hash": "16a8f551ccf981f2c1a0a17721a40ee7ec3f9a89",
+   "lastmod": "2026-11-22"
   },
   "/championship/": {
-   "hash": "b5710b17e17b0aae6f7644612eb30db7cf3d3fac",
-   "lastmod": "2026-11-21"
+   "hash": "ad2536f10625fb622a55c4b63287b56bb068ae2c",
+   "lastmod": "2026-11-22"
   },
   "/what-if/without-antonelli/": {
    "hash": "2a376cff012497ba4562f596edc37df81ae3870d",
    "lastmod": "2026-11-08"
   },
   "/drivers/": {
-   "hash": "fb037bf4ffc0d2b239d16f73ce844ffb45a60143",
-   "lastmod": "2026-11-09"
+   "hash": "d7aac30acb5393ee405785de3760444ef30cdb01",
+   "lastmod": "2026-11-22"
   },
   "/teams/": {
-   "hash": "f0fad871240031d6e3707f99cc470a99772b2d2b",
-   "lastmod": "2026-11-09"
+   "hash": "8ce974bdeb72e562b425f2b3d8ada96fda9617f3",
+   "lastmod": "2026-11-22"
   },
   "/calendar/": {
-   "hash": "9da45306e2da3ecf3d6d9e9384d4d35b7bc384e6",
-   "lastmod": "2026-11-08"
+   "hash": "8b9a769b76bac019fa482d753812e07bdf686b17",
+   "lastmod": "2026-11-22"
   },
   "/races/2026/australia/": {
    "hash": "232406087e5ca18f8cb3ccae28ba4a1595a828d3",
@@ -232,8 +232,8 @@
    "lastmod": "2026-11-09"
   },
   "/races/2026/las-vegas/": {
-   "hash": "efe3c40958bfeb3e6da5004a97229dd8245e342a",
-   "lastmod": "2026-11-21"
+   "hash": "e28f870ffb62230d02adb37c622b18ccfab91850",
+   "lastmod": "2026-11-22"
   },
   "/races/2026/qatar/": {
    "hash": "f0713ecf4717336ee1df1cb61ceacd4e1f7f98a1",
@@ -244,20 +244,20 @@
    "lastmod": "2026-11-16"
   },
   "/history/": {
-   "hash": "e267bf0cfde9e775a027b5c58afb9e16ee602e5a",
-   "lastmod": "2026-11-09"
+   "hash": "f3839fab3517520b42203c2d5453514a0e5e87b4",
+   "lastmod": "2026-11-22"
   },
   "/history/circuits/": {
-   "hash": "b39a6a9f6f0c7f208808e770977a0adb6987a04b",
-   "lastmod": "2026-11-08"
+   "hash": "7a1a6d279ded7978c90cf51e4b6bf81978804192",
+   "lastmod": "2026-11-22"
   },
   "/history/regulations/": {
    "hash": "120f719baa438a3f7417bfc96a2e5e230ad70e27",
    "lastmod": "2026-10-21"
   },
   "/history/constructors/": {
-   "hash": "8476eca60a225f24acfb57d6a26a9138ea1c8ca8",
-   "lastmod": "2026-11-09"
+   "hash": "705dce00dff7d53052e0243dad572e7f3f2aad2b",
+   "lastmod": "2026-11-22"
   },
   "/archive/": {
    "hash": "0fba4e458b3c36f0b0c34261d1239919724a390e",
@@ -268,8 +268,8 @@
    "lastmod": "2026-11-16"
   },
   "/archive/2026/": {
-   "hash": "ff23e214fb4c831fd98154d4a7196cf43271ddec",
-   "lastmod": "2026-11-21"
+   "hash": "db91f3d0dcb4bfbfcac7ddcaee1b5d0a57363161",
+   "lastmod": "2026-11-22"
   },
   "/archive/2025/": {
    "hash": "32652a33b76d46d81079defdd3b052ebe8dff47c",
