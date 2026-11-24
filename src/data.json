@@ -7018,7 +7018,8 @@
     "pod": [["Max Verstappen", "Winner"], ["Lando Norris", "+0.639s"], ["Oscar Piastri", "+1.529s"]],
     "pole": "Kimi Antonelli",
     "fl": ["Liam Lawson", "1:35.591", 50, 233.532],
-    "cls": "Max Verstappen won the Las Vegas Grand Prix from the front of the grid, 0.639 seconds ahead of Lando Norris, with Oscar Piastri third for a McLaren double podium. Kimi Antonelli, fastest in qualifying but sixth on the grid after an engine penalty, ran second until a late problem dropped him to fourth. George Russell hit the barrier at Turn 5 on lap 48 and fell to ninth. Lewis Hamilton and Charles Leclerc each received a 10-second penalty, Hamilton for gaining an advantage off track and Leclerc for colliding with his team-mate, and finished seventh and tenth. Alexander Albon did not start after his brakes overheated on the way to the grid."
+    "cls": "Max Verstappen won the Las Vegas Grand Prix from the front of the grid, 0.639 seconds ahead of Lando Norris, with Oscar Piastri third for a McLaren double podium. Kimi Antonelli, fastest in qualifying but sixth on the grid after an engine penalty, ran second until a late problem dropped him to fourth. George Russell hit the barrier at Turn 5 on lap 48 and fell to ninth. Lewis Hamilton and Charles Leclerc each received a 10-second penalty, Hamilton for gaining an advantage off track and Leclerc for colliding with his team-mate, and finished seventh and tenth. Alexander Albon did not start after his brakes overheated on the way to the grid.",
+    "pit": ["Racing Bulls", "Liam Lawson", "2.27s"]
    }
   },
   {
@@ -10393,7 +10394,8 @@
     "41": [["S", 1, 19, 0]],
     "11": [["S", 1, 17, 0]]
    },
-   "wxm": [[11.6, 15.3, 12.3, 14.8, 21, 7.9], [12.5, 14.4, 14.7, 18.2, 0, 2.9], [11.6, 12.4, 13.1, 16.3, 0, 2.4]]
+   "wxm": [[11.6, 15.3, 12.3, 14.8, 21, 7.9], [12.5, 14.4, 14.7, 18.2, 0, 2.9], [11.6, 12.4, 13.1, 16.3, 0, 2.4]],
+   "wxnote": "A cold, dry race night, with air temperatures of 11.6–12.4°C and track temperatures of 13.1–16.3°C, after rain washed out Thursday's first practice."
   },
   "22": {"tyres": "123"},
   "23": {"tyres": "345"}
