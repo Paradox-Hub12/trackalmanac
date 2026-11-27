@@ -24189,7 +24189,7 @@
    "beganovic": ["Dino Beganovic", "Ferrari", "FP1 driver"],
    "crawford": ["Jak Crawford", "Aston Martin", "FP1 driver"]
   },
-  "22": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]},
+  "22": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"], "crawford": ["Jak Crawford", "Aston Martin", "FP1 driver"]},
   "23": {"camara": ["Rafael Câmara", "Haas F1 Team", "stand-in"]}
  },
  "NEWS": {
